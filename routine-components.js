@@ -6,6 +6,10 @@
     return value !== null && typeof value === "object" && !Array.isArray(value);
   }
 
+  function getPatternLabel(dayNumber) {
+    return dayNumber === 4 ? "보너스 패턴" : "패턴 " + dayNumber;
+  }
+
   function parseRoutineJson(text) {
     if (typeof text !== "string" || !text.trim()) {
       throw new Error("루틴 JSON 전체를 붙여넣어 주세요.");
@@ -52,7 +56,7 @@
       addError("routineSummary: 전체 운동 구성 안내문이 필요합니다.");
     }
     if (!Array.isArray(source.days) || source.days.length === 0) {
-      addError("days: 운동일을 한 개 이상 넣어 주세요.");
+      addError("days: 운동 패턴을 한 개 이상 넣어 주세요.");
     }
 
     const dayNumbers = new Set();
@@ -61,17 +65,17 @@
       source.days.forEach(function (day, dayIndex) {
         const position = "days의 " + (dayIndex + 1) + "번째 항목";
         if (!isObject(day)) {
-          addError(position + ": 운동일 정보는 객체여야 합니다.");
+          addError(position + ": 운동 패턴 정보는 객체여야 합니다.");
           return;
         }
         checkFields(day, ["day", "exercises"], position);
         checkInteger(day.day, 1, position + "의 day");
         if (Number.isSafeInteger(day.day) && day.day > 0) {
-          if (dayNumbers.has(day.day)) addError("DAY " + day.day + ": 운동일 번호가 중복됐습니다.");
+          if (dayNumbers.has(day.day)) addError(getPatternLabel(day.day) + ": 패턴 번호가 중복됐습니다.");
           dayNumbers.add(day.day);
         }
         const dayLabel = Number.isSafeInteger(day.day) && day.day > 0
-          ? "DAY " + day.day : position;
+          ? getPatternLabel(day.day) : position;
         if (!Array.isArray(day.exercises) || day.exercises.length === 0) {
           addError(dayLabel + ": exercises에 운동을 한 개 이상 넣어 주세요.");
           return;
@@ -458,12 +462,13 @@
     const root = element("div", "routine-components");
     routine.days.forEach(function (day) {
       const dayArea = element("section");
-      dayArea.setAttribute("aria-label", "DAY " + day.day);
+      dayArea.setAttribute("aria-label", getPatternLabel(day.day));
       dayArea.className = "routine-component-day";
+      if (day.day === 4) dayArea.classList.add("routine-component-bonus");
       const heading = element("h4", "routine-component-day-heading");
       const toggle = element("button", "routine-component-day-toggle");
       toggle.type = "button";
-      const label = element("span", "routine-component-day-label", "DAY " + day.day);
+      const label = element("span", "routine-component-day-label", getPatternLabel(day.day));
       const count = element("span", "routine-component-day-count", "운동 " + day.exercises.length + "개");
       const action = element("span", "routine-component-day-action", "▼ 운동 보기");
       toggle.append(label, count, action);
@@ -477,7 +482,7 @@
         preservePagePosition(function () {
           const willOpen = content.hidden;
           if (!willOpen) {
-            // 다른 DAY의 영상은 유지하고, 접는 DAY의 영상만 즉시 종료합니다.
+            // 다른 패턴의 영상은 유지하고, 접는 패턴의 영상만 즉시 종료합니다.
             Array.from(openMedia).forEach(function (media) {
               if (content.contains(media.area)) media.close();
             });
@@ -617,7 +622,7 @@
       validatedContext = getAdminContextKey();
       syncAdminApplyButton();
       const total = routine.days.reduce(function (sum, day) { return sum + day.exercises.length; }, 0);
-      message.textContent = "검사 완료 · " + routine.days.length + "개 운동일, 총 " + total + "개 운동입니다. 아직 회원에게 저장되지 않았습니다.";
+      message.textContent = "검사 완료 · " + routine.days.length + "개 패턴, 총 " + total + "개 운동입니다. 아직 회원에게 저장되지 않았습니다.";
     } catch (error) {
       input.setAttribute("aria-invalid", "true");
       message.textContent = error.message || "루틴 JSON을 확인해 주세요.";

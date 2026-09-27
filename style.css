@@ -3600,7 +3600,7 @@ body.camera-open {
   max-width: 100%;
 }
 
-/* DAY별 운동 목록 접기·펼치기 — style.css 맨 아래에 추가 */
+/* 패턴별 운동 목록 접기·펼치기 */
 .routine-component-day {
   min-width: 0;
   margin-top: 12px;
@@ -3656,6 +3656,27 @@ body.camera-open {
   outline-offset: 3px;
 }
 
+/* 보너스 패턴은 선택형 운동 구성으로 차분한 무채색을 사용합니다. */
+.routine-component-bonus > .routine-component-day-heading > .routine-component-day-toggle {
+  border-color: #d6d6d6;
+  background: #f3f3f3;
+  color: #4b4b4b;
+}
+
+.routine-component-bonus .routine-component-day-label {
+  white-space: normal;
+  word-break: keep-all;
+}
+
+.routine-component-bonus .routine-component-day-count,
+.routine-component-bonus .routine-component-day-action {
+  color: #666666;
+}
+
+.routine-component-bonus > .routine-component-day-heading > .routine-component-day-toggle:focus-visible {
+  outline-color: #737373;
+}
+
 .routine-component-day-content {
   min-width: 0;
   padding-top: 12px;
@@ -3665,14 +3686,14 @@ body.camera-open {
   display: none !important;
 }
 
-/* 펼쳐진 DAY 아래 구분선 — 마지막 DAY는 제외 */
+/* 펼쳐진 패턴 아래 구분선 — 마지막 패턴은 제외 */
 .routine-component-day:has(+ .routine-component-day)
   > .routine-component-day-content:not([hidden]) {
   padding-bottom: 20px;
   border-bottom: 1px solid var(--brand-border);
 }
 
-/* 펼쳐진 DAY와 다음 DAY 버튼 사이 여백 */
+/* 펼쳐진 패턴과 다음 패턴 버튼 사이 여백 */
 .routine-component-day:has(
   > .routine-component-day-content:not([hidden])
 ) + .routine-component-day {
