@@ -1,5 +1,5 @@
 // 운동 구성 컴포넌트 DB — 시제품용 로컬 데이터
-// 출처: 2026-09-26 첨부된 '운동 구성 컴포넌트 DB'의 운동DB_MASTER.
+// 출처: 2026-09-27 Google Sheets 원본 '운동 구성 컴포넌트 DB'의 운동DB_MASTER.
 // Google Sheets와 자동 동기화되지 않습니다.
 // 운동ID, 설명, 난이도, 이미지/영상 주소는 첨부 데이터 기준입니다.
 // 횟수, 세트, 휴식시간, 운동 순서는 회원별 루틴에서 따로 관리합니다.
@@ -363,6 +363,74 @@
       difficulty: 2,
       cautionTags: ["고관절","무릎"],
       videoUrl: "https://youtu.be/B3zqt-jfIXY",
+      defaultGifUrl: "",
+      enabled: true
+    },
+    {
+      exerciseId: "EX022",
+      imageUrl: "https://drive.google.com/file/d/1LGz0GqHv1e7y3zI0S45aCmvgn-IRXgFp/view?usp=drive_link",
+      name: "버드 독",
+      bodyParts: ["코어","허리 주변"],
+      exerciseType: "코어_교차안정",
+      equipmentType: "맨몸",
+      purposeTags: ["코어안정","균형","자세유지"],
+      benefits: "몸통을 안정적으로 유지하는 힘과 좌우 균형을 기르는 데 도움을 줍니다.",
+      instructions: "네발기기 자세에서 배에 힘을 주고 허리가 과하게 꺾이지 않게 유지합니다. 한쪽 팔과 반대쪽 다리를 길게 뻗은 뒤 천천히 돌아옵니다.",
+      alternativeExerciseIds: ["EX024"],
+      difficulty: 2,
+      cautionTags: ["손목"],
+      videoUrl: "",
+      defaultGifUrl: "",
+      enabled: true
+    },
+    {
+      exerciseId: "EX023",
+      imageUrl: "https://drive.google.com/file/d/14oTfQFcPvLOVQg2EcXrUeixPGdHY2ngf/view?usp=drive_link",
+      name: "크런치",
+      bodyParts: ["복부"],
+      exerciseType: "코어_몸통굴곡",
+      equipmentType: "맨몸",
+      purposeTags: ["복부근력","코어"],
+      benefits: "복부 근력을 강화하고 몸통을 안정적으로 움직이는 데 도움을 줍니다.",
+      instructions: "무릎을 세우고 누운 뒤 허리가 과하게 뜨지 않도록 유지합니다. 배에 힘을 주며 어깨뼈가 바닥에서 살짝 떨어질 정도까지만 상체를 들어 올리고 천천히 내려옵니다.",
+      alternativeExerciseIds: ["EX022"],
+      difficulty: 1,
+      cautionTags: ["허리","목"],
+      videoUrl: "",
+      defaultGifUrl: "",
+      enabled: true
+    },
+    {
+      exerciseId: "EX024",
+      imageUrl: "https://drive.google.com/file/d/14msyk5wgZNJmJrkTUTn4RPwUm7qpZ2Rh/view?usp=drive_link",
+      name: "브릿지",
+      bodyParts: ["엉덩이","허벅지 뒤","코어"],
+      exerciseType: "하체_고관절신전_맨몸",
+      equipmentType: "맨몸",
+      purposeTags: ["둔근","코어안정","고관절신전"],
+      benefits: "엉덩이와 허벅지 뒤쪽을 강화하고 골반과 몸통을 안정적으로 유지하는 데 도움을 줍니다.",
+      instructions: "무릎을 세우고 누운 상태에서 발바닥을 바닥에 고정합니다. 엉덩이에 힘을 주며 골반을 들어 올리고 허리를 과하게 젖히지 않은 채 천천히 내려옵니다.",
+      alternativeExerciseIds: ["EX020"],
+      difficulty: 1,
+      cautionTags: ["허리","무릎"],
+      videoUrl: "",
+      defaultGifUrl: "",
+      enabled: true
+    },
+    {
+      exerciseId: "EX025",
+      imageUrl: "https://drive.google.com/file/d/1tLITya3UCcPU5qGCnQ9K1AWQ7a550ncT/view?usp=drive_link",
+      name: "캣 카우",
+      bodyParts: ["등","허리","목"],
+      exerciseType: "전신_척추가동성",
+      equipmentType: "맨몸",
+      purposeTags: ["가동성","몸풀기","자세조절"],
+      benefits: "등과 허리의 움직임을 부드럽게 하고 몸통을 천천히 조절하는 감각을 익히는 데 도움을 줍니다.",
+      instructions: "네발기기 자세에서 숨을 내쉬며 등을 천천히 둥글게 만들고, 반대로 가슴을 열며 허리를 편안하게 움직입니다. 통증이 없는 범위에서 부드럽게 반복합니다.",
+      alternativeExerciseIds: [],
+      difficulty: 1,
+      cautionTags: ["손목"],
+      videoUrl: "",
       defaultGifUrl: "",
       enabled: true
     }
