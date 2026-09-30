@@ -457,86 +457,8 @@
 
   let daySequence = 0;
 
-  // 회원 화면은 한 패턴씩 표시합니다. 카드는 기존 상세설명·영상·확대를 그대로 사용합니다.
-  function renderTabbedRoutine(routine) {
-    const root = element("div", "routine-components routine-components-tabbed");
-    const tabs = element("div", "routine-pattern-tabs");
-    tabs.setAttribute("role", "tablist");
-    tabs.setAttribute("aria-label", "운동 패턴 선택");
-    tabs.style.setProperty("--routine-pattern-columns", String(Math.min(routine.days.length, 4)));
-    const entries = [];
-    let selectedIndex = 0;
-
-    function selectPattern(index, moveFocus) {
-      if (index !== selectedIndex) {
-        const previousPanel = entries[selectedIndex].panel;
-        Array.from(openMedia).forEach(function (media) {
-          if (previousPanel.contains(media.area)) media.close();
-        });
-      }
-      entries.forEach(function (entry, entryIndex) {
-        const selected = entryIndex === index;
-        entry.tab.setAttribute("aria-selected", String(selected));
-        entry.tab.tabIndex = selected ? 0 : -1;
-        entry.panel.hidden = !selected;
-      });
-      selectedIndex = index;
-      if (moveFocus) entries[index].tab.focus({ preventScroll: true });
-    }
-
-    routine.days.forEach(function (day, index) {
-      daySequence += 1;
-      const id = "routine-pattern-" + daySequence;
-      const label = getPatternLabel(day.day);
-      const tab = element("button", "routine-pattern-tab", day.day === 4 ? "보너스" : label);
-      tab.type = "button";
-      tab.id = id + "-tab";
-      tab.dataset.patternDay = String(day.day);
-      tab.setAttribute("role", "tab");
-      tab.setAttribute("aria-label", label);
-      tab.setAttribute("aria-controls", id + "-panel");
-      const panel = element("section", "routine-pattern-panel");
-      panel.id = id + "-panel";
-      panel.tabIndex = 0;
-      panel.setAttribute("role", "tabpanel");
-      panel.setAttribute("aria-labelledby", tab.id);
-      panel.append(element("p", "routine-pattern-caption", label + " · 운동 " + day.exercises.length + "개"));
-      day.exercises.forEach(function (exercise) {
-        panel.append(createExerciseCard(exercise));
-      });
-      entries.push({ tab, panel });
-      tabs.append(tab);
-      tab.addEventListener("click", function () {
-        preservePagePosition(function () { selectPattern(index, false); });
-      });
-      tab.addEventListener("keydown", function (event) {
-        let nextIndex;
-        if (event.key === "ArrowRight") nextIndex = (index + 1) % entries.length;
-        else if (event.key === "ArrowLeft") nextIndex = (index - 1 + entries.length) % entries.length;
-        else if (event.key === "Home") nextIndex = 0;
-        else if (event.key === "End") nextIndex = entries.length - 1;
-        else return;
-        event.preventDefault();
-        preservePagePosition(function () { selectPattern(nextIndex, true); });
-      });
-    });
-    root.append(tabs);
-    entries.forEach(function (entry) { root.append(entry.panel); });
-    selectPattern(0, false);
-
-    const summary = element("details", "routine-component-summary");
-    const summaryToggle = element("summary");
-    const chevron = element("span", "routine-summary-chevron");
-    chevron.setAttribute("aria-hidden", "true");
-    summaryToggle.append(element("span", "", "이번 운동 구성 안내"), chevron);
-    summary.append(summaryToggle, element("p", "", routine.routineSummary.replace(/([.!?。！？])[ \t]+/g, "$1\n")));
-    root.append(summary);
-    return root;
-  }
-
-  // 관리자 미리보기는 기존 접기·펼치기를 유지합니다.
-  function renderRoutine(routine, options) {
-    if (options && options.layout === "tabs") return renderTabbedRoutine(routine);
+  // 관리자 미리보기와 회원 화면에서 같은 렌더러를 사용합니다.
+  function renderRoutine(routine) {
     const root = element("div", "routine-components");
     routine.days.forEach(function (day) {
       const dayArea = element("section");

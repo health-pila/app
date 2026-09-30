@@ -4077,45 +4077,6 @@ const toggleRoutineDescriptionButton = document.querySelector(
   "#toggleRoutineDescriptionButton"
 );
 const logoutButton = document.querySelector("#logoutButton");
-
-// 상단 더보기: 바깥 클릭, Escape, 탭 이동과 로그아웃 시 닫습니다.
-(function () {
-  const menu = document.querySelector("#memberMenu");
-  const toggle = document.querySelector("#memberMenuToggle");
-  const panel = document.querySelector("#memberMenuPanel");
-  function closeMenu() {
-    panel.hidden = true;
-    toggle.setAttribute("aria-expanded", "false");
-    toggle.setAttribute("aria-label", "메뉴 열기");
-  }
-  toggle.addEventListener("click", function () {
-    const willOpen = panel.hidden;
-    panel.hidden = !willOpen;
-    toggle.setAttribute("aria-expanded", String(willOpen));
-    toggle.setAttribute("aria-label", willOpen ? "메뉴 닫기" : "메뉴 열기");
-    if (willOpen) logoutButton.focus({ preventScroll: true });
-  });
-  document.addEventListener("click", function (event) {
-    if (!menu.contains(event.target)) closeMenu();
-  });
-  document.addEventListener("focusin", function (event) {
-    if (!menu.contains(event.target)) closeMenu();
-  });
-  document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape" && !panel.hidden) {
-      event.preventDefault();
-      closeMenu();
-      toggle.focus({ preventScroll: true });
-    }
-  });
-  logoutButton.addEventListener("click", closeMenu);
-  memberTabButtons.forEach(function (button) {
-    button.addEventListener("click", closeMenu);
-  });
-  new MutationObserver(function () {
-    if (appScreen.hidden) closeMenu();
-  }).observe(appScreen, { attributes: true, attributeFilter: ["hidden"] });
-})();
 const refreshMemberAppButton =
   document.querySelector("#refreshMemberAppButton");
 
@@ -7502,19 +7463,11 @@ memberRoutineComponents.setAttribute("aria-label", "배정된 운동 구성");
 memberRoutineComponents.hidden = true;
 routineCarousel.insertAdjacentElement("afterend", memberRoutineComponents);
 let memberRoutineComponentsKey = null;
-const memberRoutineSummary = document.querySelector("#memberRoutineSummary");
-const memberWorkoutTitle = document.querySelector("#memberWorkoutTitle");
-const memberRoutinePlaceholder = document.querySelector("#memberRoutinePlaceholder");
 
 function resetMemberRoutineComponents() {
   memberRoutineComponents.replaceChildren();
   memberRoutineComponents.hidden = true;
   memberRoutineComponentsKey = null;
-  memberRoutineSummary.replaceChildren();
-  memberRoutineSummary.hidden = true;
-  memberWorkoutTitle.textContent = "나의 운동 구성";
-  memberRoutinePlaceholder.textContent = "운동 구성을 불러오고 있어요.";
-  memberRoutinePlaceholder.hidden = false;
 }
 
 function prepareMemberRoutineComponents(data, userId) {
@@ -7529,7 +7482,7 @@ function prepareMemberRoutineComponents(data, userId) {
   return {
     key,
     node: key === memberRoutineComponentsKey
-      ? null : window.RoutineComponents.renderRoutine(routine, { layout: "tabs" })
+      ? null : window.RoutineComponents.renderRoutine(routine)
   };
 }
 
@@ -7538,17 +7491,12 @@ function showMemberRoutineComponents(prepared) {
     if (memberRoutineComponentsKey !== null) resetMemberRoutineComponents();
     return;
   }
-  // 내용이 같으면 선택한 패턴, 상세설명, 영상과 안내 펼침 상태를 유지합니다.
+  // 내용이 같으면 펼친 상세설명과 영상, 기존 DOM을 유지합니다.
   if (prepared.key !== memberRoutineComponentsKey) {
-    const summary = prepared.node.querySelector(".routine-component-summary");
-    memberRoutineSummary.replaceChildren(summary);
     memberRoutineComponents.replaceChildren(prepared.node);
     memberRoutineComponentsKey = prepared.key;
   }
   memberRoutineComponents.hidden = false;
-  memberRoutineSummary.hidden = false;
-  memberWorkoutTitle.textContent = "나의 운동 패턴";
-  memberRoutinePlaceholder.hidden = true;
 }
 
 function getRoutineImageKey(item) {
@@ -8026,7 +7974,6 @@ async function loadMemberRoutine(
 
       assignedRoutineName.textContent =
         "배정된 루틴이 없습니다.";
-      memberRoutinePlaceholder.textContent = "아직 배정된 운동 구성이 없어요. 아래에서 새 운동 구성을 신청해 주세요.";
 
       updateRoutineRequestStatus(userId, null);
 
@@ -8100,11 +8047,6 @@ async function loadMemberRoutine(
       );
     }
     showMemberRoutineComponents(preparedComponents);
-    if (!hasRoutineComponents) {
-      memberWorkoutTitle.textContent = "나의 운동 구성";
-      memberRoutinePlaceholder.hidden = imageItems.length > 0;
-      memberRoutinePlaceholder.textContent = "등록된 운동 이미지가 없습니다.";
-    }
 
     assignedRoutineName.textContent =
       data.routine_name;
@@ -8139,8 +8081,6 @@ async function loadMemberRoutine(
     if (!keepCurrent) {
       assignedRoutineName.textContent =
         "루틴을 불러오지 못했습니다.";
-      memberRoutinePlaceholder.textContent = "운동 구성을 불러오지 못했어요. 상단 새로고침 버튼으로 다시 확인해 주세요.";
-      memberRoutinePlaceholder.hidden = false;
 
       updateRoutineRequestStatus(userId, null);
     }
@@ -10055,8 +9995,6 @@ initializeLogin();
   const widget = document.querySelector("#memberRestTimer");
   const toggle = document.querySelector("#restTimerToggle");
   const toggleLabel = document.querySelector("#restTimerToggleLabel");
-  const quickToggle = document.querySelector("#restTimerQuickToggle");
-  const quickLabel = document.querySelector("#restTimerQuickLabel");
   const panel = document.querySelector("#restTimerPanel");
   const close = document.querySelector("#restTimerClose");
   const display = document.querySelector("#restTimerDisplay");
@@ -10065,8 +10003,7 @@ initializeLogin();
   const reset = document.querySelector("#restTimerReset");
   const presets = Array.from(document.querySelectorAll("[data-rest-seconds]"));
   const nav = document.querySelector(".member-bottom-nav");
-  if (!app || !routinePanel || !widget || !toggle || !panel || !quickToggle) return;
-  let lastTrigger = toggle;
+  if (!app || !routinePanel || !widget || !toggle || !panel) return;
 
   let duration = 60;
   let remaining = duration * 1000;
@@ -10105,9 +10042,6 @@ initializeLogin();
     setText(toggleLabel, phase === "idle" ? "휴식 타이머" :
       phase === "finished" ? "휴식 끝!" :
       phase === "paused" ? time + " · 일시정지" : time + " · 휴식 중");
-    setText(quickLabel, toggleLabel.textContent);
-    quickToggle.hidden = phase === "idle" || !panel.hidden;
-    toggle.dataset.phase = phase;
     setText(start, phase === "running" ? "일시정지" :
       phase === "paused" ? "계속" : phase === "finished" ? "다시 시작" : "시작");
     setText(status, phase === "finished" ? "휴식 끝! 다음 세트를 시작해 주세요." :
@@ -10133,13 +10067,6 @@ initializeLogin();
   function collapse() {
     panel.hidden = true;
     toggle.setAttribute("aria-expanded", "false");
-    quickToggle.setAttribute("aria-expanded", "false");
-    render();
-  }
-
-  function focusTrigger() {
-    const target = lastTrigger.hidden ? toggle : lastTrigger;
-    target.focus({ preventScroll: true });
   }
 
   function resetTimer() {
@@ -10171,23 +10098,18 @@ initializeLogin();
     scheduleTick();
   }
 
-  function togglePanel(event) {
+  toggle.addEventListener("click", function () {
     if (widget.hidden) return;
-    lastTrigger = event.currentTarget;
     updateRemaining();
+    render();
     panel.hidden = !panel.hidden;
     toggle.setAttribute("aria-expanded", String(!panel.hidden));
-    quickToggle.setAttribute("aria-expanded", String(!panel.hidden));
-    render();
-    if (!panel.hidden) close.focus({ preventScroll: true });
     scheduleTick();
-  }
-  toggle.addEventListener("click", togglePanel);
-  quickToggle.addEventListener("click", togglePanel);
+  });
 
   close.addEventListener("click", function () {
     collapse();
-    focusTrigger();
+    toggle.focus({ preventScroll: true });
   });
 
   start.addEventListener("click", function () {
@@ -10226,16 +10148,16 @@ initializeLogin();
     });
   });
 
-  document.addEventListener("keydown", function (event) {
+  widget.addEventListener("keydown", function (event) {
     if (event.key === "Escape" && !panel.hidden) {
       event.preventDefault();
       collapse();
-      focusTrigger();
+      toggle.focus({ preventScroll: true });
     }
   });
 
   document.addEventListener("click", function (event) {
-    if (!panel.hidden && !widget.contains(event.target) && !toggle.contains(event.target)) collapse();
+    if (!panel.hidden && !widget.contains(event.target)) collapse();
   });
 
   const observer = new MutationObserver(syncVisibility);
