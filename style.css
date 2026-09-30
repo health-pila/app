@@ -4059,7 +4059,7 @@ body.camera-open {
   background: #eef1f5;
 }
 
-#appScreen .member-app-topbar {
+:is(#appScreen, #adminScreen) .member-app-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4071,7 +4071,7 @@ body.camera-open {
   border-bottom: 1px solid #e4e8ef;
 }
 
-#appScreen .member-app-topbar .screen-logo-top {
+:is(#appScreen, #adminScreen) .member-app-topbar .screen-logo-top {
   flex-shrink: 0;
   width: 132px;
   height: 40px;
@@ -4086,7 +4086,7 @@ body.camera-open {
   gap: 4px;
 }
 
-#appScreen .member-refresh-button,
+:is(#appScreen, #adminScreen) .member-refresh-button,
 .member-menu-toggle {
   display: grid;
   place-items: center;
@@ -4100,13 +4100,13 @@ body.camera-open {
   cursor: pointer;
 }
 
-#appScreen .member-refresh-button:active,
+:is(#appScreen, #adminScreen) .member-refresh-button:active,
 .member-menu-toggle[aria-expanded="true"] {
   color: var(--brand-navy);
   background: #eef1f5;
 }
 
-#appScreen .member-app-topbar svg,
+:is(#appScreen, #adminScreen) .member-app-topbar svg,
 .member-nav-icon,
 .member-inline-timer svg,
 .rest-timer-toggle svg {
@@ -4149,7 +4149,8 @@ body.camera-open {
   box-shadow: 0 8px 24px rgba(23, 35, 62, 0.14);
 }
 
-#appScreen #logoutButton {
+#appScreen #logoutButton,
+#adminScreen #adminLogoutButton {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -4162,7 +4163,8 @@ body.camera-open {
   text-align: left;
 }
 
-#appScreen #logoutButton:hover {
+#appScreen #logoutButton:hover,
+#adminScreen #adminLogoutButton:hover {
   background: #eef1f5;
 }
 
@@ -4306,66 +4308,66 @@ body.camera-open {
   line-height: 1.5;
 }
 
-#appScreen .routine-component-card {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-card {
   padding: 14px 2px;
   border: 0;
   border-radius: 0;
 }
 
-#appScreen .routine-component-card + .routine-component-card {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-card + .routine-component-card {
   border-top: 1px solid #e4e8ef;
 }
 
-#appScreen .routine-component-main {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-main {
   grid-template-columns: 66px minmax(0, 1fr);
 }
 
-#appScreen .routine-component-image-area {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-image-area {
   width: 66px;
   height: 66px;
   border-radius: 12px;
 }
 
-#appScreen .routine-component-title {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-title {
   gap: 5px;
 }
 
-#appScreen .routine-component-number {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-number {
   font-size: 12px;
 }
 
-#appScreen .routine-component-name {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-name {
   color: var(--brand-navy);
   font-size: 16px;
   font-weight: 800;
   line-height: 1.4;
 }
 
-#appScreen .routine-component-body-parts {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-body-parts {
   margin: 3px 0 5px;
   font-size: 12px;
 }
 
-#appScreen .routine-component-dose {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-dose {
   font-size: 14px;
 }
 
-#appScreen .routine-component-rest {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-rest {
   font-size: 12px;
 }
 
-#appScreen .routine-component-actions {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-actions {
   margin-top: 10px;
 }
 
-#appScreen .routine-component-actions button {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-actions button {
   color: #526078;
   border-color: #dce2eb;
   border-radius: 8px;
   font-weight: 600;
 }
 
-#appScreen .routine-component-actions button[aria-expanded="true"] {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-actions button[aria-expanded="true"] {
   color: var(--brand-orange);
   border-color: var(--brand-orange);
 }
@@ -4374,7 +4376,7 @@ body.camera-open {
   margin: 0 14px 16px;
 }
 
-#appScreen .routine-component-summary {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-summary {
   margin: 0;
   padding: 0 16px;
   background: #e5ebf3;
@@ -4415,7 +4417,7 @@ body.camera-open {
   transform: translateY(2px) rotate(225deg);
 }
 
-#appScreen .routine-component-summary p {
+:is(#appScreen, #adminRoutineJsonPreview) .routine-component-summary p {
   padding-bottom: 16px;
   font-size: 13px;
   line-height: 1.8;
@@ -4467,8 +4469,9 @@ body.camera-open {
 }
 
 .member-menu-toggle:focus-visible,
-#appScreen .member-refresh-button:focus-visible,
+:is(#appScreen, #adminScreen) .member-refresh-button:focus-visible,
 #appScreen #logoutButton:focus-visible,
+#adminScreen #adminLogoutButton:focus-visible,
 .member-inline-timer:focus-visible,
 .routine-pattern-tab:focus-visible,
 .routine-pattern-panel:focus-visible,
@@ -4494,13 +4497,200 @@ body.camera-open {
     padding-left: 10px;
   }
 
-  #appScreen .routine-component-main {
+  :is(#appScreen, #adminRoutineJsonPreview) .routine-component-main {
     grid-template-columns: 60px minmax(0, 1fr);
     gap: 9px;
   }
 
-  #appScreen .routine-component-image-area {
+  :is(#appScreen, #adminRoutineJsonPreview) .routine-component-image-area {
     width: 60px;
     height: 60px;
+  }
+}
+
+/* v51: 회원 화면과 같은 배경·헤더·카드 체계를 관리자 화면에 적용합니다. */
+#adminScreen {
+  padding: 0 0 calc(32px + env(safe-area-inset-bottom));
+  background: #eef1f5;
+}
+
+.admin-app-hero {
+  padding: 22px 20px 20px;
+}
+
+.admin-app-eyebrow {
+  margin: 0 0 6px;
+  color: #657087;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.admin-app-hero h1 {
+  margin: 0 0 8px;
+  color: var(--brand-orange);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.8px;
+  word-break: keep-all;
+}
+
+.admin-app-intro {
+  margin: 0;
+  color: #657087;
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+#adminScreen > .admin-card {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  margin: 0 14px 16px;
+  padding: 18px 16px;
+  background: #fff;
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(23, 35, 62, 0.05);
+}
+
+#adminScreen .admin-card > * {
+  min-width: 0;
+}
+
+#adminScreen .admin-section-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+#adminScreen .admin-section-title::before {
+  flex-shrink: 0;
+  width: 4px;
+  height: 18px;
+  background: var(--brand-orange);
+  border-radius: 4px;
+  content: "";
+}
+
+#adminScreen .admin-section-description {
+  margin: 0 0 4px;
+  color: #657087;
+}
+
+#adminScreen .admin-card input,
+#adminScreen .admin-card select,
+#adminScreen .admin-card textarea {
+  max-width: 100%;
+  min-width: 0;
+  color: var(--brand-navy);
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+#adminScreen .admin-card input,
+#adminScreen .admin-card select {
+  min-height: 44px;
+}
+
+#adminScreen .admin-card textarea {
+  resize: vertical;
+}
+
+#adminScreen .admin-message {
+  overflow-wrap: anywhere;
+}
+
+#adminScreen .admin-inquiry-setting {
+  background: #e5ebf3;
+  border: 0;
+  border-radius: 14px;
+}
+
+#adminScreen .admin-inquiry-filters,
+#adminScreen .admin-routine-format-buttons {
+  gap: 4px;
+  padding: 4px;
+  background: #eef1f5;
+  border-radius: 12px;
+}
+
+#adminScreen .admin-inquiry-filter-button,
+#adminScreen .admin-routine-format-button {
+  min-height: 42px;
+  color: #657087;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+}
+
+#adminScreen .admin-inquiry-filter-button.is-active,
+#adminScreen .admin-routine-format-button[aria-pressed="true"] {
+  color: #fff;
+  background: var(--brand-navy);
+  border-color: var(--brand-navy);
+}
+
+#adminScreen .admin-routine-format-button:disabled[aria-pressed="false"] {
+  opacity: 0.55;
+}
+
+#adminScreen .admin-routine-request-card,
+#adminScreen .admin-inquiry-card {
+  border-color: #e4e8ef;
+  border-radius: 14px;
+}
+
+#adminScreen .admin-routine-request-select-button {
+  min-height: 36px;
+  padding: 8px 12px;
+}
+
+#adminRoutineJsonPreview {
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #e4e8ef;
+  border-radius: 16px;
+}
+
+#adminRoutineJsonPreview .routine-component-summary {
+  margin-top: 16px;
+  padding-right: 12px;
+  padding-left: 12px;
+}
+
+#adminScreen .admin-routine-json-panel > h3 {
+  font-size: 17px;
+}
+
+#adminScreen .admin-card input:focus-visible,
+#adminScreen .admin-card select:focus-visible,
+#adminScreen .admin-card textarea:focus-visible,
+#adminScreen .admin-inquiry-filter-button:focus-visible {
+  outline: 2px solid var(--brand-orange);
+  outline-offset: 2px;
+}
+
+@media (max-width: 360px) {
+  .admin-app-hero {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  #adminScreen > .admin-card {
+    margin-right: 10px;
+    margin-left: 10px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  #adminRoutineJsonPreview {
+    padding-right: 8px;
+    padding-left: 8px;
   }
 }

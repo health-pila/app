@@ -534,7 +534,7 @@
     return root;
   }
 
-  // 관리자 미리보기는 기존 접기·펼치기를 유지합니다.
+  // 필요할 때 기존 접기·펼치기 방식도 사용할 수 있습니다.
   function renderRoutine(routine, options) {
     if (options && options.layout === "tabs") return renderTabbedRoutine(routine);
     const root = element("div", "routine-components");
@@ -694,7 +694,7 @@
     clearPreview();
     try {
       const routine = parseRoutineJson(input.value);
-      preview.replaceChildren(renderRoutine(routine));
+      preview.replaceChildren(renderRoutine(routine, { layout: "tabs" }));
       preview.hidden = false;
       validatedText = input.value;
       validatedContext = getAdminContextKey();

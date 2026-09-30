@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=50">
+  <link rel="stylesheet" href="style.css?v=51">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ec6a1a">
 
@@ -355,18 +355,29 @@
 
   <main id="adminScreen" class="app admin-screen" hidden>
     <div class="member-app-topbar admin-app-topbar">
-      <span class="member-app-topbar-spacer" aria-hidden="true"></span>
-
       <img class="screen-logo screen-logo-top" src="images/center-logo.png" alt="헬스와 필라테스 화곡점">
-
-      <button id="refreshAdminAppButton" class="member-refresh-button" type="button" aria-label="관리자 화면 새로고침">
-        <span aria-hidden="true">↻</span>
-        <span>새로고침</span>
-      </button>
+      <div class="member-topbar-actions">
+        <button id="refreshAdminAppButton" class="member-refresh-button" type="button" aria-label="관리자 화면 새로고침" title="새로고침">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 7v5h-5M4 17v-5h5M19 11a7 7 0 0 0-12-5L4 9m1 4a7 7 0 0 0 12 5l3-3"/></svg>
+          <span class="member-sr-only">새로고침</span>
+        </button>
+        <div id="adminMenu" class="member-menu">
+          <button id="adminMenuToggle" class="member-menu-toggle" type="button" aria-label="메뉴 열기" aria-expanded="false" aria-controls="adminMenuPanel">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+          </button>
+          <div id="adminMenuPanel" class="member-menu-panel" hidden>
+            <button id="adminLogoutButton" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 4H4v16h5m6-12 4 4-4 4m-7-4h11"/></svg>
+              <span>로그아웃</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-    <header class="header">
-      <p class="label">관리자 페이지</p>
+    <header class="admin-app-hero">
+      <p class="admin-app-eyebrow">관리자</p>
       <h1>센터 운영 관리</h1>
+      <p class="admin-app-intro">회원의 운동 구성과 센터 소식을 관리해요.</p>
     </header>
 
     <!-- 회원 1:1 문의 관리 -->
@@ -440,11 +451,11 @@
     <!-- 새 루틴 신청 알림 -->
     <section id="adminRoutineRequestManagement" class="admin-card">
       <h2 class="admin-section-title">
-        새 루틴 신청
+        새 운동 구성 신청
       </h2>
 
       <p class="admin-section-description">
-        새로운 루틴을 신청한 회원을 확인할 수 있습니다.
+        새로운 운동 구성을 신청한 회원을 확인할 수 있습니다.
       </p>
 
       <p id="adminRoutineRequestListMessage" class="admin-message" aria-live="polite">
@@ -454,7 +465,8 @@
       <div id="adminRoutineRequestList" class="admin-routine-request-list"></div>
     </section>
 
-    <section class="admin-card">
+    <section id="adminMemberManagement" class="admin-card" aria-labelledby="adminMemberManagementTitle">
+      <h2 id="adminMemberManagementTitle" class="admin-section-title">회원 선택</h2>
       <label for="adminMemberSearch">회원 검색</label>
 
       <input id="adminMemberSearch" type="search" placeholder="이름, 전화번호 뒷자리, 이메일 검색" autocomplete="off">
@@ -472,7 +484,7 @@
 
     <section id="adminRoutineEditor" class="admin-card" hidden>
       <h2 id="adminRoutineEditorTitle" class="admin-section-title">
-        회원 루틴 관리
+        회원 운동 구성 관리
       </h2>
 
       <p id="adminRoutineModeMessage" class="admin-section-description">
@@ -637,10 +649,6 @@
       </button>
     </section>
 
-    <button id="adminLogoutButton" class="zoom-button" type="button">
-      로그아웃
-    </button>
-    <img class="screen-logo screen-logo-bottom" src="images/center-logo.png" alt="헬스와 필라테스 화곡점">
   </main>
 
   <!-- 운동 기록 카메라 화면 -->
@@ -710,9 +718,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="exercise-data.js?v=50"></script>
-  <script src="routine-components.js?v=50"></script>
-  <script src="script.js?v=50"></script>
+  <script src="exercise-data.js?v=51"></script>
+  <script src="routine-components.js?v=51"></script>
+  <script src="script.js?v=51"></script>
 </body>
 
 

@@ -4078,43 +4078,47 @@ const toggleRoutineDescriptionButton = document.querySelector(
 );
 const logoutButton = document.querySelector("#logoutButton");
 
-// 상단 더보기: 바깥 클릭, Escape, 탭 이동과 로그아웃 시 닫습니다.
+// 회원·관리자 상단 더보기: 바깥 클릭, Escape, 화면 이동과 로그아웃 시 닫습니다.
 (function () {
-  const menu = document.querySelector("#memberMenu");
-  const toggle = document.querySelector("#memberMenuToggle");
-  const panel = document.querySelector("#memberMenuPanel");
-  function closeMenu() {
-    panel.hidden = true;
-    toggle.setAttribute("aria-expanded", "false");
-    toggle.setAttribute("aria-label", "메뉴 열기");
-  }
-  toggle.addEventListener("click", function () {
-    const willOpen = panel.hidden;
-    panel.hidden = !willOpen;
-    toggle.setAttribute("aria-expanded", String(willOpen));
-    toggle.setAttribute("aria-label", willOpen ? "메뉴 닫기" : "메뉴 열기");
-    if (willOpen) logoutButton.focus({ preventScroll: true });
-  });
-  document.addEventListener("click", function (event) {
-    if (!menu.contains(event.target)) closeMenu();
-  });
-  document.addEventListener("focusin", function (event) {
-    if (!menu.contains(event.target)) closeMenu();
-  });
-  document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape" && !panel.hidden) {
-      event.preventDefault();
-      closeMenu();
-      toggle.focus({ preventScroll: true });
+  function connectAppMenu(prefix, screen, logout) {
+    const menu = document.querySelector("#" + prefix + "Menu");
+    const toggle = document.querySelector("#" + prefix + "MenuToggle");
+    const panel = document.querySelector("#" + prefix + "MenuPanel");
+    function closeMenu() {
+      panel.hidden = true;
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", "메뉴 열기");
     }
-  });
-  logoutButton.addEventListener("click", closeMenu);
-  memberTabButtons.forEach(function (button) {
-    button.addEventListener("click", closeMenu);
-  });
-  new MutationObserver(function () {
-    if (appScreen.hidden) closeMenu();
-  }).observe(appScreen, { attributes: true, attributeFilter: ["hidden"] });
+    toggle.addEventListener("click", function () {
+      const willOpen = panel.hidden;
+      panel.hidden = !willOpen;
+      toggle.setAttribute("aria-expanded", String(willOpen));
+      toggle.setAttribute("aria-label", willOpen ? "메뉴 닫기" : "메뉴 열기");
+      if (willOpen) logout.focus({ preventScroll: true });
+    });
+    document.addEventListener("click", function (event) {
+      if (!menu.contains(event.target)) closeMenu();
+    });
+    document.addEventListener("focusin", function (event) {
+      if (!menu.contains(event.target)) closeMenu();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !panel.hidden) {
+        event.preventDefault();
+        closeMenu();
+        toggle.focus({ preventScroll: true });
+      }
+    });
+    logout.addEventListener("click", closeMenu);
+    screen.querySelectorAll("[data-member-tab]").forEach(function (button) {
+      button.addEventListener("click", closeMenu);
+    });
+    new MutationObserver(function () {
+      if (screen.hidden) closeMenu();
+    }).observe(screen, { attributes: true, attributeFilter: ["hidden"] });
+  }
+  connectAppMenu("member", appScreen, logoutButton);
+  connectAppMenu("admin", adminScreen, document.querySelector("#adminLogoutButton"));
 })();
 const refreshMemberAppButton =
   document.querySelector("#refreshMemberAppButton");
