@@ -3612,18 +3612,25 @@ body.camera-open {
   margin: 0;
 }
 
+/* 패턴 이름과 운동 개수를 두 줄로 구분하고, 블록 전체가 버튼임을 강조합니다. */
 .routine-component-day-toggle {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
   align-items: center;
-  gap: 10px;
+  align-content: center;
+  column-gap: 10px;
+  row-gap: 3px;
   width: 100%;
   min-width: 0;
-  min-height: 72px;
+  min-height: 84px;
   margin: 0;
   padding: 12px 14px;
-  border: 1px solid #ffd0ad;
+  border: 2px solid var(--brand-orange);
+  border-left-width: 5px;
   border-radius: 12px;
-  background: #fff5eb;
+  background: #fff;
+  box-shadow: 0 3px 9px rgba(23, 35, 62, 0.08);
   color: var(--brand-navy);
   font: inherit;
   line-height: 1.4;
@@ -3632,22 +3639,34 @@ body.camera-open {
 }
 
 .routine-component-day-label {
-  font-size: 18px;
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 21px;
   font-weight: 800;
   white-space: nowrap;
 }
 
 .routine-component-day-count {
-  color: #667085;
-  font-size: 12px;
+  grid-column: 1;
+  grid-row: 2;
+  color: #606b7e;
+  font-size: 14px;
   font-weight: 400;
   white-space: nowrap;
 }
 
 .routine-component-day-action {
-  margin-left: auto;
-  color: var(--brand-orange);
-  font-size: 13px;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: #ffeddf;
+  color: var(--brand-navy);
+  font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -3661,6 +3680,7 @@ body.camera-open {
 .routine-component-bonus > .routine-component-day-heading > .routine-component-day-toggle {
   border-color: #d6d6d6;
   background: #f3f3f3;
+  box-shadow: none;
   color: #4b4b4b;
 }
 
@@ -3672,6 +3692,10 @@ body.camera-open {
 .routine-component-bonus .routine-component-day-count,
 .routine-component-bonus .routine-component-day-action {
   color: #666666;
+}
+
+.routine-component-bonus .routine-component-day-action {
+  background: #fff;
 }
 
 .routine-component-bonus > .routine-component-day-heading > .routine-component-day-toggle:focus-visible {
