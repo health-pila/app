@@ -2060,7 +2060,7 @@ body.camera-open {
 
 .community-video-area.is-shorts
   .community-video-thumbnail {
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .community-video-facade::after {
@@ -4319,12 +4319,12 @@ body.camera-open {
 }
 
 :is(#appScreen, #adminRoutineJsonPreview) .routine-component-main {
-  grid-template-columns: 66px minmax(0, 1fr);
+  grid-template-columns: 76px minmax(0, 1fr);
 }
 
 :is(#appScreen, #adminRoutineJsonPreview) .routine-component-image-area {
-  width: 66px;
-  height: 66px;
+  width: 76px;
+  height: 76px;
   border-radius: 12px;
 }
 
@@ -4498,13 +4498,13 @@ body.camera-open {
   }
 
   :is(#appScreen, #adminRoutineJsonPreview) .routine-component-main {
-    grid-template-columns: 60px minmax(0, 1fr);
+    grid-template-columns: 69px minmax(0, 1fr);
     gap: 9px;
   }
 
   :is(#appScreen, #adminRoutineJsonPreview) .routine-component-image-area {
-    width: 60px;
-    height: 60px;
+    width: 69px;
+    height: 69px;
   }
 }
 

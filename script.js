@@ -7551,7 +7551,7 @@ function showMemberRoutineComponents(prepared) {
   }
   memberRoutineComponents.hidden = false;
   memberRoutineSummary.hidden = false;
-  memberWorkoutTitle.textContent = "나의 운동 패턴";
+  memberWorkoutTitle.textContent = "하루에 한 패턴씩 운동하면 됩니다";
   memberRoutinePlaceholder.hidden = true;
 }
 
