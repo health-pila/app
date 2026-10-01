@@ -3462,7 +3462,8 @@ body.camera-open {
   font-size: 14px;
 }
 
-.routine-component-details p {
+.routine-component-details p,
+.routine-component-checklist {
   margin: 0;
   color: #475467;
   font-size: 14px;
@@ -3470,6 +3471,27 @@ body.camera-open {
   white-space: pre-wrap;
   word-break: keep-all;
   overflow-wrap: anywhere;
+}
+
+.routine-component-checklist {
+  padding: 0;
+  list-style: none;
+}
+
+.routine-component-checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.routine-component-checklist li + li {
+  margin-top: 6px;
+}
+
+.routine-component-checkmark {
+  flex: 0 0 auto;
+  color: var(--brand-orange);
+  font-weight: 700;
 }
 
 .routine-component-arrow {
