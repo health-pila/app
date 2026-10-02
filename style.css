@@ -4348,7 +4348,7 @@ body.camera-open {
 }
 
 :is(#appScreen, #adminRoutineJsonPreview) .routine-component-card {
-  padding: 14px 2px;
+  padding: 18.2px 2px;
   border: 0;
   border-radius: 0;
 }
