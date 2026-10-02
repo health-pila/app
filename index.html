@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=63">
+  <link rel="stylesheet" href="style.css?v=64">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ec6a1a">
 
@@ -139,6 +139,14 @@
         <p class="member-cardio-notice">유산소운동 구성 추천도 현재 준비 중입니다</p>
         <p class="member-assigned-routine"><span>배정된 구성 · </span><strong id="assignedRoutineName">불러오는 중...</strong></p>
       </header>
+
+      <div class="one-day-pt-entry">
+        <button id="openOneDayPtCart" class="one-day-pt-cart-toggle" type="button" aria-haspopup="dialog" aria-controls="oneDayPtDialog">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l3 12h11l2-8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+          <span>1DAY PT 장바구니</span><span id="oneDayPtCartCount" class="one-day-pt-count">0 / 5</span>
+        </button>
+        <p>배우고 싶은 운동을 담으면 해당 구성으로 1회 강습이 가능합니다.</p>
+      </div>
 
       <section class="member-workout-surface" aria-labelledby="memberWorkoutTitle">
         <div class="member-workout-heading">
@@ -475,6 +483,19 @@
 
     </section>
 
+    <section id="adminOneDayPtManagement" class="admin-card" aria-labelledby="adminOneDayPtTitle">
+      <h2 id="adminOneDayPtTitle" class="admin-section-title">1DAY PT 신청</h2>
+      <p class="admin-section-description">선택한 운동을 확인하고 회원에게 연락해 일정을 예약해 주세요. 결제는 현장에서 진행합니다.</p>
+      <div class="one-day-pt-admin-toolbar">
+        <label for="adminOneDayPtFilter">신청 상태</label>
+        <select id="adminOneDayPtFilter"><option value="active">접수 · 예약 조율 중</option><option value="completed">진행 완료</option><option value="cancelled">취소</option><option value="all">전체</option></select>
+        <button id="refreshAdminOneDayPt" type="button">새로고침</button>
+      </div>
+      <p id="adminOneDayPtMessage" class="admin-message" role="status"></p>
+      <div id="adminOneDayPtList" class="one-day-pt-request-list"></div>
+      <button id="moreAdminOneDayPt" class="one-day-pt-secondary" type="button" hidden>신청 더 보기</button>
+    </section>
+
     <!-- 새 루틴 신청 알림 -->
     <section id="adminRoutineRequestManagement" class="admin-card">
       <h2 class="admin-section-title">
@@ -743,11 +764,32 @@
     </section>
   </div>
 
+  <dialog id="oneDayPtDialog" class="one-day-pt-dialog" aria-labelledby="oneDayPtTitle">
+    <div class="one-day-pt-dialog-header"><h2 id="oneDayPtTitle">1DAY PT 장바구니</h2><button id="closeOneDayPtCart" type="button" aria-label="장바구니 닫기">닫기</button></div>
+    <p class="one-day-pt-help">
+      배우고 싶은 운동을 최대 5개 골라 주세요. 신청이 들어오면 센터가 별도로 연락해 일정을 예약합니다.<br>
+      강습 시간은 50분간입니다.<br>
+      결제는 현장에서 강습 직전 진행합니다.<br>
+      비용은 앱 베타테스터 기간동안 정상가 66,000원에서 할인된 33,000원으로 강습 가능합니다.
+    </p>
+    <p id="oneDayPtEmpty">운동 구성에서 ‘이 운동을 1DAY PT에 담기’를 눌러 주세요.</p>
+    <ol id="oneDayPtCartList" class="one-day-pt-cart-list"></ol>
+    <button id="submitOneDayPt" class="one-day-pt-primary" type="button" disabled>이 구성으로 1DAY PT 신청하기</button>
+    <p id="oneDayPtSubmitMessage" class="one-day-pt-message" role="status"></p>
+    <section class="one-day-pt-history" aria-labelledby="oneDayPtHistoryTitle">
+      <div class="one-day-pt-history-heading"><h3 id="oneDayPtHistoryTitle">내 신청 내역</h3><button id="refreshMemberOneDayPt" type="button">새로고침</button></div>
+      <p id="oneDayPtHistoryMessage" class="one-day-pt-message" role="status"></p>
+      <div id="oneDayPtHistoryList" class="one-day-pt-request-list"></div>
+    </section>
+  </dialog>
+  <p id="oneDayPtFeedback" class="one-day-pt-feedback" role="status" hidden></p>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="exercise-data.js?v=63"></script>
-  <script src="routine-components.js?v=63"></script>
-  <script src="script.js?v=63"></script>
+  <script src="exercise-data.js?v=64"></script>
+  <script src="routine-components.js?v=64"></script>
+  <script src="one-day-pt.js?v=64"></script>
+  <script src="script.js?v=64"></script>
 </body>
 
 

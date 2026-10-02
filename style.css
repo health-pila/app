@@ -4897,3 +4897,45 @@ body.camera-open {
   font-size: 40px;
   text-align: center;
 }
+
+/* v64: 1DAY PT 장바구니 및 접수 */
+.one-day-pt-entry { margin: 0 0 16px; padding: 0 4px; }
+.one-day-pt-cart-toggle { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #f4c9a9; border-radius: 14px; background: #fff4ea; color: #a94200; font: inherit; font-size: 14px; font-weight: 700; text-align: left; }
+.one-day-pt-cart-toggle svg { width: 22px; height: 22px; flex: 0 0 22px; }
+.one-day-pt-count { margin-left: auto; white-space: nowrap; font-size: 13px; }
+.one-day-pt-entry > p { margin: 8px 3px 0; font-size: 12px; line-height: 1.5; color: #64748b; }
+#appScreen .one-day-pt-add-button { display: block; width: 100%; min-height: 40px; margin-top: 10px; padding: 9px 8px; border: 1px solid #f1c8aa; border-radius: 10px; background: #fff8f1; color: #a94200; font: inherit; font-size: 12px; font-weight: 700; line-height: 1.5; }
+#appScreen .one-day-pt-add-button.is-added { background: #f0f5f2; border-color: #c9ddd2; color: #236244; opacity: 1; }
+.one-day-pt-dialog { box-sizing: border-box; width: min(480px, calc(100vw - 24px)); max-height: min(85dvh, 820px); margin: auto; padding: 22px 18px; border: 0; border-radius: 22px; color: #18243b; background: #fff; box-shadow: 0 20px 70px #0004; overflow-y: auto; overscroll-behavior: contain; font-family: inherit; }
+.one-day-pt-dialog::backdrop { background: #18243b99; }
+.one-day-pt-dialog-header, .one-day-pt-history-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.one-day-pt-dialog-header h2 { margin: 0; font-size: 20px; color: #c24c00; }
+.one-day-pt-dialog-header button, .one-day-pt-history-heading button, .one-day-pt-remove, .one-day-pt-secondary, .one-day-pt-admin-toolbar button, .one-day-pt-status-controls button { width: auto; flex-shrink: 0; min-height: 40px; padding: 8px 12px; border: 1px solid #d9dfe7; border-radius: 10px; background: #fff; color: #334155; font: inherit; font-size: 13px; font-weight: 600; }
+.one-day-pt-help, #oneDayPtEmpty, .one-day-pt-message { font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.one-day-pt-help { color: #526176; }
+.one-day-pt-cart-list { padding: 0; margin: 18px 0; list-style: none; }
+.one-day-pt-cart-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; padding: 10px 12px; border-radius: 12px; background: #f5f6f8; font-size: 14px; }
+.one-day-pt-cart-item span { overflow-wrap: anywhere; }
+#submitOneDayPt.one-day-pt-primary { width: 100%; min-height: 48px; padding: 12px; border: 0; border-radius: 12px; background: #ee6600; color: #fff; font: inherit; font-size: 14px; font-weight: 700; line-height: 1.5; }
+.one-day-pt-dialog button:disabled, #adminOneDayPtManagement button:disabled { cursor: default; opacity: .5; }
+.one-day-pt-history { margin-top: 24px; border-top: 1px solid #e4e8ef; padding-top: 16px; }
+.one-day-pt-history-heading h3 { margin: 0; font-size: 16px; }
+.one-day-pt-request-list { display: grid; gap: 12px; }
+.one-day-pt-request-card { border: 1px solid #e2e7ef; border-radius: 14px; padding: 14px; background: #fff; min-width: 0; }
+.one-day-pt-request-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.one-day-pt-request-heading time { font-size: 12px; color: #64748b; }
+.one-day-pt-status { display: inline-block; padding: 4px 9px; border-radius: 7px; background: #fff0df; color: #994000; font-size: 12px; font-weight: 700; }
+.one-day-pt-status[data-status="contacted"] { background: #eaf0ff; color: #28538b; }
+.one-day-pt-status[data-status="completed"] { background: #e8f5ec; color: #25623c; }
+.one-day-pt-status[data-status="cancelled"] { background: #eef0f3; color: #556070; }
+.one-day-pt-exercises { margin: 12px 0 0; padding-left: 22px; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.one-day-pt-feedback { position: fixed; z-index: 120; bottom: calc(95px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 40px); box-sizing: border-box; margin: 0; border-radius: 12px; padding: 12px 16px; background: #18243bef; color: #fff; font-size: 13px; line-height: 1.6; pointer-events: none; box-shadow: 0 4px 16px #0002; }
+.one-day-pt-member { margin-bottom: 12px; }
+.one-day-pt-member strong { font-size: 15px; }
+.one-day-pt-member p { margin: 5px 0 0; color: #526176; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.one-day-pt-admin-toolbar, .one-day-pt-status-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.one-day-pt-admin-toolbar label, .one-day-pt-status-controls label { width: 100%; margin: 0; font-size: 13px; }
+.one-day-pt-admin-toolbar select, .one-day-pt-status-controls select { width: auto; min-width: 0; flex: 1; margin: 0; padding: 9px; min-height: 40px; font-size: 13px; }
+.one-day-pt-status-controls { margin-top: 14px; }
+#moreAdminOneDayPt { margin-top: 14px; width: 100%; }
+.one-day-pt-dialog button:focus-visible, .one-day-pt-cart-toggle:focus-visible, .one-day-pt-add-button:focus-visible { outline: 3px solid #f59a57; outline-offset: 3px; }

@@ -281,7 +281,7 @@
     window.scrollTo({ left: left, top: top, behavior: "instant" });
   }
 
-  function createExerciseCard(entry) {
+  function createExerciseCard(entry, options) {
     const exercise = window.ExerciseDB.getExerciseById(entry.exerciseId);
     if (!exercise) throw new Error("운동DB에 없는 운동ID입니다: " + entry.exerciseId);
 
@@ -468,14 +468,18 @@
       });
     });
     actions.append(detailsButton, videoButton);
-    card.append(main, actions, details, mediaArea);
+    card.append(main, actions);
+    if (options?.oneDayPT && window.OneDayPT) {
+      card.append(window.OneDayPT.createAddButton(entry.exerciseId));
+    }
+    card.append(details, mediaArea);
     return card;
   }
 
   let daySequence = 0;
 
   // 회원 화면은 한 패턴씩 표시합니다. 카드는 기존 상세설명·영상·확대를 그대로 사용합니다.
-  function renderTabbedRoutine(routine) {
+  function renderTabbedRoutine(routine, options) {
     const root = element("div", "routine-components routine-components-tabbed");
     const tabs = element("div", "routine-pattern-tabs");
     tabs.setAttribute("role", "tablist");
@@ -519,7 +523,7 @@
       panel.setAttribute("aria-labelledby", tab.id);
       panel.append(element("p", "routine-pattern-caption", label + " · 운동 " + day.exercises.length + "개"));
       day.exercises.forEach(function (exercise) {
-        panel.append(createExerciseCard(exercise));
+        panel.append(createExerciseCard(exercise, options));
       });
       entries.push({ tab, panel });
       tabs.append(tab);
@@ -553,7 +557,7 @@
 
   // 필요할 때 기존 접기·펼치기 방식도 사용할 수 있습니다.
   function renderRoutine(routine, options) {
-    if (options && options.layout === "tabs") return renderTabbedRoutine(routine);
+    if (options && options.layout === "tabs") return renderTabbedRoutine(routine, options);
     const root = element("div", "routine-components");
     routine.days.forEach(function (day) {
       const dayArea = element("section");
@@ -595,7 +599,7 @@
           arrow.setAttribute("aria-hidden", "true");
           content.append(arrow);
         }
-        content.append(createExerciseCard(entry));
+        content.append(createExerciseCard(entry, options));
       });
       root.append(dayArea);
     });

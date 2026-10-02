@@ -7674,7 +7674,7 @@ function prepareMemberRoutineComponents(data, userId) {
   return {
     key,
     node: key === memberRoutineComponentsKey
-      ? null : window.RoutineComponents.renderRoutine(routine, { layout: "tabs" })
+      ? null : window.RoutineComponents.renderRoutine(routine, { layout: "tabs", oneDayPT: true })
   };
 }
 
@@ -8322,6 +8322,7 @@ async function showWorkoutApp(userId) {
   clearRoutineRequestReturnFlag();
 
   await Promise.all([
+    window.OneDayPT.showMember(supabaseClient, userId),
     loadMemberRoutine(userId),
     loadWorkoutRecords(userId),
     loadCommunityPosts(),
@@ -8876,7 +8877,7 @@ adminMemberSearch.addEventListener("input", function () {
 });
 
 // 관리자 화면 표시
-async function showAdminApp() {
+async function showAdminApp(userId) {
   stopAdminMemberAutoRefresh();
   await stopCommunityRealtimeSubscription();
   resetMemberCommunityPosts();
@@ -8889,6 +8890,7 @@ async function showAdminApp() {
   adminMemberSearch.value = "";
 
   await Promise.all([
+    window.OneDayPT.showAdmin(supabaseClient, userId),
     loadAdminRoutineRequests(),
     loadAdminMembers(),
     loadAdminCommunityPosts(),
@@ -8936,7 +8938,7 @@ async function showScreenForCurrentUser() {
   }
 
   if (profile.role === "admin") {
-    await showAdminApp();
+    await showAdminApp(user.id);
     return;
   }
 
@@ -9927,6 +9929,8 @@ async function handleLogout() {
       alert("로그아웃하지 못했습니다. 다시 시도해 주세요.");
       return;
     }
+
+    window.OneDayPT.reset();
 
     // 진행 중이던 루틴 조회 결과가 나중에 반영되지 않도록 취소
     memberRoutineLoadRequestId += 1;
