@@ -4726,3 +4726,102 @@ body.camera-open {
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
+/* 이메일 비밀번호 재설정 */
+.auth-text-link {
+  box-sizing: border-box;
+  min-height: 44px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.password-reset-screen {
+  padding: 24px 16px;
+}
+
+.password-reset-screen .login-box {
+  box-sizing: border-box;
+  padding: 28px 20px;
+}
+
+.password-reset-screen h1 {
+  font-size: 28px;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+
+.password-reset-screen .login-description {
+  margin-bottom: 22px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.auth-primary-button {
+  min-height: 48px;
+  margin-top: 10px;
+  padding: 13px 10px;
+  color: var(--brand-white);
+  background: var(--brand-orange);
+  border: 1px solid var(--brand-orange);
+  border-radius: 12px;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.auth-primary-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.auth-primary-button:focus-visible,
+.auth-text-link:focus-visible {
+  outline: 2px solid var(--brand-orange);
+  outline-offset: 3px;
+}
+
+.auth-status,
+.auth-help,
+.auth-account {
+  margin: 8px 0 0;
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.65;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.auth-status:empty {
+  display: none;
+}
+
+.auth-status.is-error {
+  color: #b42318;
+}
+
+.auth-help {
+  margin-top: 14px;
+  color: #667085;
+  font-size: 13px;
+}
+
+.login-form .auth-help {
+  margin: 0;
+}
+
+.auth-account {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff3e8;
+  font-weight: bold;
+}
+
+.auth-success-mark {
+  margin: 16px 0;
+  color: var(--brand-orange);
+  font-size: 40px;
+  text-align: center;
+}

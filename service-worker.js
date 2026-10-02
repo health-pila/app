@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "55";
+const APP_VERSION = "56";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}`;
@@ -8,6 +8,8 @@ const APP_SHELL_URL = new URL("index.html", APP_SCOPE).href;
 const APP_FILES = [
   "./",
   "./index.html",
+  "./reset-password.html",
+  `./password-reset.js?v=${APP_VERSION}`,
   `./style.css?v=${APP_VERSION}`,
   `./exercise-data.js?v=${APP_VERSION}`,
   `./routine-components.js?v=${APP_VERSION}`,
@@ -63,7 +65,12 @@ async function findCurrentCachedResponse(request) {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(request);
     if (cached) return cached;
-    if (request.mode === "navigate") return await cache.match(APP_SHELL_URL);
+    if (request.mode === "navigate") {
+      const target = new URL(request.url);
+      const resetPageUrl = new URL("reset-password.html", APP_SCOPE);
+      if (target.pathname === resetPageUrl.pathname) return await cache.match(resetPageUrl.href);
+      return await cache.match(APP_SHELL_URL);
+    }
   } catch (error) {
     console.warn("앱 캐시 조회 실패:", error);
   }

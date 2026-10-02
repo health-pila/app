@@ -1,9 +1,19 @@
 const SUPABASE_URL = "https://cithfqbzszgiqjifhrqy.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0mGHHS1HcRHh0Ttt8sZwtA_MBI22p1w";
 
+// 복구 링크가 기본 앱 주소로 돌아와도 운동 화면 대신 재설정 페이지로 보냅니다.
+const isPasswordRecoveryReturn =
+  new URLSearchParams(window.location.hash.slice(1)).get("type") === "recovery";
+if (isPasswordRecoveryReturn) {
+  const resetUrl = new URL("./reset-password.html", window.location.href);
+  resetUrl.hash = window.location.hash;
+  window.location.replace(resetUrl.href);
+}
+
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
+  SUPABASE_PUBLISHABLE_KEY,
+  { auth: { detectSessionInUrl: !isPasswordRecoveryReturn } }
 );
 
   const routineCarousel =
@@ -9714,7 +9724,17 @@ loginForm.addEventListener("submit", async function (event) {
 
 // 이미 로그인한 상태인지 확인
 async function initializeLogin() {
+  if (isPasswordRecoveryReturn) return;
   try {
+    const currentUrl = new URL(window.location.href);
+    if (currentUrl.searchParams.get("password-reset") === "complete") {
+      currentUrl.searchParams.delete("password-reset");
+      window.history.replaceState(null, "", currentUrl.href);
+      // 이 브라우저에 남아 있던 로그인도 정리하고 새 비밀번호로 로그인하게 합니다.
+      await supabaseClient.auth.signOut({ scope: "local" });
+      loginMessage.textContent = "새 비밀번호로 로그인해 주세요.";
+      return;
+    }
     const {
       data: { session },
       error: sessionError
