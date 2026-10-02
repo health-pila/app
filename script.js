@@ -7608,27 +7608,142 @@ function clearRoutineRequestReturnFlag() {
 }
 
 let routineRequestStatusLoadId = 0;
+const routineRequestButton = document.querySelector("#routineRequestButton");
+const routineRequestDialog = document.querySelector("#routineRequestDialog");
+const routineNewFormLink = document.querySelector("#routineNewFormLink");
+const submitRoutineChange = document.querySelector("#submitRoutineChange");
+const routineRequestDialogMessage = document.querySelector("#routineRequestDialogMessage");
+let routineChangeState = { userId: null, generation: 0, activeId: undefined, pending: undefined, saving: false };
+routineNewFormLink.href = routineRequestButton.href;
+
+function resetRoutineChangeRequest(userId = null) {
+  routineChangeState = { userId, generation: routineChangeState.generation + 1,
+    activeId: undefined, pending: undefined, saving: false };
+  routineRequestStatusLoadId += 1;
+  routineRequestStatusMessage.hidden = true;
+  routineRequestDialogMessage.textContent = "";
+  if (routineRequestDialog.open) routineRequestDialog.close();
+  syncRoutineChangeRequest();
+}
+
+function syncRoutineChangeRequest() {
+  const state = routineChangeState;
+  submitRoutineChange.disabled = state.saving || !state.activeId || state.pending !== false;
+  routineNewFormLink.setAttribute("aria-disabled", String(state.saving));
+  if (!state.saving && state.pending === true) routineRequestDialogMessage.textContent = "이미 접수된 운동 구성 신청이 있어요. 새 신청서를 작성하면 변경된 내용을 추가로 알려줄 수 있어요.";
+}
+
+routineRequestButton.addEventListener("click", function (event) {
+  const state = routineChangeState;
+  if (!state.userId || appScreen.hidden) { event.preventDefault(); return; }
+  // 처음 신청하는 회원은 기존 링크를 그대로 사용합니다.
+  if (state.activeId === null) return;
+  event.preventDefault();
+  if (state.activeId === undefined) {
+    routineRequestStatusMessage.textContent = "운동 구성 정보를 확인 중이에요. 잠시 후 다시 눌러 주세요. 계속되면 상단 새로고침 버튼으로 다시 확인해 주세요.";
+    routineRequestStatusMessage.hidden = false;
+    return;
+  }
+  if (!state.saving) {
+    state.pending = undefined;
+    routineRequestDialogMessage.textContent = "신청 상태를 확인하고 있어요…";
+    updateRoutineRequestStatus(state.userId);
+  }
+  syncRoutineChangeRequest();
+  if (!routineRequestDialog.open) routineRequestDialog.showModal();
+});
+document.querySelector("#closeRoutineRequestDialog").addEventListener("click", () => routineRequestDialog.close());
+routineNewFormLink.addEventListener("click", function (event) {
+  if (routineChangeState.saving) { event.preventDefault(); return; }
+  routineRequestDialog.close();
+});
+
+submitRoutineChange.addEventListener("click", async function () {
+  const state = routineChangeState;
+  if (submitRoutineChange.disabled || !state.userId || appScreen.hidden) return;
+  const current = () => routineChangeState === state && !appScreen.hidden;
+  state.saving = true;
+  routineRequestDialogMessage.textContent = "변경 신청을 접수하고 있어요…";
+  syncRoutineChangeRequest();
+  try {
+    const { data, error } = await supabaseClient.rpc("request_routine_change", {
+      p_base_routine_id: String(state.activeId)
+    });
+    if (!current()) return;
+    if (error) throw error;
+    if (!data || !["pending", "completed"].includes(data.status)) throw new Error("INVALID_RESPONSE");
+    routineRequestDialog.close();
+    if (data.status === "completed") {
+      routineRequestStatusMessage.textContent = "이전 변경 신청은 이미 처리되었어요. 최신 운동 구성을 확인해 주세요.";
+      routineRequestStatusMessage.hidden = false;
+      await loadMemberRoutine(state.userId, true);
+    } else {
+      state.pending = true;
+      routineRequestStatusMessage.textContent = data.request_kind === "change"
+        ? "운동 구성 변경 신청이 접수되었습니다. 기존 신청 내용을 참고해 새로운 운동 구성을 준비해 드릴게요."
+        : "이미 접수된 운동 구성 신청이 있어요. 새로운 운동 구성을 준비 중입니다.";
+      routineRequestStatusMessage.hidden = false;
+      await updateRoutineRequestStatus(state.userId);
+    }
+  } catch (error) {
+    if (!current()) return;
+    const message = error.message || "";
+    if (message.includes("ROUTINE_CHANGED") || message.includes("NO_ACTIVE_ROUTINE")) {
+      routineRequestDialogMessage.textContent = "배정된 운동 구성이 변경되었어요. 창을 닫고 최신 구성을 확인한 뒤 다시 신청해 주세요.";
+      await loadMemberRoutine(state.userId, true);
+    } else if (["PGRST202", "42883", "42703"].includes(error.code)) {
+      routineRequestDialogMessage.textContent = "구성 변경 신청 기능을 준비 중이에요. 새 신청서 작성은 이용할 수 있어요.";
+    } else {
+      routineRequestDialogMessage.textContent = "접수 여부를 확인하지 못했어요. 잠시 후 다시 눌러 주세요. 이미 접수되었다면 중복으로 등록되지 않아요.";
+      // 서버 저장 후 응답만 유실된 경우, 조회로 접수 여부를 복구합니다.
+      await updateRoutineRequestStatus(state.userId);
+    }
+  } finally {
+    if (current()) { state.saving = false; syncRoutineChangeRequest(); }
+  }
+});
 
 // 다른 기기에서 제출해도 서버에 저장된 대기 신청을 기준으로 안내합니다.
 async function updateRoutineRequestStatus(userId) {
   const requestId = ++routineRequestStatusLoadId;
   if (appScreen.hidden) return;
   try {
-    const { data, error } = await supabaseClient
+    let { data, error } = await supabaseClient
       .from("routine_requests")
-      .select("id")
+      .select("id, request_kind")
       .eq("user_id", userId)
       .eq("status", "pending")
       .limit(1)
       .maybeSingle();
 
+    // DB 설치 전에도 기존 폼 접수 상태 조회는 유지합니다.
+    if (["42703", "PGRST204"].includes(error?.code)) {
+      ({ data, error } = await supabaseClient.from("routine_requests").select("id")
+        .eq("user_id", userId).eq("status", "pending").limit(1).maybeSingle());
+    }
+
     if (requestId !== routineRequestStatusLoadId || appScreen.hidden) return;
     if (error) throw error;
+    routineRequestStatusMessage.textContent = data?.request_kind === "change"
+      ? "운동 구성 변경 신청이 접수되었습니다. 기존 신청 내용을 참고해 새로운 운동 구성을 준비해 드릴게요."
+      : "새로운 운동 구성을 준비 중입니다.";
     routineRequestStatusMessage.hidden = !data;
+    if (routineChangeState.userId === userId) {
+      routineChangeState.pending = Boolean(data);
+      if (!data && !routineChangeState.saving && routineRequestDialog.open && [
+        "신청 상태를 확인하고 있어요…",
+        "이미 접수된 운동 구성 신청이 있어요. 새 신청서를 작성하면 변경된 내용을 추가로 알려줄 수 있어요."
+      ].includes(routineRequestDialogMessage.textContent)) routineRequestDialogMessage.textContent = "";
+      syncRoutineChangeRequest();
+    }
   } catch (error) {
     // 조회 실패를 '접수되지 않음'으로 단정하거나 기존 운동 카드를 지우지 않습니다.
     if (requestId === routineRequestStatusLoadId && !appScreen.hidden) {
       console.error("운동 구성 신청 상태 확인 실패:", error);
+      if (routineChangeState.userId === userId && routineChangeState.pending === undefined) {
+        routineRequestDialogMessage.textContent = "신청 상태를 확인하지 못했어요. 창을 닫고 다시 열어 주세요.";
+        syncRoutineChangeRequest();
+      }
     }
   }
 }
@@ -8161,6 +8276,11 @@ async function loadMemberRoutine(
       throw error;
     }
 
+    if (routineChangeState.userId === userId) {
+      routineChangeState.activeId = data?.id || null;
+      syncRoutineChangeRequest();
+    }
+
     if (!data) {
       resetMemberRoutineCarousel();
       resetMemberRoutineComponents();
@@ -8294,6 +8414,7 @@ async function loadMemberRoutine(
 
 // 일반 회원 화면 표시
 async function showWorkoutApp(userId) {
+  resetRoutineChangeRequest(userId);
   routineRequestStatusLoadId += 1;
   routineRequestStatusMessage.hidden = true;
   stopAdminMemberAutoRefresh();
@@ -8397,12 +8518,18 @@ function renderAdminRoutineRequests(
       "admin-routine-request-badge";
 
     statusBadge.textContent =
-      "루틴 신청 대기";
+      request.request_kind === "change" ? "구성 변경 신청" : "새 신청서 제출";
 
     requestHeader.append(
       memberName,
       statusBadge
     );
+    if (request.request_kind === "change") {
+      const note = document.createElement("span");
+      note.className = "routine-change-admin-note";
+      note.textContent = "기존 신청 내용 유지";
+      requestHeader.append(note);
+    }
 
     const requestDate =
       document.createElement("p");
@@ -8580,12 +8707,18 @@ async function loadAdminRoutineRequests(
   }
 
   try {
-    const { data: requests, error: requestsError } =
+    let { data: requests, error: requestsError } =
       await supabaseClient
         .from("routine_requests")
-        .select("id, user_id, status, requested_at")
+        .select("id, user_id, status, requested_at, request_kind")
         .eq("status", "pending")
         .order("requested_at", { ascending: false });
+
+    if (["42703", "PGRST204"].includes(requestsError?.code)) {
+      ({ data: requests, error: requestsError } = await supabaseClient.from("routine_requests")
+        .select("id, user_id, status, requested_at").eq("status", "pending")
+        .order("requested_at", { ascending: false }));
+    }
 
     if (!canUpdateList()) {
       return;
@@ -8878,6 +9011,7 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId) {
+  resetRoutineChangeRequest();
   stopAdminMemberAutoRefresh();
   await stopCommunityRealtimeSubscription();
   resetMemberCommunityPosts();
@@ -9931,6 +10065,7 @@ async function handleLogout() {
     }
 
     window.OneDayPT.reset();
+    resetRoutineChangeRequest();
 
     // 진행 중이던 루틴 조회 결과가 나중에 반영되지 않도록 취소
     memberRoutineLoadRequestId += 1;

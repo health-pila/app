@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=65">
+  <link rel="stylesheet" href="style.css?v=66">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ec6a1a">
 
@@ -764,6 +764,23 @@
     </section>
   </div>
 
+  <dialog id="routineRequestDialog" class="routine-request-dialog" aria-labelledby="routineRequestDialogTitle" aria-describedby="routineRequestDialogHelp">
+    <div class="routine-request-dialog-heading">
+      <h2 id="routineRequestDialogTitle">어떻게 신청할까요?</h2>
+      <button id="closeRoutineRequestDialog" type="button" aria-label="운동 구성 신청 창 닫기">닫기</button>
+    </div>
+    <p id="routineRequestDialogHelp">운동 목적이나 몸 상태가 달라졌다면 새 신청서를 작성해 주세요. 기존 신청 내용이 그대로라면 운동 구성만 변경 신청할 수 있어요.</p>
+    <a id="routineNewFormLink" class="routine-request-choice" target="_blank" rel="noopener noreferrer">
+      <strong>새 신청서 작성하기</strong>
+      <span>구글 폼에서 현재 상태와 원하는 운동을 알려 주세요.</span>
+    </a>
+    <button id="submitRoutineChange" class="routine-request-choice routine-request-choice-change" type="button" disabled>
+      <strong>기존 신청 내용으로 구성만 변경하기</strong>
+      <span>신청서를 다시 작성하지 않고 변경을 요청합니다.</span>
+    </button>
+    <p id="routineRequestDialogMessage" class="routine-request-dialog-message" role="status"></p>
+  </dialog>
+
   <dialog id="oneDayPtDialog" class="one-day-pt-dialog" aria-labelledby="oneDayPtTitle">
     <div class="one-day-pt-dialog-header"><h2 id="oneDayPtTitle">1DAY PT 장바구니</h2><button id="closeOneDayPtCart" type="button" aria-label="장바구니 닫기">닫기</button></div>
     <p class="one-day-pt-help">
@@ -787,10 +804,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="exercise-data.js?v=65"></script>
-  <script src="routine-components.js?v=65"></script>
-  <script src="one-day-pt.js?v=65"></script>
-  <script src="script.js?v=65"></script>
+  <script src="exercise-data.js?v=66"></script>
+  <script src="routine-components.js?v=66"></script>
+  <script src="one-day-pt.js?v=66"></script>
+  <script src="script.js?v=66"></script>
 </body>
 
 
