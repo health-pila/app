@@ -4252,9 +4252,9 @@ body.camera-open {
 }
 
 #memberAccountEmail {
-  margin: 16px 12px 10px;
+  margin: 13px 12px 10px;
   color: #4b5563;
-  font-size: 10px; /* 로그아웃 13px의 70% */
+  font-size: 11px;
   font-weight: 400;
   line-height: 1.5;
   overflow-wrap: anywhere;
