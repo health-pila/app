@@ -9587,6 +9587,13 @@ saveAdminRoutineButton.addEventListener(
         adminSaveMessage.textContent +=
           " 일부 이전 이미지 파일은 정리하지 못했습니다.";
       }
+
+      if (!isEditMode) {
+        adminMemberSelect.value = "";
+        await loadSelectedAdminMemberRoutine();
+        adminMemberInfo.textContent =
+          "새 루틴을 배정했습니다. 루틴을 관리할 회원을 선택해 주세요.";
+      }
     } catch (saveError) {
       console.error("루틴 저장 처리 오류:", saveError);
 
@@ -9729,6 +9736,13 @@ async function applyValidatedAdminRoutine() {
     adminRoutineJsonMessage.textContent = isEditMode
       ? "운동 카드를 적용했습니다. 기존 이미지와 설명은 유지됩니다."
       : "새 운동 카드 루틴을 배정했습니다.";
+
+    if (!isEditMode) {
+      adminMemberSelect.value = "";
+      await loadSelectedAdminMemberRoutine();
+      adminMemberInfo.textContent =
+        "새 운동 카드 루틴을 배정했습니다. 루틴을 관리할 회원을 선택해 주세요.";
+    }
   } catch (error) {
     console.error("운동 카드 루틴 저장 실패:", error);
     needsReload = databaseWriteStarted;
