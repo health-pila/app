@@ -1252,6 +1252,61 @@ body {
   background-color: #e7e9ed;
 }
 
+/* 사진을 기다리거나 다시 불러오는 동안 메모·날짜는 그대로 표시합니다. */
+.workout-record-photo-area {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.workout-record-photo-area.is-loading,
+.workout-record-photo-area.is-error {
+  min-height: 160px;
+  background-color: #e7e9ed;
+}
+
+.workout-record-photo-area .workout-record-photo {
+  margin-bottom: 0;
+}
+
+.workout-record-photo-area.is-loading .workout-record-photo,
+.workout-record-photo-area.is-error .workout-record-photo {
+  opacity: 0;
+}
+
+.workout-record-photo-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 16px;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.workout-record-photo-status p {
+  margin: 0;
+}
+
+.workout-record-photo-retry {
+  min-height: 44px;
+  padding: 9px 14px;
+  border: 1px solid #c4cbd6;
+  border-radius: 10px;
+  color: var(--brand-navy);
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.workout-record-photo-retry:focus-visible {
+  outline: 2px solid var(--brand-orange);
+  outline-offset: 2px;
+}
+
 /* 저장된 운동 기록 메모 */
 .workout-record-caption {
   min-height: 58px;
@@ -4197,9 +4252,9 @@ body.camera-open {
 }
 
 #memberAccountEmail {
-  margin: 32px 12px 10px;
+  margin: 16px 12px 10px;
   color: #4b5563;
-  font-size: 9.1px; /* 로그아웃 13px의 70% */
+  font-size: 10px; /* 로그아웃 13px의 70% */
   font-weight: 400;
   line-height: 1.5;
   overflow-wrap: anywhere;

@@ -2718,6 +2718,107 @@ function getWorkoutRecordDateKey(takenAt) {
   );
 }
 
+// 사진별로 한 번만 자동 복구합니다. 메모·날짜와 사진 로딩은 분리합니다.
+function createWorkoutRecordPhoto(record) {
+  const ownerId = workoutRecordsUserId;
+  const requestId = workoutRecordsRequestId;
+  let automaticRetryUsed = false;
+  let requestingUrl = false;
+
+  const area = document.createElement("div");
+  area.className = "workout-record-photo-area is-loading";
+
+  const image = document.createElement("img");
+  image.className = "workout-record-photo";
+  image.alt = record.caption || "운동 기록 사진";
+  image.loading = "lazy";
+
+  const status = document.createElement("div");
+  status.className = "workout-record-photo-status";
+  const message = document.createElement("p");
+  message.setAttribute("role", "status");
+  const retryButton = document.createElement("button");
+  retryButton.type = "button";
+  retryButton.className = "workout-record-photo-retry";
+  retryButton.textContent = "사진 다시 불러오기";
+  status.append(message, retryButton);
+  area.append(image, status);
+
+  function isCurrent() {
+    return area.isConnected && !appScreen.hidden &&
+      ownerId === workoutRecordsUserId &&
+      requestId === workoutRecordsRequestId;
+  }
+
+  function showState(state) {
+    area.classList.toggle("is-loading", state === "loading");
+    area.classList.toggle("is-error", state === "error");
+    area.setAttribute("aria-busy", String(state === "loading"));
+    status.hidden = state === "ready";
+    retryButton.hidden = state !== "error";
+    retryButton.disabled = state === "loading";
+    message.textContent = state === "error"
+      ? "사진을 불러오지 못했어요."
+      : state === "loading" ? "사진 불러오는 중…" : "";
+  }
+
+  function handlePhotoError() {
+    if (!isCurrent() || requestingUrl) return;
+    if (automaticRetryUsed) {
+      showState("error");
+      return;
+    }
+    automaticRetryUsed = true;
+    loadFreshPhotoUrl(true);
+  }
+
+  async function loadFreshPhotoUrl(isRetry = false) {
+    if (!isCurrent() || requestingUrl) return;
+    requestingUrl = true;
+    showState("loading");
+    let failed = false;
+    try {
+      const { data, error } = await supabaseClient.storage
+        .from("workout-photos")
+        .createSignedUrl(record.photo_path, 3600);
+      if (!isCurrent()) return;
+      if (error || !data?.signedUrl) {
+        throw error || new Error("사진 주소를 불러오지 못했습니다.");
+      }
+      const url = new URL(data.signedUrl, window.location.href);
+      // 같은 초에 같은 주소가 발급되어도 실패한 이미지 캐시를 재사용하지 않습니다.
+      if (isRetry) url.searchParams.set("cacheNonce", Date.now().toString(36));
+      record.signedUrl = url.href;
+      image.src = record.signedUrl;
+    } catch (error) {
+      failed = true;
+    } finally {
+      requestingUrl = false;
+    }
+    if (failed) handlePhotoError();
+  }
+
+  image.addEventListener("load", function () {
+    if (isCurrent()) showState("ready");
+  });
+  image.addEventListener("error", handlePhotoError);
+  retryButton.addEventListener("click", function () {
+    if (retryButton.disabled) return;
+    // 수동 버튼 한 번에 한 번만 요청합니다.
+    automaticRetryUsed = true;
+    loadFreshPhotoUrl(true);
+  });
+
+  showState("loading");
+  // 카드가 목록에 붙은 후 시작해야 계정 전환·목록 재표시를 구분할 수 있습니다.
+  queueMicrotask(function () {
+    if (!isCurrent()) return;
+    if (record.signedUrl) image.src = record.signedUrl;
+    else loadFreshPhotoUrl();
+  });
+  return area;
+}
+
 // 저장된 운동 기록 목록 표시
 function renderWorkoutRecords() {
   workoutRecordList.innerHTML = "";
@@ -2755,16 +2856,7 @@ function renderWorkoutRecords() {
     recordCard.className =
       "workout-record-card";
 
-    const recordImage =
-      document.createElement("img");
-
-    recordImage.className =
-      "workout-record-photo";
-
-    recordImage.src = record.signedUrl;
-    recordImage.alt =
-      record.caption || "운동 기록 사진";
-    recordImage.loading = "lazy";
+    const recordPhotoArea = createWorkoutRecordPhoto(record);
 
     const recordCaption =
       document.createElement("p");
@@ -2931,7 +3023,7 @@ function renderWorkoutRecords() {
     );
 
     recordCard.append(
-      recordImage,
+      recordPhotoArea,
       recordCaption,
       captionEditor,
       editActions,
@@ -2964,6 +3056,11 @@ async function loadWorkoutRecords(userId) {
   const currentRequestId =
     ++workoutRecordsRequestId;
 
+  if (workoutRecordsUserId !== userId) {
+    workoutRecords = [];
+    workoutRecordDates = new Set();
+    renderWorkoutCalendar();
+  }
   workoutRecordsUserId = userId;
 
   workoutRecordList.innerHTML = "";
@@ -3010,45 +3107,8 @@ async function loadWorkoutRecords(userId) {
     return;
   }
 
-  const recordsWithSignedUrls =
-    await Promise.all(
-      (records || []).map(async (record) => {
-        const {
-          data: signedUrlData,
-          error: signedUrlError
-        } = await supabaseClient.storage
-          .from("workout-photos")
-          .createSignedUrl(
-            record.photo_path,
-            3600
-          );
-
-        if (signedUrlError) {
-          console.error(
-            "운동 기록 사진 주소 생성 실패:",
-            signedUrlError
-          );
-
-          return null;
-        }
-
-        return {
-          ...record,
-          signedUrl:
-            signedUrlData.signedUrl
-        };
-      })
-    );
-
-  if (
-    currentRequestId !==
-    workoutRecordsRequestId
-  ) {
-    return;
-  }
-
-  workoutRecords =
-    recordsWithSignedUrls.filter(Boolean);
+  // 사진 로딩과 별개로 모든 기록의 메모·날짜를 먼저 표시합니다.
+  workoutRecords = records || [];
 
   if (
     shouldSelectLatestWorkoutDate &&
@@ -9793,6 +9853,12 @@ async function handleLogout() {
     // 진행 중이던 루틴 조회 결과가 나중에 반영되지 않도록 취소
     memberRoutineLoadRequestId += 1;
     adminRoutineLoadRequestId += 1;
+    workoutRecordsRequestId += 1;
+    workoutRecordsUserId = "";
+    workoutRecords = [];
+    workoutRecordDates = new Set();
+    workoutRecordList.replaceChildren();
+    renderWorkoutCalendar();
 
     // 회원·관리자 화면을 숨기고 로그인 화면 표시
     renderMemberAccountEmail();
