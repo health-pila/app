@@ -2694,6 +2694,53 @@ let workoutRecordsUserId = "";
 // 이전 조회 결과가 뒤늦게 표시되는 것을 방지
 let workoutRecordsRequestId = 0;
 
+// 사진 자체 대신 유효한 주소만 보관합니다. 새로고침에도 같은 주소를 재사용합니다.
+const WORKOUT_PHOTO_URL_CACHE_KEY = "workoutPhotoUrlCache";
+const WORKOUT_PHOTO_URL_TTL_SECONDS = 3600;
+const WORKOUT_PHOTO_URL_CACHE_LIMIT = 100;
+const workoutPhotoUrlCache = new Map();
+
+function persistWorkoutPhotoUrlCache() {
+  try {
+    sessionStorage.setItem(WORKOUT_PHOTO_URL_CACHE_KEY, JSON.stringify({
+      userId: workoutRecordsUserId,
+      entries: [...workoutPhotoUrlCache]
+    }));
+  } catch (error) {
+    // 저장 공간을 사용할 수 없어도 메모리에서 재사용합니다.
+  }
+}
+
+function restoreWorkoutPhotoUrlCache(userId) {
+  workoutPhotoUrlCache.clear();
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(WORKOUT_PHOTO_URL_CACHE_KEY));
+    if (saved?.userId === userId && Array.isArray(saved.entries)) {
+      for (const [path, entry] of saved.entries.slice(-WORKOUT_PHOTO_URL_CACHE_LIMIT)) {
+        if (typeof path === "string" && typeof entry?.url === "string" &&
+            entry.expiresAt > Date.now() + 60000) {
+          workoutPhotoUrlCache.set(path, entry);
+        }
+      }
+    }
+  } catch (error) {
+    workoutPhotoUrlCache.clear();
+  }
+  persistWorkoutPhotoUrlCache();
+}
+
+function rememberWorkoutPhotoUrl(path, url, expiresAt) {
+  for (const [cachedPath, entry] of workoutPhotoUrlCache) {
+    if (entry.expiresAt <= Date.now() + 60000) workoutPhotoUrlCache.delete(cachedPath);
+  }
+  workoutPhotoUrlCache.delete(path);
+  workoutPhotoUrlCache.set(path, { url, expiresAt });
+  while (workoutPhotoUrlCache.size > WORKOUT_PHOTO_URL_CACHE_LIMIT) {
+    workoutPhotoUrlCache.delete(workoutPhotoUrlCache.keys().next().value);
+  }
+  persistWorkoutPhotoUrlCache();
+}
+
 // 사용자가 선택한 날짜
 let selectedWorkoutDate = "";
 
@@ -2719,7 +2766,7 @@ function getWorkoutRecordDateKey(takenAt) {
 }
 
 // 사진별로 한 번만 자동 복구합니다. 메모·날짜와 사진 로딩은 분리합니다.
-function createWorkoutRecordPhoto(record) {
+function createWorkoutRecordPhoto(record, isFirstPhoto = false) {
   const ownerId = workoutRecordsUserId;
   const requestId = workoutRecordsRequestId;
   let automaticRetryUsed = false;
@@ -2731,7 +2778,8 @@ function createWorkoutRecordPhoto(record) {
   const image = document.createElement("img");
   image.className = "workout-record-photo";
   image.alt = record.caption || "운동 기록 사진";
-  image.loading = "lazy";
+  image.loading = isFirstPhoto ? "eager" : "lazy";
+  image.fetchPriority = isFirstPhoto ? "high" : "auto";
 
   const status = document.createElement("div");
   status.className = "workout-record-photo-status";
@@ -2764,6 +2812,7 @@ function createWorkoutRecordPhoto(record) {
 
   function handlePhotoError() {
     if (!isCurrent() || requestingUrl) return;
+    if (workoutPhotoUrlCache.delete(record.photo_path)) persistWorkoutPhotoUrlCache();
     if (automaticRetryUsed) {
       showState("error");
       return;
@@ -2777,10 +2826,12 @@ function createWorkoutRecordPhoto(record) {
     requestingUrl = true;
     showState("loading");
     let failed = false;
+    const requestedAt = Date.now();
+    if (isRetry && workoutPhotoUrlCache.delete(record.photo_path)) persistWorkoutPhotoUrlCache();
     try {
       const { data, error } = await supabaseClient.storage
         .from("workout-photos")
-        .createSignedUrl(record.photo_path, 3600);
+        .createSignedUrl(record.photo_path, WORKOUT_PHOTO_URL_TTL_SECONDS);
       if (!isCurrent()) return;
       if (error || !data?.signedUrl) {
         throw error || new Error("사진 주소를 불러오지 못했습니다.");
@@ -2788,8 +2839,9 @@ function createWorkoutRecordPhoto(record) {
       const url = new URL(data.signedUrl, window.location.href);
       // 같은 초에 같은 주소가 발급되어도 실패한 이미지 캐시를 재사용하지 않습니다.
       if (isRetry) url.searchParams.set("cacheNonce", Date.now().toString(36));
-      record.signedUrl = url.href;
-      image.src = record.signedUrl;
+      rememberWorkoutPhotoUrl(record.photo_path, url.href,
+        requestedAt + WORKOUT_PHOTO_URL_TTL_SECONDS * 1000);
+      image.src = url.href;
     } catch (error) {
       failed = true;
     } finally {
@@ -2813,7 +2865,8 @@ function createWorkoutRecordPhoto(record) {
   // 카드가 목록에 붙은 후 시작해야 계정 전환·목록 재표시를 구분할 수 있습니다.
   queueMicrotask(function () {
     if (!isCurrent()) return;
-    if (record.signedUrl) image.src = record.signedUrl;
+    const cached = workoutPhotoUrlCache.get(record.photo_path);
+    if (cached && cached.expiresAt > Date.now() + 60000) image.src = cached.url;
     else loadFreshPhotoUrl();
   });
   return area;
@@ -2856,7 +2909,7 @@ function renderWorkoutRecords() {
     recordCard.className =
       "workout-record-card";
 
-    const recordPhotoArea = createWorkoutRecordPhoto(record);
+    const recordPhotoArea = createWorkoutRecordPhoto(record, recordIndex === 0);
 
     const recordCaption =
       document.createElement("p");
@@ -3057,6 +3110,8 @@ async function loadWorkoutRecords(userId) {
     ++workoutRecordsRequestId;
 
   if (workoutRecordsUserId !== userId) {
+    workoutRecordsUserId = userId;
+    restoreWorkoutPhotoUrlCache(userId);
     workoutRecords = [];
     workoutRecordDates = new Set();
     renderWorkoutCalendar();
@@ -3109,6 +3164,15 @@ async function loadWorkoutRecords(userId) {
 
   // 사진 로딩과 별개로 모든 기록의 메모·날짜를 먼저 표시합니다.
   workoutRecords = records || [];
+  const currentPhotoPaths = new Set(workoutRecords.map(record => record.photo_path));
+  let removedCachedUrl = false;
+  for (const path of workoutPhotoUrlCache.keys()) {
+    if (!currentPhotoPaths.has(path)) {
+      workoutPhotoUrlCache.delete(path);
+      removedCachedUrl = true;
+    }
+  }
+  if (removedCachedUrl) persistWorkoutPhotoUrlCache();
 
   if (
     shouldSelectLatestWorkoutDate &&
@@ -9869,6 +9933,8 @@ async function handleLogout() {
     adminRoutineLoadRequestId += 1;
     workoutRecordsRequestId += 1;
     workoutRecordsUserId = "";
+    workoutPhotoUrlCache.clear();
+    try { sessionStorage.removeItem(WORKOUT_PHOTO_URL_CACHE_KEY); } catch (error) {}
     workoutRecords = [];
     workoutRecordDates = new Set();
     workoutRecordList.replaceChildren();
