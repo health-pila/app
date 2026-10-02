@@ -3710,8 +3710,8 @@ async function switchWorkoutCamera() {
 async function optimizeWorkoutPhoto(
   originalFile
 ) {
-  const maximumLength = 1280;
-  const webpQuality = 0.80;
+  const maximumLength = 960;
+  const webpQuality = 0.70;
 
   const sourceUrl =
     URL.createObjectURL(originalFile);
@@ -3859,7 +3859,7 @@ async function captureWorkoutPhoto() {
   captureWorkoutPhotoButton.disabled = true;
 
   try {
-    const maximumSize = 1280;
+    const maximumSize = 960;
 
     const imageScale = Math.min(
       1,
@@ -3901,7 +3901,7 @@ async function captureWorkoutPhoto() {
       workoutCameraCanvas.toBlob(
         resolve,
         "image/webp",
-        0.80
+        0.70
       );
     });
 
