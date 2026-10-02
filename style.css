@@ -4190,6 +4190,23 @@ body.camera-open {
   background: #eef1f5;
 }
 
+/* 회원 계정 안내: 로그아웃 버튼 밖에 두고 두 줄 정도 간격을 확보합니다. */
+#memberMenuPanel {
+  width: 220px;
+  max-width: calc(100vw - 40px);
+}
+
+#memberAccountEmail {
+  margin: 32px 12px 10px;
+  color: #4b5563;
+  font-size: 9.1px; /* 로그아웃 13px의 70% */
+  font-weight: 400;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  user-select: text;
+  cursor: text;
+}
+
 #appScreen > .member-tab-panel:not(#routineTabPanel) {
   padding: 24px 20px 0;
 }

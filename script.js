@@ -4087,6 +4087,13 @@ const toggleRoutineDescriptionButton = document.querySelector(
   "#toggleRoutineDescriptionButton"
 );
 const logoutButton = document.querySelector("#logoutButton");
+const memberAccountEmail = document.querySelector("#memberAccountEmail");
+
+function renderMemberAccountEmail(email = "") {
+  const value = typeof email === "string" ? email.trim() : "";
+  memberAccountEmail.textContent = value;
+  memberAccountEmail.hidden = !value;
+}
 
 // 회원·관리자 상단 더보기: 바깥 클릭, Escape, 화면 이동과 로그아웃 시 닫습니다.
 (function () {
@@ -8777,6 +8784,7 @@ async function showAdminApp() {
 
 // 현재 로그인한 계정의 역할에 따라 화면 선택
 async function showScreenForCurrentUser() {
+  renderMemberAccountEmail();
   const {
     data: { user },
     error: userError
@@ -8808,6 +8816,7 @@ async function showScreenForCurrentUser() {
     return;
   }
 
+  renderMemberAccountEmail(user.email);
   await showWorkoutApp(user.id);
 }
 
@@ -9786,6 +9795,7 @@ async function handleLogout() {
     adminRoutineLoadRequestId += 1;
 
     // 회원·관리자 화면을 숨기고 로그인 화면 표시
+    renderMemberAccountEmail();
     appScreen.hidden = true;
     adminScreen.hidden = true;
     loginScreen.hidden = false;
