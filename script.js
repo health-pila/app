@@ -194,11 +194,6 @@ const memberInquiryComposer =
     "#memberInquiryComposer"
   );
 
-const memberInquiryTitle =
-  document.querySelector(
-    "#memberInquiryTitle"
-  );
-
 const memberInquiryBody =
   document.querySelector(
     "#memberInquiryBody"
@@ -849,11 +844,17 @@ async function loadMemberInquirySetting() {
   }
 }
 
+// 제목 입력 없이 기존 RPC와 목록을 유지하도록 문의 앞부분을 미리보기로 저장합니다.
+// 문의 전문과 줄바꿈은 p_body에 그대로 전달합니다.
+function createInquiryPreview(body) {
+  const characters = Array.from(body.replace(/\s+/g, " ").trim());
+  return characters.length > 100
+    ? characters.slice(0, 99).join("") + "…"
+    : characters.join("");
+}
+
 // 회원의 새 1:1 문의 전송
 async function sendMemberInquiry() {
-  const title =
-    memberInquiryTitle.value.trim();
-
   const body =
     memberInquiryBody.value.trim();
 
@@ -861,14 +862,6 @@ async function sendMemberInquiry() {
     memberInquirySubmitMessage.textContent =
       "현재 1:1 문의 접수가 중단되어 있습니다.";
 
-    return;
-  }
-
-  if (!title) {
-    memberInquirySubmitMessage.textContent =
-      "문의 제목을 입력해 주세요.";
-
-    memberInquiryTitle.focus();
     return;
   }
 
@@ -893,7 +886,7 @@ async function sendMemberInquiry() {
     } = await supabaseClient.rpc(
       "create_member_inquiry",
       {
-        p_title: title,
+        p_title: createInquiryPreview(body),
         p_body: body
       }
     );
@@ -902,7 +895,6 @@ async function sendMemberInquiry() {
       throw createInquiryError;
     }
 
-    memberInquiryTitle.value = "";
     memberInquiryBody.value = "";
 
     memberInquirySubmitMessage.textContent =
@@ -1298,13 +1290,13 @@ function renderMemberInquiries(inquiries) {
     summaryTop.className =
       "member-inquiry-summary-top";
 
-    const inquiryTitle =
-      document.createElement("strong");
+    const inquiryPreview =
+      document.createElement("span");
 
-    inquiryTitle.className =
-      "member-inquiry-card-title";
+    inquiryPreview.className =
+      "member-inquiry-card-preview";
 
-    inquiryTitle.textContent =
+    inquiryPreview.textContent =
       inquiry.title;
 
     const statusBadge =
@@ -1321,7 +1313,7 @@ function renderMemberInquiries(inquiries) {
         : "답변 대기";
 
     summaryTop.append(
-      inquiryTitle,
+      inquiryPreview,
       statusBadge
     );
 
@@ -5246,13 +5238,13 @@ function renderAdminInquiries(inquiries) {
       statusBadge
     );
 
-    const inquiryTitle =
+    const inquiryPreview =
       document.createElement("span");
 
-    inquiryTitle.className =
-      "admin-inquiry-title";
+    inquiryPreview.className =
+      "admin-inquiry-preview";
 
-    inquiryTitle.textContent =
+    inquiryPreview.textContent =
       inquiry.title;
 
     const inquiryMeta =
@@ -5297,7 +5289,7 @@ function renderAdminInquiries(inquiries) {
 
     summaryButton.append(
       summaryTop,
-      inquiryTitle,
+      inquiryPreview,
       inquiryMeta
     );
 
