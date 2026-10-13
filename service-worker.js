@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "69";
+const APP_VERSION = "70";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}`;
@@ -18,7 +18,9 @@ const APP_FILES = [
   "./manifest.json",
   "./images/center-logo.png",
   "./images/icon-192.png",
-  "./images/icon-512.png"
+  "./images/icon-512.png",
+  "./images/install-samsung-blocked.png",
+  "./images/install-samsung-details.png"
 ];
 
 function belongsToThisApp(urlValue) {

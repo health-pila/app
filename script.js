@@ -32,10 +32,20 @@ if (
 }
 // 홈 화면 설치 기능
 const installButton = document.getElementById("installButton");
+const samsungInstallDialog = document.getElementById("samsungInstallDialog");
+const samsungInstallContent = document.getElementById("samsungInstallContent");
+const samsungInstallSteps = document.querySelectorAll("[data-samsung-install-step]");
+const samsungInstallProgress = document.getElementById("samsungInstallProgress");
+const samsungInstallPrevious = document.getElementById("samsungInstallPrevious");
+const samsungInstallContinue = document.getElementById("samsungInstallContinue");
 
 let deferredInstallPrompt = null;
+let installPromptInFlight = false;
+let samsungInstallStep = 0;
 
 const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isSamsungInternet =
+  /Android/i.test(navigator.userAgent) && /SamsungBrowser\//i.test(navigator.userAgent);
 
 const isStandalone =
   window.matchMedia("(display-mode: standalone)").matches ||
@@ -53,22 +63,48 @@ if (!isStandalone) {
 // 안드로이드·PC에서 설치 준비가 완료되었을 때
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
+  if (isStandalone) return;
   deferredInstallPrompt = event;
   installButton.hidden = false;
 });
 
-// 설치 버튼 클릭
-installButton.addEventListener("click", async () => {
+function showSamsungInstallStep(step, moveFocus = true) {
+  samsungInstallStep = step;
+  samsungInstallSteps.forEach((panel, index) => {
+    panel.hidden = index !== step;
+  });
+  samsungInstallProgress.textContent = `${step + 1} / 2`;
+  samsungInstallPrevious.hidden = step === 0;
+  samsungInstallContinue.textContent = step === 0 ? "다음 안내 보기" : "설치 시작하기";
+  samsungInstallContent.scrollTop = 0;
+  if (moveFocus) {
+    samsungInstallSteps[step].querySelector("h3").focus({ preventScroll: true });
+  }
+}
+
+function closeSamsungInstallGuide() {
+  if (samsungInstallDialog?.open) samsungInstallDialog.close();
+}
+
+// 마지막 확인 버튼의 클릭 안에서 곧바로 prompt()를 호출해야 설치 권한이 유지됩니다.
+async function startAppInstall() {
+  if (installPromptInFlight) return;
   if (deferredInstallPrompt) {
-    deferredInstallPrompt.prompt();
-
-    const choice = await deferredInstallPrompt.userChoice;
+    const promptEvent = deferredInstallPrompt;
     deferredInstallPrompt = null;
-
-    if (choice.outcome === "accepted") {
-      installButton.hidden = true;
+    installPromptInFlight = true;
+    installButton.disabled = true;
+    try {
+      await promptEvent.prompt();
+      const choice = await promptEvent.userChoice;
+      if (choice.outcome === "accepted") installButton.hidden = true;
+    } catch (error) {
+      console.warn("앱 설치 창을 열지 못했습니다:", error);
+      alert("설치 창을 열지 못했어요. 브라우저 메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택해 주세요.");
+    } finally {
+      installPromptInFlight = false;
+      installButton.disabled = false;
     }
-
     return;
   }
 
@@ -80,12 +116,54 @@ installButton.addEventListener("click", async () => {
   }
 
   alert("브라우저 메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택해주세요.");
+}
+
+// 삼성 인터넷에서는 사진 안내를 먼저 확인하고 기존 설치 절차로 이어갑니다.
+installButton.addEventListener("click", () => {
+  if (installPromptInFlight) return;
+  if (isSamsungInternet && samsungInstallDialog) {
+    showSamsungInstallStep(0, false);
+    if (!samsungInstallDialog.open) samsungInstallDialog.showModal();
+    document.body.classList.add("samsung-install-guide-open");
+    samsungInstallSteps[0].querySelector("h3").focus({ preventScroll: true });
+    return;
+  }
+  startAppInstall();
+});
+
+// 업데이트 중 예전 HTML이 잠깐 남아 있어도 기존 설치와 앱 초기화를 유지합니다.
+document.getElementById("closeSamsungInstallGuide")?.addEventListener("click", closeSamsungInstallGuide);
+samsungInstallPrevious?.addEventListener("click", () => showSamsungInstallStep(0));
+samsungInstallContinue?.addEventListener("click", () => {
+  if (samsungInstallStep === 0) {
+    showSamsungInstallStep(1);
+    return;
+  }
+  closeSamsungInstallGuide();
+  startAppInstall();
+});
+samsungInstallDialog?.addEventListener("close", () => {
+  document.body.classList.remove("samsung-install-guide-open");
+});
+samsungInstallDialog?.addEventListener("keydown", (event) => {
+  if (event.key !== "Tab") return;
+  const buttons = [...samsungInstallDialog.querySelectorAll("button:not([hidden]):not([disabled])")];
+  const first = buttons[0];
+  const last = buttons[buttons.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !buttons.includes(document.activeElement))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
 });
 
 // 설치가 완료되면 버튼 숨기기
 window.addEventListener("appinstalled", () => {
   installButton.hidden = true;
   deferredInstallPrompt = null;
+  closeSamsungInstallGuide();
 });
 // 로그인과 화면 전환에 필요한 요소
 const loginScreen = document.querySelector("#loginScreen");

@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=69">
+  <link rel="stylesheet" href="style.css?v=70">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ec6a1a">
 
@@ -797,12 +797,46 @@
   </dialog>
   <p id="oneDayPtFeedback" class="one-day-pt-feedback" role="status" hidden></p>
 
+  <dialog id="samsungInstallDialog" class="samsung-install-dialog" aria-labelledby="samsungInstallTitle" aria-describedby="samsungInstallHelp">
+    <header class="samsung-install-header">
+      <h2 id="samsungInstallTitle">삼성 인터넷 설치 안내</h2>
+      <button id="closeSamsungInstallGuide" type="button" aria-label="설치 안내 닫기">닫기</button>
+    </header>
+    <div id="samsungInstallContent" class="samsung-install-content">
+      <p id="samsungInstallHelp" class="samsung-install-help">차단 안내가 나타나면 아래 순서로 진행해 주세요.<br>사진은 예시이며, 실제 설치는 안내를 본 뒤 시작돼요.</p>
+      <p class="samsung-install-progress">눌러야 할 위치 확인 <span id="samsungInstallProgress">1 / 2</span></p>
+      <section data-samsung-install-step>
+        <h3 tabindex="-1"><span>1</span> ‘세부정보 더보기’를 눌러 주세요</h3>
+        <p class="samsung-install-caption">글자와 아래쪽 화살표 부분을 누를 수 있어요.</p>
+        <figure class="samsung-install-photo samsung-install-photo-first">
+          <img src="images/install-samsung-blocked.png" width="461" height="889" alt="설치 차단 안내 예시. 확인 버튼 바로 위의 ‘세부정보 더보기’가 주황색 테두리로 표시되어 있습니다.">
+          <span class="samsung-install-highlight" aria-hidden="true"></span>
+        </figure>
+      </section>
+      <section data-samsung-install-step hidden>
+        <h3 tabindex="-1"><span>2</span> ‘무시하고 설치하기’를 선택해 주세요</h3>
+        <p class="samsung-install-caption">세부정보를 펼치면 이 문구가 나타나요.</p>
+        <figure class="samsung-install-photo samsung-install-photo-second">
+          <img src="images/install-samsung-details.png" width="463" height="897" alt="세부정보를 펼친 설치 차단 안내 예시. 확인 버튼 바로 위의 ‘무시하고 설치하기’가 주황색 테두리로 표시되어 있습니다.">
+          <span class="samsung-install-highlight" aria-hidden="true"></span>
+        </figure>
+        <p class="samsung-install-app-check">설치할 앱 이름이 <strong>헬스와필라테스</strong>인지 확인해 주세요.</p>
+      </section>
+      <p class="samsung-install-footnote">휴대폰에 따라 화면이 다를 수 있어요. 차단 안내가 나타나지 않으면 그대로 설치를 진행하면 돼요.</p>
+    </div>
+    <footer class="samsung-install-actions">
+      <p class="samsung-install-scroll-hint">사진을 위로 밀어 아래 내용도 확인해 주세요 ↓</p>
+      <button id="samsungInstallPrevious" type="button" hidden>이전</button>
+      <button id="samsungInstallContinue" type="button">다음 안내 보기</button>
+    </footer>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="exercise-data.js?v=69"></script>
-  <script src="routine-components.js?v=69"></script>
-  <script src="one-day-pt.js?v=69"></script>
-  <script src="script.js?v=69"></script>
+  <script src="exercise-data.js?v=70"></script>
+  <script src="routine-components.js?v=70"></script>
+  <script src="one-day-pt.js?v=70"></script>
+  <script src="script.js?v=70"></script>
 </body>
 
 

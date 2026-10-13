@@ -4962,3 +4962,39 @@ body.camera-open {
 .routine-request-choice:disabled, .routine-request-choice[aria-disabled="true"] { opacity: .55; cursor: default; }
 .routine-request-choice:focus-visible { outline: 3px solid #e87724; outline-offset: 3px; }
 .routine-change-admin-note { color: #64748b; font-size: 12px; }
+
+/* v70: 삼성 인터넷의 설치 차단 화면을 사진으로 안내 */
+body.samsung-install-guide-open { overflow: hidden; }
+.samsung-install-dialog { box-sizing: border-box; width: min(420px, calc(100vw - 24px)); max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); margin: auto; padding: 0; border: 0; border-radius: 22px; background: #fff; color: #18243b; font-family: inherit; overflow: hidden; box-shadow: 0 20px 70px #0004; }
+.samsung-install-dialog[open] { display: flex; flex-direction: column; }
+.samsung-install-dialog::backdrop { background: #18243bb3; }
+.samsung-install-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; padding: 10px 16px 8px 20px; border-bottom: 1px solid #e7eaf0; }
+.samsung-install-header h2 { margin: 0; font-size: 18px; line-height: 1.4; }
+.samsung-install-dialog button { width: auto; min-height: 44px; margin: 0; border: 1px solid #d9dfe7; border-radius: 11px; padding: 10px 14px; background: #fff; color: #334155; font: inherit; font-size: 14px; line-height: 1.4; cursor: pointer; }
+.samsung-install-header button { flex-shrink: 0; border: 0; padding: 10px; }
+.samsung-install-content { min-height: 0; padding: 16px 20px; overflow-y: auto; overscroll-behavior: contain; }
+.samsung-install-help { margin: 0 0 16px; font-size: 13px; line-height: 1.7; color: #526176; word-break: keep-all; overflow-wrap: anywhere; }
+.samsung-install-progress { display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px; font-size: 12px; font-weight: 700; color: #a94200; }
+.samsung-install-progress span { padding: 4px 9px; border-radius: 20px; background: #fff0e3; font-variant-numeric: tabular-nums; }
+.samsung-install-content h3 { display: flex; align-items: flex-start; gap: 8px; margin: 0; font-size: 17px; line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
+.samsung-install-content h3 > span { flex: 0 0 24px; display: grid; place-items: center; height: 24px; margin-top: 1px; border-radius: 50%; background: #b44700; color: #fff; font-size: 13px; }
+.samsung-install-caption { margin: 8px 0 14px; color: #526176; font-size: 12px; line-height: 1.6; }
+.samsung-install-photo { position: relative; width: 100%; max-width: 310px; margin: 0 auto; overflow: hidden; border-radius: 22px; background: #e8e8e8; }
+/* 원본 사진은 보존하고, 시스템 안내창 부분만 화면에 맞춰 보여줍니다. */
+.samsung-install-photo-first { aspect-ratio: 417 / 471; }
+.samsung-install-photo-second { aspect-ratio: 417 / 575; }
+.samsung-install-photo img { position: absolute; display: block; max-width: none; height: auto; }
+.samsung-install-photo-first img { width: 110.5516%; left: -5.7554%; top: -54.9894%; }
+.samsung-install-photo-second img { width: 111.0312%; left: -6.4748%; top: -36.3478%; }
+.samsung-install-highlight { position: absolute; display: block; border: 3px solid #e45800; border-radius: 8px; box-shadow: 0 0 0 2px #fff; pointer-events: none; }
+.samsung-install-photo-first .samsung-install-highlight { left: 4.8%; top: 68.1%; width: 39%; height: 8.5%; }
+.samsung-install-photo-second .samsung-install-highlight { left: 4.8%; top: 74%; width: 37%; height: 6.9%; }
+.samsung-install-app-check { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff4ea; color: #793400; font-size: 13px; line-height: 1.6; word-break: keep-all; }
+.samsung-install-footnote { margin: 14px 0 0; font-size: 12px; line-height: 1.6; color: #64748b; word-break: keep-all; }
+.samsung-install-actions { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; padding: 12px 20px; padding-bottom: max(12px, env(safe-area-inset-bottom)); border-top: 1px solid #e7eaf0; background: #fff; }
+.samsung-install-scroll-hint { display: none; width: 100%; margin: 0; color: #526176; font-size: 11px; line-height: 1.6; text-align: center; }
+#samsungInstallContinue { flex: 1; min-height: 48px; border-color: #b44700; background: #b44700; color: #fff; font-weight: 700; }
+.samsung-install-dialog button:focus-visible, .samsung-install-dialog h3:focus-visible { outline: 3px solid #e87724; outline-offset: 2px; }
+@media (max-height: 700px) {
+  .samsung-install-scroll-hint { display: block; }
+}
