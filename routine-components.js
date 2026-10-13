@@ -539,8 +539,7 @@ if (options?.userId) {
       weightButton.setAttribute("aria-expanded", String(willOpen));
       weightButton.textContent =
         willOpen ? "▲ 중량 기록 접기" : "▼ 중량 기록";
-
-      if (willOpen) weightInput.focus({ preventScroll: true });
+      
     });
   });
 
