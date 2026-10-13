@@ -24,15 +24,14 @@
 <body>
   <section id="loginScreen" class="login-screen">
     <div class="login-box">
-      <p class="label">오늘의 운동</p>
+      <p class="label">운동 루틴 추천 앱</p>
       <h1>회원 로그인</h1>
       <p class="login-description">
-        배정받은 운동 루틴을 확인해 보세요.
+        회원님께 맞는 운동 루틴을 추천해드려요.
       </p>
 
       <div id="loginInstallArea" class="login-install-area" hidden>
-        <button id="loginInstallButton" type="button" aria-describedby="loginInstallHelp">📲 이 앱을 홈 화면에 설치</button>
-        <p id="loginInstallHelp">회원가입 전에도 설치할 수 있어요.</p>
+        <button id="loginInstallButton" type="button">📲 이 앱을 홈 화면에 설치</button>
       </div>
 
       <form id="loginForm" class="login-form">
@@ -52,11 +51,15 @@
 
         <button id="loginButton" type="submit">로그인</button>
         <p id="loginMessage" class="login-message"></p>
-        <a id="forgotPasswordLink" class="signup-link-button auth-text-link" href="./reset-password.html">비밀번호를 잊으셨나요?</a>
+
+        <button id="showSignupButton" class="signup-link-button" type="button">
+          처음이신가요? 회원가입
+        </button>
+
+        <a id="forgotPasswordLink" class="signup-link-button auth-text-link" href="./reset-password.html">
+          비밀번호를 잊으셨나요?
+        </a>
       </form>
-      <button id="showSignupButton" class="signup-link-button" type="button">
-        처음이신가요? 회원가입
-      </button>
 
       <form id="signupForm" class="login-form" hidden>
         <p class="label">회원가입</p>
@@ -109,33 +112,38 @@
     <div class="member-app-topbar">
       <img class="screen-logo screen-logo-top" src="images/center-logo.png" alt="헬스와 필라테스 화곡점">
       <div class="member-topbar-actions">
-        <button id="refreshMemberAppButton" class="member-refresh-button" type="button" aria-label="앱 새로고침" title="새로고침">
-          <svg viewBox="0 0 24 24"
-     fill="none"
-     stroke="currentColor"
-     stroke-width="2"
-     stroke-linecap="round"
-     stroke-linejoin="round"
-     aria-hidden="true"
-     focusable="false">
-  <path d="M3 12a9 9 0 0 1 9-9c2.5 0 4.8 1 6.5 2.7L21 8"/>
-  <path d="M21 3v5h-5"/>
-  <path d="M21 12a9 9 0 0 1-9 9c-2.5 0-4.8-1-6.5-2.7L3 16"/>
-  <path d="M3 21v-5h5"/>
-</svg>
+        <button id="refreshMemberAppButton" class="member-refresh-button" type="button" aria-label="앱 새로고침"
+          title="새로고침">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M3 12a9 9 0 0 1 9-9c2.5 0 4.8 1 6.5 2.7L21 8" />
+            <path d="M21 3v5h-5" />
+            <path d="M21 12a9 9 0 0 1-9 9c-2.5 0-4.8-1-6.5-2.7L3 16" />
+            <path d="M3 21v-5h5" />
+          </svg>
           <span class="member-sr-only">새로고침</span>
         </button>
         <div id="memberMenu" class="member-menu">
-          <button id="memberMenuToggle" class="member-menu-toggle" type="button" aria-label="메뉴 열기" aria-expanded="false" aria-controls="memberMenuPanel">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+          <button id="memberMenuToggle" class="member-menu-toggle" type="button" aria-label="메뉴 열기"
+            aria-expanded="false" aria-controls="memberMenuPanel">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="5" cy="12" r="1" />
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="19" cy="12" r="1" />
+            </svg>
           </button>
           <div id="memberMenuPanel" class="member-menu-panel" hidden>
-            <button id="naverShortcutHelp" type="button" aria-haspopup="dialog" aria-controls="naverShortcutDialog" hidden>
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 10l9-7 9 7M5 9v12h14V9M9 21v-8h6v8"/></svg>
+            <button id="naverShortcutHelp" type="button" aria-haspopup="dialog" aria-controls="naverShortcutDialog"
+              hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M3 10l9-7 9 7M5 9v12h14V9M9 21v-8h6v8" />
+              </svg>
               <span>홈 화면 바로가기 안내</span>
             </button>
             <button id="logoutButton" type="button">
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 4H4v16h5m6-12 4 4-4 4m-7-4h11"/></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M9 4H4v16h5m6-12 4 4-4 4m-7-4h11" />
+              </svg>
               <span>로그아웃</span>
             </button>
             <p id="memberAccountEmail" class="member-account-email" hidden></p>
@@ -145,24 +153,34 @@
     </div>
     <section id="routineTabPanel" class="member-tab-panel" role="tabpanel" aria-labelledby="routineTabButton">
       <header class="member-routine-hero">
-        <h2>나만을 위해 센터가<br>짜준 운동 구성</h2>
+        <h2>나에게 맞춘 운동 루틴</h2>
         <p class="member-cardio-notice">유산소운동 구성 추천도 현재 준비 중입니다</p>
         <p class="member-assigned-routine"><span>배정된 구성 · </span><strong id="assignedRoutineName">불러오는 중...</strong></p>
       </header>
 
       <div class="one-day-pt-entry">
-        <button id="openOneDayPtCart" class="one-day-pt-cart-toggle" type="button" aria-haspopup="dialog" aria-controls="oneDayPtDialog">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l3 12h11l2-8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+        <button id="openOneDayPtCart" class="one-day-pt-cart-toggle" type="button" aria-haspopup="dialog"
+          aria-controls="oneDayPtDialog">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 3h2l3 12h11l2-8H6" />
+            <circle cx="9" cy="20" r="1" />
+            <circle cx="18" cy="20" r="1" />
+          </svg>
           <span>1DAY PT 장바구니</span><span id="oneDayPtCartCount" class="one-day-pt-count">0 / 5</span>
         </button>
-        <p>배우고 싶은 운동을 담으면 해당 구성으로 1회 강습이 가능합니다.</p>
+        <p>배우고 싶은 운동을 담으면 해당 종목으로 1회 PT 신청이 가능합니다.</p>
       </div>
 
       <section class="member-workout-surface" aria-labelledby="memberWorkoutTitle">
         <div class="member-workout-heading">
           <h3 id="memberWorkoutTitle">나의 운동 구성</h3>
-          <button id="restTimerToggle" class="member-inline-timer" type="button" aria-expanded="false" aria-controls="restTimerPanel">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="14" r="8"/><path d="M9 2h6M12 2v4m6 1 2-2m-8 6v4l2 1"/></svg>
+          <button id="restTimerToggle" class="member-inline-timer" type="button" aria-expanded="false"
+            aria-controls="restTimerPanel">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="14" r="8" />
+              <path d="M9 2h6M12 2v4m6 1 2-2m-8 6v4l2 1" />
+            </svg>
             <span id="restTimerToggleLabel">휴식 타이머</span>
           </button>
         </div>
@@ -173,13 +191,15 @@
 
       <section id="memberRoutineSummary" class="member-routine-summary" aria-label="이번 운동 구성 안내" hidden></section>
       <section id="routineDescription" class="routine-description" hidden></section>
-      <button id="toggleRoutineDescriptionButton" class="toggle-description-button" type="button" hidden aria-expanded="false">설명 더 보기</button>
+      <button id="toggleRoutineDescriptionButton" class="toggle-description-button" type="button" hidden
+        aria-expanded="false">설명 더 보기</button>
 
       <div class="member-routine-request-area">
         <a id="routineRequestButton" class="routine-request-button"
           href="https://docs.google.com/forms/d/e/1FAIpQLScIH9uLzjwhGlH-RWbn9a7hmEy74MzQNLgN4Tnn4V01KcqKzg/viewform?usp=header"
           target="_self" rel="noopener noreferrer">✍️ 새 운동 구성 신청하기</a>
-        <p id="routineRequestStatusMessage" class="routine-request-status-message" aria-live="polite" hidden>새로운 루틴을 구성하는 중입니다.</p>
+        <p id="routineRequestStatusMessage" class="routine-request-status-message" aria-live="polite" hidden>새로운 루틴을
+          구성하는 중입니다.</p>
       </div>
 
       <button id="installButton" class="install-button" type="button" hidden>📲 이 앱을 홈 화면에 설치</button>
@@ -195,15 +215,20 @@
             <button type="button" data-rest-seconds="60" aria-pressed="true">60초</button>
             <button type="button" data-rest-seconds="90" aria-pressed="false">90초</button>
           </div>
-          <p id="restTimerDisplay" class="rest-timer-display" role="timer" aria-live="off" aria-label="남은 휴식 시간">01:00</p>
+          <p id="restTimerDisplay" class="rest-timer-display" role="timer" aria-live="off" aria-label="남은 휴식 시간">01:00
+          </p>
           <p id="restTimerStatus" class="rest-timer-status" role="status" aria-live="polite">휴식 시간을 선택하고 시작해 주세요.</p>
           <div class="rest-timer-actions">
             <button id="restTimerStart" type="button">시작</button>
             <button id="restTimerReset" type="button">초기화</button>
           </div>
         </section>
-        <button id="restTimerQuickToggle" class="rest-timer-toggle" type="button" aria-expanded="false" aria-controls="restTimerPanel" hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="14" r="8"/><path d="M9 2h6M12 2v4m6 1 2-2m-8 6v4l2 1"/></svg>
+        <button id="restTimerQuickToggle" class="rest-timer-toggle" type="button" aria-expanded="false"
+          aria-controls="restTimerPanel" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="14" r="8" />
+            <path d="M9 2h6M12 2v4m6 1 2-2m-8 6v4l2 1" />
+          </svg>
           <span id="restTimerQuickLabel">휴식 타이머</span>
         </button>
       </aside>
@@ -362,19 +387,31 @@
     <nav class="member-bottom-nav" role="tablist" aria-label="회원 메뉴">
       <button id="routineTabButton" class="member-tab-button is-active" type="button" role="tab"
         data-member-tab="routine" aria-controls="routineTabPanel" aria-selected="true">
-        <svg class="member-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g transform="rotate(-40 12 12)"><path d="M8 12h8M3 10v4m18-4v4"/><rect x="4" y="7" width="4" height="10" rx="1"/><rect x="16" y="7" width="4" height="10" rx="1"/></g></svg>
+        <svg class="member-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <g transform="rotate(-40 12 12)">
+            <path d="M8 12h8M3 10v4m18-4v4" />
+            <rect x="4" y="7" width="4" height="10" rx="1" />
+            <rect x="16" y="7" width="4" height="10" rx="1" />
+          </g>
+        </svg>
         <span>운동 구성</span>
       </button>
 
       <button id="workoutLogTabButton" class="member-tab-button" type="button" role="tab" data-member-tab="workoutLog"
         aria-controls="workoutLogTabPanel" aria-selected="false">
-        <svg class="member-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5 6 8H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-2l-2-3Z"/><circle cx="12" cy="14" r="4"/></svg>
+        <svg class="member-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M8 5 6 8H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-2l-2-3Z" />
+          <circle cx="12" cy="14" r="4" />
+        </svg>
         <span>운동 기록</span>
       </button>
 
       <button id="communityTabButton" class="member-tab-button" type="button" role="tab" data-member-tab="community"
         aria-controls="communityTabPanel" aria-selected="false">
-        <svg class="member-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 15H6l-4 4V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3M10 8h10a2 2 0 0 1 2 2v12l-4-4h-8a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2Z"/></svg>
+        <svg class="member-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M8 15H6l-4 4V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3M10 8h10a2 2 0 0 1 2 2v12l-4-4h-8a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2Z" />
+        </svg>
         <span>센터 커뮤니티</span>
       </button>
     </nav>
@@ -384,29 +421,31 @@
     <div class="member-app-topbar admin-app-topbar">
       <img class="screen-logo screen-logo-top" src="images/center-logo.png" alt="헬스와 필라테스 화곡점">
       <div class="member-topbar-actions">
-        <button id="refreshAdminAppButton" class="member-refresh-button" type="button" aria-label="관리자 화면 새로고침" title="새로고침">
-          <svg viewBox="0 0 24 24"
-     fill="none"
-     stroke="currentColor"
-     stroke-width="2"
-     stroke-linecap="round"
-     stroke-linejoin="round"
-     aria-hidden="true"
-     focusable="false">
-  <path d="M3 12a9 9 0 0 1 9-9c2.5 0 4.8 1 6.5 2.7L21 8"/>
-  <path d="M21 3v5h-5"/>
-  <path d="M21 12a9 9 0 0 1-9 9c-2.5 0-4.8-1-6.5-2.7L3 16"/>
-  <path d="M3 21v-5h5"/>
-</svg>
+        <button id="refreshAdminAppButton" class="member-refresh-button" type="button" aria-label="관리자 화면 새로고침"
+          title="새로고침">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M3 12a9 9 0 0 1 9-9c2.5 0 4.8 1 6.5 2.7L21 8" />
+            <path d="M21 3v5h-5" />
+            <path d="M21 12a9 9 0 0 1-9 9c-2.5 0-4.8-1-6.5-2.7L3 16" />
+            <path d="M3 21v-5h5" />
+          </svg>
           <span class="member-sr-only">새로고침</span>
         </button>
         <div id="adminMenu" class="member-menu">
-          <button id="adminMenuToggle" class="member-menu-toggle" type="button" aria-label="메뉴 열기" aria-expanded="false" aria-controls="adminMenuPanel">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+          <button id="adminMenuToggle" class="member-menu-toggle" type="button" aria-label="메뉴 열기" aria-expanded="false"
+            aria-controls="adminMenuPanel">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="5" cy="12" r="1" />
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="19" cy="12" r="1" />
+            </svg>
           </button>
           <div id="adminMenuPanel" class="member-menu-panel" hidden>
             <button id="adminLogoutButton" type="button">
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 4H4v16h5m6-12 4 4-4 4m-7-4h11"/></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M9 4H4v16h5m6-12 4 4-4 4m-7-4h11" />
+              </svg>
               <span>로그아웃</span>
             </button>
           </div>
@@ -492,7 +531,12 @@
       <p class="admin-section-description">선택한 운동을 확인하고 회원에게 연락해 일정을 예약해 주세요. 결제는 현장에서 진행합니다.</p>
       <div class="one-day-pt-admin-toolbar">
         <label for="adminOneDayPtFilter">신청 상태</label>
-        <select id="adminOneDayPtFilter"><option value="active">접수 · 예약 조율 중</option><option value="completed">진행 완료</option><option value="cancelled">취소</option><option value="all">전체</option></select>
+        <select id="adminOneDayPtFilter">
+          <option value="active">접수 · 예약 조율 중</option>
+          <option value="completed">진행 완료</option>
+          <option value="cancelled">취소</option>
+          <option value="all">전체</option>
+        </select>
         <button id="refreshAdminOneDayPt" type="button">새로고침</button>
       </div>
       <p id="adminOneDayPtMessage" class="admin-message" role="status"></p>
@@ -551,12 +595,13 @@
       <input id="adminRoutineName" type="text" placeholder="예: 2026년 9월 운동 루틴">
 
       <div class="admin-routine-format-buttons" role="group" aria-label="루틴 입력 방식">
-        <button id="adminRoutineJsonFormatButton" class="admin-routine-format-button" type="button"
-          aria-pressed="true" aria-controls="adminRoutineJsonPanel" aria-describedby="adminRoutineFormatHelp" disabled>
+        <button id="adminRoutineJsonFormatButton" class="admin-routine-format-button" type="button" aria-pressed="true"
+          aria-controls="adminRoutineJsonPanel" aria-describedby="adminRoutineFormatHelp" disabled>
           운동 카드(JSON)
         </button>
         <button id="adminRoutineImageFormatButton" class="admin-routine-format-button" type="button"
-          aria-pressed="false" aria-controls="adminRoutineImagePanel" aria-describedby="adminRoutineFormatHelp" disabled>
+          aria-pressed="false" aria-controls="adminRoutineImagePanel" aria-describedby="adminRoutineFormatHelp"
+          disabled>
           기존 이미지
         </button>
       </div>
@@ -768,7 +813,8 @@
     </section>
   </div>
 
-  <dialog id="routineRequestDialog" class="routine-request-dialog" aria-labelledby="routineRequestDialogTitle" aria-describedby="routineRequestDialogHelp">
+  <dialog id="routineRequestDialog" class="routine-request-dialog" aria-labelledby="routineRequestDialogTitle"
+    aria-describedby="routineRequestDialogHelp">
     <div class="routine-request-dialog-heading">
       <h2 id="routineRequestDialogTitle">어떻게 신청할까요?</h2>
       <button id="closeRoutineRequestDialog" type="button" aria-label="운동 구성 신청 창 닫기">닫기</button>
@@ -778,7 +824,8 @@
       <strong>새 신청서 작성하기</strong>
       <span>구글 폼에서 현재 상태와 원하는 운동을 알려 주세요.</span>
     </a>
-    <button id="submitRoutineChange" class="routine-request-choice routine-request-choice-change" type="button" disabled>
+    <button id="submitRoutineChange" class="routine-request-choice routine-request-choice-change" type="button"
+      disabled>
       <strong>기존 신청 내용으로 구성만 변경하기</strong>
       <span>신청서를 다시 작성하지 않고 변경을 요청합니다.</span>
     </button>
@@ -786,46 +833,55 @@
   </dialog>
 
   <dialog id="oneDayPtDialog" class="one-day-pt-dialog" aria-labelledby="oneDayPtTitle">
-    <div class="one-day-pt-dialog-header"><h2 id="oneDayPtTitle">1DAY PT 장바구니</h2><button id="closeOneDayPtCart" type="button" aria-label="장바구니 닫기">닫기</button></div>
+    <div class="one-day-pt-dialog-header">
+      <h2 id="oneDayPtTitle">1DAY PT 장바구니</h2><button id="closeOneDayPtCart" type="button"
+        aria-label="장바구니 닫기">닫기</button>
+    </div>
     <p class="one-day-pt-help">
       배우고 싶은 운동을 최대 5개 골라 주세요. 신청이 들어오면 센터가 별도로 연락해 일정을 예약합니다.<br>
       강습 시간은 50분간입니다.<br>
       결제는 현장에서 강습 직전 진행합니다.<br>
       비용은 앱 베타테스터 기간동안 정상가 66,000원에서 할인된 33,000원으로 강습 가능합니다.
     </p>
-    <p id="oneDayPtEmpty">운동 구성에서 ‘이 운동을 1DAY PT에 담기’를 눌러 주세요.</p>
+    <p id="oneDayPtEmpty">운동 루틴에서 ‘이 운동을 PT 희망 종목에 담기’를 눌러 주세요.</p>
     <ol id="oneDayPtCartList" class="one-day-pt-cart-list"></ol>
     <button id="submitOneDayPt" class="one-day-pt-primary" type="button" disabled>이 구성으로 1DAY PT 신청하기</button>
     <p class="one-day-pt-help">위 운동 외 다른 운동도 현장에서 요청 가능합니다.</p>
     <p id="oneDayPtSubmitMessage" class="one-day-pt-message" role="status"></p>
     <section class="one-day-pt-history" aria-labelledby="oneDayPtHistoryTitle">
-      <div class="one-day-pt-history-heading"><h3 id="oneDayPtHistoryTitle">내 신청 내역</h3><button id="refreshMemberOneDayPt" type="button">새로고침</button></div>
+      <div class="one-day-pt-history-heading">
+        <h3 id="oneDayPtHistoryTitle">내 신청 내역</h3><button id="refreshMemberOneDayPt" type="button">새로고침</button>
+      </div>
       <p id="oneDayPtHistoryMessage" class="one-day-pt-message" role="status"></p>
       <div id="oneDayPtHistoryList" class="one-day-pt-request-list"></div>
     </section>
   </dialog>
   <p id="oneDayPtFeedback" class="one-day-pt-feedback" role="status" hidden></p>
 
-  <dialog id="samsungInstallDialog" class="samsung-install-dialog" aria-labelledby="samsungInstallTitle" aria-describedby="samsungInstallHelp">
+  <dialog id="samsungInstallDialog" class="samsung-install-dialog" aria-labelledby="samsungInstallTitle"
+    aria-describedby="samsungInstallHelp">
     <header class="samsung-install-header">
       <h2 id="samsungInstallTitle">삼성 인터넷 설치 안내</h2>
       <button id="closeSamsungInstallGuide" type="button" aria-label="설치 안내 닫기">닫기</button>
     </header>
     <div id="samsungInstallContent" class="samsung-install-content">
-      <p id="samsungInstallHelp" class="samsung-install-help">차단 안내가 나타나면 아래 순서로 진행해 주세요.<br>사진은 예시이며, 실제 설치는 안내를 본 뒤 시작돼요.</p>
+      <p id="samsungInstallHelp" class="samsung-install-help">차단 안내가 나타나면 아래 순서로 진행해 주세요.<br>사진은 예시이며, 실제 설치는 안내를 본 뒤
+        시작돼요.</p>
       <p class="samsung-install-progress">눌러야 할 위치 확인 <span id="samsungInstallProgress">1 / 2</span></p>
       <section data-samsung-install-step>
         <h3 tabindex="-1"><span>1</span> ‘세부정보 더보기’를 눌러 주세요</h3>
         <p class="samsung-install-caption">글자와 아래쪽 화살표 부분을 누를 수 있어요.</p>
         <figure class="samsung-install-photo samsung-install-photo-first">
-          <img src="images/install-samsung-blocked.png?v=72" width="461" height="889" alt="설치 차단 안내 예시. 확인 버튼 바로 위의 ‘세부정보 더보기’가 주황색 동그라미로 표시되어 있습니다.">
+          <img src="images/install-samsung-blocked.png?v=72" width="461" height="889"
+            alt="설치 차단 안내 예시. 확인 버튼 바로 위의 ‘세부정보 더보기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
       </section>
       <section data-samsung-install-step hidden>
         <h3 tabindex="-1"><span>2</span> ‘무시하고 설치하기’를 선택해 주세요</h3>
         <p class="samsung-install-caption">세부정보를 펼치면 이 문구가 나타나요.</p>
         <figure class="samsung-install-photo samsung-install-photo-second">
-          <img src="images/install-samsung-details.png?v=72" width="463" height="897" alt="세부정보를 펼친 설치 차단 안내 예시. 확인 버튼 바로 위의 ‘무시하고 설치하기’가 주황색 동그라미로 표시되어 있습니다.">
+          <img src="images/install-samsung-details.png?v=72" width="463" height="897"
+            alt="세부정보를 펼친 설치 차단 안내 예시. 확인 버튼 바로 위의 ‘무시하고 설치하기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
         <p class="samsung-install-app-check">설치할 앱 이름이 <strong>헬스와필라테스</strong>인지 확인해 주세요.</p>
       </section>
@@ -838,7 +894,8 @@
     </footer>
   </dialog>
 
-  <dialog id="naverShortcutDialog" class="naver-shortcut-dialog" aria-labelledby="naverShortcutTitle" aria-describedby="naverShortcutDescription">
+  <dialog id="naverShortcutDialog" class="naver-shortcut-dialog" aria-labelledby="naverShortcutTitle"
+    aria-describedby="naverShortcutDescription">
     <div class="naver-shortcut-heading">
       <h2 id="naverShortcutTitle">홈 화면 바로가기 안내</h2>
       <button id="closeNaverShortcutGuide" type="button" aria-label="바로가기 안내 닫기">닫기</button>

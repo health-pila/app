@@ -7928,7 +7928,11 @@ function prepareMemberRoutineComponents(data, userId) {
   return {
     key,
     node: key === memberRoutineComponentsKey
-      ? null : window.RoutineComponents.renderRoutine(routine, { layout: "tabs", oneDayPT: true })
+      ? null : window.RoutineComponents.renderRoutine(routine, {
+        layout: "tabs",
+        oneDayPT: true,
+        userId: userId
+      })
   };
 }
 

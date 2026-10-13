@@ -359,15 +359,6 @@ body {
   outline-offset: 3px;
 }
 
-#loginInstallHelp {
-  margin: 8px 0 0;
-  color: #667085;
-  font-size: 12px;
-  line-height: 1.5;
-  text-align: center;
-  word-break: keep-all;
-}
-
 .login-form {
   display: grid;
   gap: 10px;
@@ -419,6 +410,10 @@ body {
   color: #c62828;
   font-size: 14px;
   text-align: center;
+}
+
+#loginMessage:empty {
+  display: none;
 }
 
 .app[hidden],
@@ -821,6 +816,20 @@ body {
   text-align: center;
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* 로그인 화면의 회원가입·비밀번호 찾기 */
+#loginForm #showSignupButton,
+#loginForm #forgotPasswordLink {
+  margin-top: 0;
+  min-height: 44px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+#loginForm #forgotPasswordLink {
+  color: #666;
+  font-weight: 400;
 }
 
 #signupForm .signup-link-button {
@@ -2407,6 +2416,7 @@ body.camera-open {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
   min-width: 0;
   font-weight: 400;
@@ -2832,6 +2842,7 @@ body.camera-open {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
   overflow-wrap: anywhere;
   font-size: 15px;
@@ -3521,14 +3532,22 @@ body.camera-open {
 .routine-component-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
   gap: 8px;
   margin-top: 14px;
 }
 
 .routine-component-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
   min-width: 0;
-  min-height: 33px;
-  padding: 3px 4px;
+  min-height: 44px;
+  margin: 0;
+  padding: 6px 4px;
   color: #111111;
   background: #ffffff;
   border: 1px solid #111111;
@@ -3536,8 +3555,11 @@ body.camera-open {
   font: inherit;
   font-size: 13px;
   line-height: 1.4;
-  word-break: keep-all;
   font-weight: 700;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
 }
 
@@ -4950,8 +4972,19 @@ body.camera-open {
 .one-day-pt-cart-toggle { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #f4c9a9; border-radius: 14px; background: #fff4ea; color: #a94200; font: inherit; font-size: 14px; font-weight: 700; text-align: left; }
 .one-day-pt-cart-toggle svg { width: 22px; height: 22px; flex: 0 0 22px; }
 .one-day-pt-count { margin-left: auto; white-space: nowrap; font-size: 13px; }
-.one-day-pt-entry > p { margin: 8px 3px 0; font-size: 12px; line-height: 1.5; color: #64748b; }
-#appScreen .one-day-pt-add-button { display: block; width: 100%; min-height: 40px; margin-top: 10px; padding: 9px 8px; border: 1px solid #f1c8aa; border-radius: 10px; background: #fff8f1; color: #a94200; font: inherit; font-size: 12px; font-weight: 700; line-height: 1.5; }
+.one-day-pt-entry > p {
+  margin: 8px 3px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--brand-orange);
+  font-weight: 700;
+}
+#appScreen .routine-component-actions .one-day-pt-add-button {
+  background: #fff8f1;
+  border-color: #f1c8aa;
+  color: #a94200;
+  font-weight: 700;
+}
 #appScreen .one-day-pt-add-button.is-added { background: #f0f5f2; border-color: #c9ddd2; color: #236244; opacity: 1; }
 .one-day-pt-dialog { box-sizing: border-box; width: min(480px, calc(100vw - 24px)); max-height: min(85dvh, 820px); margin: auto; padding: 22px 18px; border: 0; border-radius: 22px; color: #18243b; background: #fff; box-shadow: 0 20px 70px #0004; overflow-y: auto; overscroll-behavior: contain; font-family: inherit; }
 .one-day-pt-dialog::backdrop { background: #18243b99; }
@@ -5054,3 +5087,46 @@ body.naver-shortcut-guide-open { overflow: hidden; }
 .naver-shortcut-dialog .naver-shortcut-detail { color: #64748b; font-size: 12px; }
 #confirmNaverShortcutGuide { width: 100%; margin-top: 8px; min-height: 48px; background: #b44700; color: #fff; font-weight: 700; }
 #appScreen #naverShortcutHelp:focus-visible, .naver-shortcut-dialog button:focus-visible { outline: 3px solid #e87724; outline-offset: 2px; }
+
+/* 영상보기 바로 아래에 배치 */
+.routine-component-actions .routine-weight-button {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+/* 펼쳐지는 중량 기록 입력칸 */
+.routine-weight-panel {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #dce2eb;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.routine-weight-input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 90px;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #18243b;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.routine-weight-input:focus {
+  border-color: var(--brand-orange);
+  outline: 2px solid rgba(236, 106, 26, 0.15);
+}
+
+.routine-weight-status {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}

@@ -254,7 +254,7 @@
     // 영역이 삭제되거나 hidden으로 화면이 바뀌면 재생을 종료합니다.
     mediaObserver = new MutationObserver(function () {
       if (equipmentImageState && (!equipmentImageState.trigger.isConnected ||
-          equipmentImageState.trigger.closest("[hidden]"))) closeEquipmentImage();
+        equipmentImageState.trigger.closest("[hidden]"))) closeEquipmentImage();
       Array.from(openMedia).forEach(function (media) {
         if (!media.area.isConnected || media.area.closest("[hidden]")) media.close();
       });
@@ -468,11 +468,86 @@
       });
     });
     actions.append(detailsButton, videoButton);
-    card.append(main, actions);
+
     if (options?.oneDayPT && window.OneDayPT) {
-      card.append(window.OneDayPT.createAddButton(entry.exerciseId));
+      actions.append(window.OneDayPT.createAddButton(entry.exerciseId));
     }
-    card.append(details, mediaArea);
+
+    card.append(main, actions, details, mediaArea);
+    // 회원별·운동별 중량 메모
+if (options?.userId) {
+  const storageKey = "exerciseWeightNote:" + JSON.stringify([
+    options.userId,
+    entry.exerciseId
+  ]);
+
+  const weightButton = element(
+    "button",
+    "routine-weight-button",
+    "▼ 중량 기록"
+  );
+  weightButton.type = "button";
+  weightButton.setAttribute("aria-expanded", "false");
+
+  const weightPanel = element("div", "routine-weight-panel");
+  weightPanel.id = details.id + "-weight";
+  weightPanel.hidden = true;
+  weightButton.setAttribute("aria-controls", weightPanel.id);
+
+  const weightInput = element("textarea", "routine-weight-input");
+  weightInput.rows = 3;
+  weightInput.maxLength = 500;
+  weightInput.placeholder = "중량 및 운동 코멘트를 자유롭게 기록해보세요.";
+  weightInput.setAttribute("aria-label", exercise.name + " 중량 기록");
+
+  const weightStatus = element(
+    "p",
+    "routine-weight-status",
+    ""
+  );
+
+  weightInput.addEventListener("input", function () {
+    try {
+      if (weightInput.value.trim()) {
+        localStorage.setItem(storageKey, weightInput.value);
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+      weightStatus.textContent = "이 브라우저에 저장했어요.";
+    } catch (error) {
+      weightStatus.textContent =
+        "저장하지 못했어요. 페이지를 닫으면 내용이 사라질 수 있어요.";
+    }
+  });
+
+  weightButton.addEventListener("click", function () {
+    preservePagePosition(function () {
+      const willOpen = weightPanel.hidden;
+
+      if (willOpen) {
+        try {
+          weightInput.value = localStorage.getItem(storageKey) || "";
+          weightStatus.textContent =
+            "";
+        } catch (error) {
+          weightStatus.textContent =
+            "브라우저 저장소를 사용할 수 없어요.";
+        }
+      }
+
+      weightPanel.hidden = !willOpen;
+      weightButton.setAttribute("aria-expanded", String(willOpen));
+      weightButton.textContent =
+        willOpen ? "▲ 중량 기록 접기" : "▼ 중량 기록";
+
+      if (willOpen) weightInput.focus({ preventScroll: true });
+    });
+  });
+
+  weightPanel.append(weightInput, weightStatus);
+  actions.append(weightButton);
+  card.append(weightPanel);
+}
     return card;
   }
 
