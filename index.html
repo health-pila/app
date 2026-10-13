@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=70">
+  <link rel="stylesheet" href="style.css?v=71">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ec6a1a">
 
@@ -125,6 +125,10 @@
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
           </button>
           <div id="memberMenuPanel" class="member-menu-panel" hidden>
+            <button id="naverShortcutHelp" type="button" aria-haspopup="dialog" aria-controls="naverShortcutDialog" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 10l9-7 9 7M5 9v12h14V9M9 21v-8h6v8"/></svg>
+              <span>홈 화면 바로가기 안내</span>
+            </button>
             <button id="logoutButton" type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 4H4v16h5m6-12 4 4-4 4m-7-4h11"/></svg>
               <span>로그아웃</span>
@@ -809,16 +813,14 @@
         <h3 tabindex="-1"><span>1</span> ‘세부정보 더보기’를 눌러 주세요</h3>
         <p class="samsung-install-caption">글자와 아래쪽 화살표 부분을 누를 수 있어요.</p>
         <figure class="samsung-install-photo samsung-install-photo-first">
-          <img src="images/install-samsung-blocked.png" width="461" height="889" alt="설치 차단 안내 예시. 확인 버튼 바로 위의 ‘세부정보 더보기’가 주황색 테두리로 표시되어 있습니다.">
-          <span class="samsung-install-highlight" aria-hidden="true"></span>
+          <img src="images/install-samsung-blocked.png?v=71" width="461" height="889" alt="설치 차단 안내 예시. 확인 버튼 바로 위의 ‘세부정보 더보기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
       </section>
       <section data-samsung-install-step hidden>
         <h3 tabindex="-1"><span>2</span> ‘무시하고 설치하기’를 선택해 주세요</h3>
         <p class="samsung-install-caption">세부정보를 펼치면 이 문구가 나타나요.</p>
         <figure class="samsung-install-photo samsung-install-photo-second">
-          <img src="images/install-samsung-details.png" width="463" height="897" alt="세부정보를 펼친 설치 차단 안내 예시. 확인 버튼 바로 위의 ‘무시하고 설치하기’가 주황색 테두리로 표시되어 있습니다.">
-          <span class="samsung-install-highlight" aria-hidden="true"></span>
+          <img src="images/install-samsung-details.png?v=71" width="463" height="897" alt="세부정보를 펼친 설치 차단 안내 예시. 확인 버튼 바로 위의 ‘무시하고 설치하기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
         <p class="samsung-install-app-check">설치할 앱 이름이 <strong>헬스와필라테스</strong>인지 확인해 주세요.</p>
       </section>
@@ -831,12 +833,28 @@
     </footer>
   </dialog>
 
+  <dialog id="naverShortcutDialog" class="naver-shortcut-dialog" aria-labelledby="naverShortcutTitle" aria-describedby="naverShortcutDescription">
+    <div class="naver-shortcut-heading">
+      <h2 id="naverShortcutTitle">홈 화면 바로가기 안내</h2>
+      <button id="closeNaverShortcutGuide" type="button" aria-label="바로가기 안내 닫기">닫기</button>
+    </div>
+    <p id="naverShortcutDescription">네이버에서는 휴대폰 홈 화면에 센터 페이지의 바로가기를 추가할 수 있어요.</p>
+    <ol>
+      <li>이 안내를 닫고, <strong>네이버 앱의 브라우저 메뉴</strong>를 열어 주세요.</li>
+      <li><strong>‘바로가기 추가’</strong>를 선택하고 홈 화면에 추가해 주세요.</li>
+      <li>홈 화면에 생긴 아이콘을 누르면 센터 페이지가 열려요.</li>
+    </ol>
+    <p class="naver-shortcut-note">이미 홈 화면에 아이콘이 있다면 다시 추가하지 않아도 돼요.</p>
+    <p class="naver-shortcut-detail">바로가기는 웹페이지 형식으로 열려요. 설치 없이도 센터 서비스를 이용할 수 있어요.</p>
+    <button id="confirmNaverShortcutGuide" type="button">확인했어요</button>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="exercise-data.js?v=70"></script>
-  <script src="routine-components.js?v=70"></script>
-  <script src="one-day-pt.js?v=70"></script>
-  <script src="script.js?v=70"></script>
+  <script src="exercise-data.js?v=71"></script>
+  <script src="routine-components.js?v=71"></script>
+  <script src="one-day-pt.js?v=71"></script>
+  <script src="script.js?v=71"></script>
 </body>
 
 

@@ -38,12 +38,16 @@ const samsungInstallSteps = document.querySelectorAll("[data-samsung-install-ste
 const samsungInstallProgress = document.getElementById("samsungInstallProgress");
 const samsungInstallPrevious = document.getElementById("samsungInstallPrevious");
 const samsungInstallContinue = document.getElementById("samsungInstallContinue");
+const naverShortcutHelp = document.getElementById("naverShortcutHelp");
+const naverShortcutDialog = document.getElementById("naverShortcutDialog");
 
 let deferredInstallPrompt = null;
 let installPromptInFlight = false;
 let samsungInstallStep = 0;
 
 const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isNaverApp =
+  /Android/i.test(navigator.userAgent) && /\bNAVER(?:\(|APP\b)/i.test(navigator.userAgent);
 const isSamsungInternet =
   /Android/i.test(navigator.userAgent) && /SamsungBrowser\//i.test(navigator.userAgent);
 
@@ -51,8 +55,11 @@ const isStandalone =
   window.matchMedia("(display-mode: standalone)").matches ||
   window.navigator.standalone === true;
 
-// 이미 설치된 상태가 아니라면 버튼 표시
-if (!isStandalone) {
+// 네이버 바로가기는 웹으로 열리므로 설치 상태를 추측하지 않습니다.
+// 반복되는 설치 권유 대신 상단 메뉴에서 바로가기 안내를 확인하게 합니다.
+installButton.hidden = isStandalone || isNaverApp;
+if (naverShortcutHelp) naverShortcutHelp.hidden = !isNaverApp || isStandalone;
+if (!isStandalone && !isNaverApp) {
   installButton.hidden = false;
 
   if (isIos) {
@@ -63,9 +70,45 @@ if (!isStandalone) {
 // 안드로이드·PC에서 설치 준비가 완료되었을 때
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
-  if (isStandalone) return;
+  if (isStandalone || isNaverApp) return;
   deferredInstallPrompt = event;
   installButton.hidden = false;
+});
+
+function openNaverShortcutGuide() {
+  if (!naverShortcutDialog) {
+    alert("네이버 앱의 브라우저 메뉴에서 ‘바로가기 추가’를 선택해 주세요. 이미 홈 화면에 아이콘이 있다면 다시 추가하지 않아도 돼요.");
+    return;
+  }
+  const panel = document.getElementById("memberMenuPanel");
+  const toggle = document.getElementById("memberMenuToggle");
+  if (panel) panel.hidden = true;
+  if (toggle) {
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", "메뉴 열기");
+  }
+  if (!naverShortcutDialog.open) naverShortcutDialog.showModal();
+  document.body.classList.add("naver-shortcut-guide-open");
+}
+
+naverShortcutHelp?.addEventListener("click", openNaverShortcutGuide);
+document.getElementById("closeNaverShortcutGuide")?.addEventListener("click", () => naverShortcutDialog?.close());
+document.getElementById("confirmNaverShortcutGuide")?.addEventListener("click", () => naverShortcutDialog?.close());
+naverShortcutDialog?.addEventListener("close", () => {
+  document.body.classList.remove("naver-shortcut-guide-open");
+  document.getElementById("memberMenuToggle")?.focus({ preventScroll: true });
+});
+naverShortcutDialog?.addEventListener("keydown", (event) => {
+  if (event.key !== "Tab") return;
+  const first = document.getElementById("closeNaverShortcutGuide");
+  const last = document.getElementById("confirmNaverShortcutGuide");
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
 });
 
 function showSamsungInstallStep(step, moveFocus = true) {
@@ -89,6 +132,10 @@ function closeSamsungInstallGuide() {
 // 마지막 확인 버튼의 클릭 안에서 곧바로 prompt()를 호출해야 설치 권한이 유지됩니다.
 async function startAppInstall() {
   if (installPromptInFlight) return;
+  if (isNaverApp) {
+    openNaverShortcutGuide();
+    return;
+  }
   if (deferredInstallPrompt) {
     const promptEvent = deferredInstallPrompt;
     deferredInstallPrompt = null;

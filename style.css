@@ -4986,9 +4986,6 @@ body.samsung-install-guide-open { overflow: hidden; }
 .samsung-install-photo img { position: absolute; display: block; max-width: none; height: auto; }
 .samsung-install-photo-first img { width: 110.5516%; left: -5.7554%; top: -54.9894%; }
 .samsung-install-photo-second img { width: 111.0312%; left: -6.4748%; top: -36.3478%; }
-.samsung-install-highlight { position: absolute; display: block; border: 3px solid #e45800; border-radius: 8px; box-shadow: 0 0 0 2px #fff; pointer-events: none; }
-.samsung-install-photo-first .samsung-install-highlight { left: 4.8%; top: 68.1%; width: 39%; height: 8.5%; }
-.samsung-install-photo-second .samsung-install-highlight { left: 4.8%; top: 74%; width: 37%; height: 6.9%; }
 .samsung-install-app-check { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff4ea; color: #793400; font-size: 13px; line-height: 1.6; word-break: keep-all; }
 .samsung-install-footnote { margin: 14px 0 0; font-size: 12px; line-height: 1.6; color: #64748b; word-break: keep-all; }
 .samsung-install-actions { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; padding: 12px 20px; padding-bottom: max(12px, env(safe-area-inset-bottom)); border-top: 1px solid #e7eaf0; background: #fff; }
@@ -4998,3 +4995,23 @@ body.samsung-install-guide-open { overflow: hidden; }
 @media (max-height: 700px) {
   .samsung-install-scroll-hint { display: block; }
 }
+
+/* v71: 네이버에서는 설치 권유 없이 메뉴에서 바로가기 방법만 안내 */
+#appScreen #naverShortcutHelp { align-items: center; gap: 9px; width: 100%; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 8px; background: #fff; color: var(--brand-navy); font: inherit; font-size: 13px; line-height: 1.5; text-align: left; }
+#appScreen #naverShortcutHelp:not([hidden]) { display: flex; }
+#appScreen #naverShortcutHelp svg { flex: 0 0 19px; width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+#appScreen #naverShortcutHelp:hover { background: #eef1f5; }
+body.naver-shortcut-guide-open { overflow: hidden; }
+.naver-shortcut-dialog { width: min(420px, calc(100vw - 24px)); max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); margin: auto; padding: 20px; border: 0; border-radius: 22px; background: #fff; color: #18243b; font-family: inherit; overflow-y: auto; overscroll-behavior: contain; }
+.naver-shortcut-dialog::backdrop { background: #18243bb3; }
+.naver-shortcut-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.naver-shortcut-heading h2 { margin: 0; font-size: 18px; line-height: 1.5; }
+.naver-shortcut-dialog button { width: auto; min-height: 44px; margin: 0; padding: 10px; border: 0; border-radius: 10px; background: #fff; color: #334155; font: inherit; font-size: 14px; cursor: pointer; }
+#closeNaverShortcutGuide { flex-shrink: 0; }
+.naver-shortcut-dialog p, .naver-shortcut-dialog li { font-size: 14px; line-height: 1.8; word-break: keep-all; overflow-wrap: anywhere; }
+.naver-shortcut-dialog ol { margin: 20px 0; padding-left: 22px; }
+.naver-shortcut-dialog li + li { margin-top: 12px; }
+.naver-shortcut-note { padding: 12px; border-radius: 12px; background: #fff4ea; color: #793400; }
+.naver-shortcut-dialog .naver-shortcut-detail { color: #64748b; font-size: 12px; }
+#confirmNaverShortcutGuide { width: 100%; margin-top: 8px; min-height: 48px; background: #b44700; color: #fff; font-weight: 700; }
+#appScreen #naverShortcutHelp:focus-visible, .naver-shortcut-dialog button:focus-visible { outline: 3px solid #e87724; outline-offset: 2px; }
