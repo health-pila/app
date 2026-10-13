@@ -32,6 +32,10 @@ if (
 }
 // 홈 화면 설치 기능
 const installButton = document.getElementById("installButton");
+const loginInstallArea = document.getElementById("loginInstallArea");
+const loginInstallButton = document.getElementById("loginInstallButton");
+const loginInstallHelp = document.getElementById("loginInstallHelp");
+const installButtons = [installButton, loginInstallButton].filter(Boolean);
 const samsungInstallDialog = document.getElementById("samsungInstallDialog");
 const samsungInstallContent = document.getElementById("samsungInstallContent");
 const samsungInstallSteps = document.querySelectorAll("[data-samsung-install-step]");
@@ -43,6 +47,8 @@ const naverShortcutDialog = document.getElementById("naverShortcutDialog");
 
 let deferredInstallPrompt = null;
 let installPromptInFlight = false;
+let installationCompleted = false;
+let naverShortcutReturnFocus = null;
 let samsungInstallStep = 0;
 
 const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -55,33 +61,41 @@ const isStandalone =
   window.matchMedia("(display-mode: standalone)").matches ||
   window.navigator.standalone === true;
 
-// 네이버 바로가기는 웹으로 열리므로 설치 상태를 추측하지 않습니다.
-// 반복되는 설치 권유 대신 상단 메뉴에서 바로가기 안내를 확인하게 합니다.
-installButton.hidden = isStandalone || isNaverApp;
-if (naverShortcutHelp) naverShortcutHelp.hidden = !isNaverApp || isStandalone;
-if (!isStandalone && !isNaverApp) {
-  installButton.hidden = false;
-
-  if (isIos) {
-    installButton.textContent = "📲 아이폰 설치 방법";
-  }
+// 로그인 전과 로그인 후에 같은 설치 상태를 사용합니다.
+// 네이버는 바로가기 추가 여부를 알 수 없어 로그인 전에는 안내만 제공합니다.
+function syncInstallControls() {
+  const hideInstall = isStandalone || installationCompleted;
+  if (installButton) installButton.hidden = hideInstall || isNaverApp;
+  if (loginInstallArea) loginInstallArea.hidden = hideInstall;
+  if (loginInstallButton) loginInstallButton.hidden = hideInstall;
+  if (naverShortcutHelp) naverShortcutHelp.hidden = !isNaverApp || hideInstall;
+  installButtons.forEach(button => { button.disabled = installPromptInFlight; });
 }
+
+if (isNaverApp && loginInstallButton) {
+  loginInstallButton.textContent = "홈 화면에 바로가기 안내";
+  if (loginInstallHelp) loginInstallHelp.textContent = "회원가입 전에도 홈 화면에 바로가기를 추가할 수 있어요.";
+} else if (isIos) {
+  installButtons.forEach(button => { button.textContent = "📲 아이폰 설치 방법"; });
+}
+syncInstallControls();
 
 // 안드로이드·PC에서 설치 준비가 완료되었을 때
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
-  if (isStandalone || isNaverApp) return;
+  if (isStandalone || installationCompleted || isNaverApp) return;
   deferredInstallPrompt = event;
-  installButton.hidden = false;
+  syncInstallControls();
 });
 
-function openNaverShortcutGuide() {
+function openNaverShortcutGuide(trigger = document.activeElement) {
   if (!naverShortcutDialog) {
     alert("네이버 앱의 브라우저 메뉴에서 ‘바로가기 추가’를 선택해 주세요. 이미 홈 화면에 아이콘이 있다면 다시 추가하지 않아도 돼요.");
     return;
   }
   const panel = document.getElementById("memberMenuPanel");
   const toggle = document.getElementById("memberMenuToggle");
+  naverShortcutReturnFocus = trigger === loginInstallButton ? loginInstallButton : toggle;
   if (panel) panel.hidden = true;
   if (toggle) {
     toggle.setAttribute("aria-expanded", "false");
@@ -91,12 +105,14 @@ function openNaverShortcutGuide() {
   document.body.classList.add("naver-shortcut-guide-open");
 }
 
-naverShortcutHelp?.addEventListener("click", openNaverShortcutGuide);
+naverShortcutHelp?.addEventListener("click", () => openNaverShortcutGuide(naverShortcutHelp));
 document.getElementById("closeNaverShortcutGuide")?.addEventListener("click", () => naverShortcutDialog?.close());
 document.getElementById("confirmNaverShortcutGuide")?.addEventListener("click", () => naverShortcutDialog?.close());
 naverShortcutDialog?.addEventListener("close", () => {
   document.body.classList.remove("naver-shortcut-guide-open");
-  document.getElementById("memberMenuToggle")?.focus({ preventScroll: true });
+  if (naverShortcutReturnFocus?.getClientRects().length) {
+    naverShortcutReturnFocus.focus({ preventScroll: true });
+  }
 });
 naverShortcutDialog?.addEventListener("keydown", (event) => {
   if (event.key !== "Tab") return;
@@ -140,17 +156,17 @@ async function startAppInstall() {
     const promptEvent = deferredInstallPrompt;
     deferredInstallPrompt = null;
     installPromptInFlight = true;
-    installButton.disabled = true;
+    syncInstallControls();
     try {
       await promptEvent.prompt();
       const choice = await promptEvent.userChoice;
-      if (choice.outcome === "accepted") installButton.hidden = true;
+      if (choice.outcome === "accepted") installationCompleted = true;
     } catch (error) {
       console.warn("앱 설치 창을 열지 못했습니다:", error);
       alert("설치 창을 열지 못했어요. 브라우저 메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택해 주세요.");
     } finally {
       installPromptInFlight = false;
-      installButton.disabled = false;
+      syncInstallControls();
     }
     return;
   }
@@ -166,8 +182,12 @@ async function startAppInstall() {
 }
 
 // 삼성 인터넷에서는 사진 안내를 먼저 확인하고 기존 설치 절차로 이어갑니다.
-installButton.addEventListener("click", () => {
+function handleAppInstallClick(event) {
   if (installPromptInFlight) return;
+  if (isNaverApp) {
+    openNaverShortcutGuide(event.currentTarget);
+    return;
+  }
   if (isSamsungInternet && samsungInstallDialog) {
     showSamsungInstallStep(0, false);
     if (!samsungInstallDialog.open) samsungInstallDialog.showModal();
@@ -176,7 +196,8 @@ installButton.addEventListener("click", () => {
     return;
   }
   startAppInstall();
-});
+}
+installButtons.forEach(button => button.addEventListener("click", handleAppInstallClick));
 
 // 업데이트 중 예전 HTML이 잠깐 남아 있어도 기존 설치와 앱 초기화를 유지합니다.
 document.getElementById("closeSamsungInstallGuide")?.addEventListener("click", closeSamsungInstallGuide);
@@ -208,8 +229,9 @@ samsungInstallDialog?.addEventListener("keydown", (event) => {
 
 // 설치가 완료되면 버튼 숨기기
 window.addEventListener("appinstalled", () => {
-  installButton.hidden = true;
+  installationCompleted = true;
   deferredInstallPrompt = null;
+  syncInstallControls();
   closeSamsungInstallGuide();
 });
 // 로그인과 화면 전환에 필요한 요소

@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=71">
+  <link rel="stylesheet" href="style.css?v=72">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ec6a1a">
 
@@ -29,6 +29,11 @@
       <p class="login-description">
         배정받은 운동 루틴을 확인해 보세요.
       </p>
+
+      <div id="loginInstallArea" class="login-install-area" hidden>
+        <button id="loginInstallButton" type="button" aria-describedby="loginInstallHelp">📲 이 앱을 홈 화면에 설치</button>
+        <p id="loginInstallHelp">회원가입 전에도 설치할 수 있어요.</p>
+      </div>
 
       <form id="loginForm" class="login-form">
         <label for="loginEmail">이메일</label>
@@ -813,14 +818,14 @@
         <h3 tabindex="-1"><span>1</span> ‘세부정보 더보기’를 눌러 주세요</h3>
         <p class="samsung-install-caption">글자와 아래쪽 화살표 부분을 누를 수 있어요.</p>
         <figure class="samsung-install-photo samsung-install-photo-first">
-          <img src="images/install-samsung-blocked.png?v=71" width="461" height="889" alt="설치 차단 안내 예시. 확인 버튼 바로 위의 ‘세부정보 더보기’가 주황색 동그라미로 표시되어 있습니다.">
+          <img src="images/install-samsung-blocked.png?v=72" width="461" height="889" alt="설치 차단 안내 예시. 확인 버튼 바로 위의 ‘세부정보 더보기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
       </section>
       <section data-samsung-install-step hidden>
         <h3 tabindex="-1"><span>2</span> ‘무시하고 설치하기’를 선택해 주세요</h3>
         <p class="samsung-install-caption">세부정보를 펼치면 이 문구가 나타나요.</p>
         <figure class="samsung-install-photo samsung-install-photo-second">
-          <img src="images/install-samsung-details.png?v=71" width="463" height="897" alt="세부정보를 펼친 설치 차단 안내 예시. 확인 버튼 바로 위의 ‘무시하고 설치하기’가 주황색 동그라미로 표시되어 있습니다.">
+          <img src="images/install-samsung-details.png?v=72" width="463" height="897" alt="세부정보를 펼친 설치 차단 안내 예시. 확인 버튼 바로 위의 ‘무시하고 설치하기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
         <p class="samsung-install-app-check">설치할 앱 이름이 <strong>헬스와필라테스</strong>인지 확인해 주세요.</p>
       </section>
@@ -851,10 +856,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="exercise-data.js?v=71"></script>
-  <script src="routine-components.js?v=71"></script>
-  <script src="one-day-pt.js?v=71"></script>
-  <script src="script.js?v=71"></script>
+  <script src="exercise-data.js?v=72"></script>
+  <script src="routine-components.js?v=72"></script>
+  <script src="one-day-pt.js?v=72"></script>
+  <script src="script.js?v=72"></script>
 </body>
 
 

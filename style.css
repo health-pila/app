@@ -329,6 +329,45 @@ body {
   line-height: 1.5;
 }
 
+.login-install-area {
+  margin-bottom: 24px;
+}
+
+#loginInstallButton {
+  font-family: inherit;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 8px;
+  border: 1px solid #ec6a1a;
+  border-radius: 12px;
+  background: #fff8f0;
+  color: #9b3b08;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  word-break: keep-all;
+  cursor: pointer;
+}
+
+#loginInstallButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+#loginInstallButton:focus-visible {
+  outline: 3px solid #ec6a1a;
+  outline-offset: 3px;
+}
+
+#loginInstallHelp {
+  margin: 8px 0 0;
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  word-break: keep-all;
+}
+
 .login-form {
   display: grid;
   gap: 10px;
