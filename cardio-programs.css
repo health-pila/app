@@ -2,7 +2,7 @@
 .member-cardio-intro {
   margin: 0;
   color: #697586;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
   word-break: keep-all;
 }
@@ -63,14 +63,14 @@
 .cardio-group-heading h3 {
   margin: 0;
   color: var(--brand-navy);
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 800;
   line-height: 1.5;
 }
 .cardio-group-heading small {
   margin-left: auto;
   color: #697586;
-  font-size: 11px;
+  font-size: 12px;
 }
 .cardio-program-card {
   margin-top: 10px;
@@ -98,7 +98,7 @@
   align-items: center;
   gap: 7px;
   color: #697586;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 .cardio-level-bars {
@@ -122,7 +122,7 @@
   align-items: center;
   gap: 4px;
   color: #697586;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
 }
 .cardio-program-time svg { width: 13px; height: 13px; }
@@ -130,7 +130,7 @@
   display: block;
   margin: 9px 0 4px;
   color: var(--brand-navy);
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
   line-height: 1.5;
   letter-spacing: -0.5px;
@@ -144,7 +144,7 @@
   padding-top: 10px;
   border-top: 1px solid #e0e6ee;
   color: #ce570a;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.5;
 }
@@ -157,7 +157,7 @@
 .cardio-program-equipment {
   margin: 1px 0 11px;
   color: #697586;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
 }
 .cardio-program-steps { margin: 0; padding: 0; list-style: none; }
@@ -177,25 +177,25 @@
   border-radius: 50%;
   background: #fff2e7;
   color: #ce570a;
-  font-size: 13px;
+  font-size: 14px;
 }
 .cardio-step-description { min-width: 0; }
 .cardio-step-description strong {
   color: var(--brand-navy);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.6;
 }
 .cardio-step-description p {
   margin: 4px 0 0;
   color: #697586;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
 .cardio-step-time {
   color: var(--brand-navy);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.6;
   white-space: nowrap;
 }
@@ -205,11 +205,38 @@
   border-radius: 8px;
   background: #edf1f6;
   color: #697586;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
   word-break: keep-all;
 }
 @media (max-width: 360px) {
   .member-cardio-panel { padding-right: 12px; padding-left: 12px; }
   .cardio-program-summary { padding-right: 13px; padding-left: 13px; }
+}
+
+/* v94: enlarge only the cardio screen's heading and its tab label. */
+#memberRoutinePageHeading.is-cardio-heading { font-size: 27px; }
+#memberCardioMenuButton { font-size: 17px; }
+.cardio-common-guidance {
+  margin: 0 0 24px;
+  padding: 14px 16px;
+  border: 1px solid #e0e6ee;
+  border-radius: 12px;
+  background: #fff;
+  color: #697586;
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.cardio-common-guidance h3 {
+  margin: 0 0 8px;
+  color: var(--brand-navy);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.cardio-common-guidance p { margin: 0; }
+.cardio-common-guidance p + p { margin-top: 8px; }
+@media (max-width: 360px) {
+  #memberRoutinePageHeading.is-cardio-heading { font-size: 25px; }
 }

@@ -30,7 +30,7 @@ const CARDIO_PROGRAM_GROUPS = [
             "5분"
           ]
         ],
-        "guidance": "속도는 참고값이에요. 대화가 편안하게 가능한 강도로 걷고, 체력에 맞춰 조절해주세요."
+        "guidance": "대화가 편안하게 가능한 강도로 걷고, 체력에 맞춰 조절해주세요."
       },
       {
         "id": "weight-medium",
@@ -54,7 +54,7 @@ const CARDIO_PROGRAM_GROUPS = [
             "5분"
           ]
         ],
-        "guidance": "속도는 참고값이에요. 대화는 가능하지만 노래하기는 어려운 정도로 유지해주세요."
+        "guidance": "대화는 가능하지만 노래하기는 어려운 정도로 유지해주세요."
       },
       {
         "id": "weight-high",
@@ -78,7 +78,7 @@ const CARDIO_PROGRAM_GROUPS = [
             "5분"
           ]
         ],
-        "guidance": "속도는 참고값이에요. 달릴 때 강도 7 ~ 8/10을 목표로 하되, 부담스럽다면 속도를 낮춰주세요."
+        "guidance": "달릴 때 강도 7 ~ 8/10을 목표로 하되, 부담스럽다면 속도를 낮춰주세요."
       }
     ]
   },
@@ -109,7 +109,7 @@ const CARDIO_PROGRAM_GROUPS = [
             "5분"
           ]
         ],
-        "guidance": "속도는 참고값이에요. 대화가 편안한 강도로 시작해 규칙적인 걷기에 익숙해져 보세요."
+        "guidance": "대화가 편안한 강도로 시작해 규칙적인 걷기에 익숙해져 보세요."
       },
       {
         "id": "fitness-medium",
@@ -133,7 +133,7 @@ const CARDIO_PROGRAM_GROUPS = [
             "5분"
           ]
         ],
-        "guidance": "속도는 참고값이에요. 대화가 가능한 강도를 유지하고, 조깅이 버거우면 빠른 걷기로 조절해주세요."
+        "guidance": "대화가 가능한 강도를 유지하고, 조깅이 버거우면 빠른 걷기로 조절해주세요."
       },
       {
         "id": "fitness-high",
@@ -157,7 +157,7 @@ const CARDIO_PROGRAM_GROUPS = [
             "5분"
           ]
         ],
-        "guidance": "속도는 참고값이에요. 달릴 때 강도 7 ~ 8/10을 목표로 하며, 무리된다면 걷기로 전환해주세요."
+        "guidance": "달릴 때 강도 7 ~ 8/10을 목표로 하며, 무리된다면 걷기로 전환해주세요."
       }
     ]
   }
@@ -180,7 +180,7 @@ const CARDIO_PROGRAM_GROUPS = [
     2: "중강도 (5 ~ 6/10): 호흡이 빨라지고 대화는 가능하지만 노래하기는 어려운 정도.",
     3: "고강도 (7 ~ 8/10): 호흡이 많이 빨라지고 짧은 말만 가능한 정도."
   };
-  const intensityPriority = "속도보다 자각운동강도(RPE, 0 ~ 10점)와 호흡 상태를 우선 기준으로 조절해주세요.";
+  const intensityPriority = "속도는 참고값이에요. 개인 체력에 따라 같은 속도에서도 강도가 달라지므로, 속도보다 자각운동강도(RPE, 0 ~ 10점)와 호흡 상태를 우선 기준으로 조절해주세요.";
   const safetyGuidance = "운동 중 가슴 통증, 어지럼증, 비정상적인 호흡곤란 등이 발생하면 즉시 운동을 중단해주세요.";
 
 
@@ -201,6 +201,18 @@ const CARDIO_PROGRAM_GROUPS = [
     if (text !== undefined) node.textContent = text;
     return node;
   }
+
+  // Keep shared speed and safety guidance visible before any card is opened.
+  const commonGuidance = element("aside", "cardio-common-guidance");
+  const commonTitle = element("h3", "", "운동 전 확인해주세요");
+  commonTitle.id = "cardioCommonGuidanceTitle";
+  commonGuidance.setAttribute("aria-labelledby", commonTitle.id);
+  commonGuidance.append(
+    commonTitle,
+    element("p", "", intensityPriority),
+    element("p", "", safetyGuidance)
+  );
+  cardio.append(commonGuidance);
 
   CARDIO_PROGRAM_GROUPS.forEach(group => {
     const section = element("section", "cardio-program-group");
@@ -241,10 +253,7 @@ const CARDIO_PROGRAM_GROUPS = [
       const guidance = element("p", "cardio-program-guidance", program.guidance);
       guidance.append(
         document.createElement("br"), document.createElement("br"),
-        document.createTextNode(intensityPriority), document.createElement("br"),
-        document.createTextNode(intensityGuidance[program.level]),
-        document.createElement("br"), document.createElement("br"),
-        document.createTextNode(safetyGuidance)
+        document.createTextNode(intensityGuidance[program.level])
       );
       content.append(steps, guidance);
       details.append(summary, content);
@@ -260,6 +269,7 @@ const CARDIO_PROGRAM_GROUPS = [
     assigned.hidden = menu !== "assigned";
     cardio.hidden = menu !== "cardio";
     heading.textContent = menu === "cardio" ? "나에게 맞는 유산소" : "나에게 맞춘 운동 루틴";
+    heading.classList.toggle("is-cardio-heading", menu === "cardio");
     if (intro) intro.hidden = menu !== "cardio";
     buttons.forEach(button => {
       const active = button.dataset.routineMenu === menu;
