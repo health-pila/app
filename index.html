@@ -12,8 +12,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=85">
-  <link rel="stylesheet" href="cardio-programs.css?v=85">
+  <link rel="stylesheet" href="style.css?v=86">
+  <link rel="stylesheet" href="cardio-programs.css?v=86">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ec6a1a">
 
@@ -32,8 +32,7 @@
       </p>
 
       <div class="guest-demo-entry">
-        <button id="openGuestDemo" type="button" aria-haspopup="dialog" aria-controls="guestDemoDialog">가입 전에 둘러보기 <span
-            aria-hidden="true">→</span></button>
+        <button id="openGuestDemo" type="button" aria-haspopup="dialog" aria-controls="guestDemoDialog">가입 전에 둘러보기 <span aria-hidden="true">→</span></button>
         <p>운동 루틴과 기록 기능을 먼저 체험해보세요.</p>
       </div>
 
@@ -171,9 +170,9 @@
         <button id="memberAssignedRoutineMenuButton" class="member-routine-menu-button is-active" type="button"
           role="tab" data-routine-menu="assigned" aria-controls="memberAssignedRoutinePanel" aria-selected="true"
           tabindex="0">나의 루틴</button>
-        <button id="memberCardioMenuButton" class="member-routine-menu-button" type="button" role="tab"
-          data-routine-menu="cardio" aria-controls="memberCardioPanel" aria-selected="false" tabindex="-1">유산소
-          프로그램</button>
+        <button id="memberCardioMenuButton" class="member-routine-menu-button" type="button"
+          role="tab" data-routine-menu="cardio" aria-controls="memberCardioPanel" aria-selected="false"
+          tabindex="-1">유산소 프로그램</button>
       </div>
 
       <section id="memberAssignedRoutinePanel" role="tabpanel" aria-labelledby="memberAssignedRoutineMenuButton">
@@ -376,8 +375,7 @@
             문의 내용
           </label>
 
-          <textarea id="memberInquiryBody" rows="5" maxlength="5000"
-            placeholder="홀딩 요청은 성함과 연락처 뒷번호, 홀딩을 원하시는 기간과 헬스/필라테스를 구분지어 전달 부탁드려요."></textarea>
+          <textarea id="memberInquiryBody" rows="5" maxlength="5000" placeholder="홀딩 요청은 성함과 연락처 뒷번호, 홀딩을 원하시는 기간과 헬스/필라테스를 구분지어 전달 부탁드려요."></textarea>
 
           <button id="sendMemberInquiryButton" type="button">
             문의 보내기
@@ -894,10 +892,9 @@
         <h3 id="guestDemoDiaryTitle">다음 운동을 위한 나만의 메모</h3>
         <p class="guest-demo-description">기구 세팅과 운동 기록을 사진으로 남겨두세요.<br>다음에 왔을 때 바로 확인할 수 있어요.</p>
         <figure class="workout-record-card guest-demo-polaroid">
-          <img class="workout-record-photo" src="images/demo/leg-press.jpg" width="800" height="800" loading="lazy"
-            alt="체험용 다이어리에 담긴 레그프레스 기구 사진">
+          <img class="workout-record-photo" src="images/demo/leg-press.jpg" width="800" height="800" loading="lazy" alt="체험용 다이어리에 담긴 레그프레스 기구 사진">
           <figcaption class="workout-record-caption">레그프레스 의자 3칸
-            오늘은 30kg, 천천히!</figcaption>
+오늘은 30kg, 천천히!</figcaption>
           <p class="guest-demo-diary-date">사진과 메모를 남긴 예시입니다.</p>
         </figure>
       </section>
@@ -908,25 +905,30 @@
     </footer>
   </dialog>
 
-  <dialog id="routineRequestDialog" class="routine-request-dialog" aria-labelledby="routineRequestDialogTitle">
-    <div class="routine-request-dialog-heading">
-      <h2 id="routineRequestDialogTitle">어떻게 신청할까요?</h2>
-      <button id="closeRoutineRequestDialog" type="button" aria-label="운동 구성 신청 창 닫기">닫기</button>
-    </div>
+  <dialog id="routineRequestDialog" class="routine-request-dialog"
+  aria-labelledby="routineRequestDialogTitle">
+  <div class="routine-request-dialog-heading">
+    <h2 id="routineRequestDialogTitle">어떻게 신청할까요?</h2>
+    <button id="closeRoutineRequestDialog" type="button"
+      aria-label="운동 구성 신청 창 닫기">닫기</button>
+  </div>
 
-    <a id="routineNewFormLink" class="routine-request-choice" target="_self" rel="noopener noreferrer">
-      <strong>새 신청서 작성하기</strong>
-      <span>운동 빈도나 운동 목적 등이 달라진 경우</span>
-    </a>
+  <a id="routineNewFormLink" class="routine-request-choice"
+    target="_self" rel="noopener noreferrer">
+    <strong>새 신청서 작성하기</strong>
+    <span>운동 빈도나 운동 목적 등이 달라진 경우</span>
+  </a>
 
-    <button id="submitRoutineChange" class="routine-request-choice routine-request-choice-change" type="button"
-      disabled>
-      <strong>기존 신청 내용으로 루틴만 변경하기</strong>
-      <span>루틴에 약간의 변화만 원하는 경우</span>
-    </button>
+  <button id="submitRoutineChange"
+    class="routine-request-choice routine-request-choice-change"
+    type="button" disabled>
+    <strong>기존 신청 내용으로 루틴만 변경하기</strong>
+    <span>루틴에 약간의 변화만 원하는 경우</span>
+  </button>
 
-    <p id="routineRequestDialogMessage" class="routine-request-dialog-message" role="status"></p>
-  </dialog>
+  <p id="routineRequestDialogMessage"
+    class="routine-request-dialog-message" role="status"></p>
+</dialog>
 
   <dialog id="oneDayPtDialog" class="one-day-pt-dialog" aria-labelledby="oneDayPtTitle">
     <div class="one-day-pt-dialog-header">
@@ -968,7 +970,7 @@
         <h3 tabindex="-1"><span>1</span> ‘세부정보 더보기’를 눌러 주세요</h3>
         <p class="samsung-install-caption">글자와 아래쪽 화살표 부분을 누를 수 있어요.</p>
         <figure class="samsung-install-photo samsung-install-photo-first">
-          <img src="images/install-samsung-blocked.png?v=85" width="461" height="889"
+          <img src="images/install-samsung-blocked.png?v=86" width="461" height="889"
             alt="설치 차단 안내 예시. 확인 버튼 바로 위의 ‘세부정보 더보기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
       </section>
@@ -976,7 +978,7 @@
         <h3 tabindex="-1"><span>2</span> ‘무시하고 설치하기’를 선택해 주세요</h3>
         <p class="samsung-install-caption">세부정보를 펼치면 이 문구가 나타나요.</p>
         <figure class="samsung-install-photo samsung-install-photo-second">
-          <img src="images/install-samsung-details.png?v=85" width="463" height="897"
+          <img src="images/install-samsung-details.png?v=86" width="463" height="897"
             alt="세부정보를 펼친 설치 차단 안내 예시. 확인 버튼 바로 위의 ‘무시하고 설치하기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
         <p class="samsung-install-app-check">설치할 앱 이름이 <strong>헬스와필라테스</strong>인지 확인해 주세요.</p>
@@ -1009,14 +1011,14 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="exercise-data.js?v=85"></script>
-  <script src="routine-components.js?v=85"></script>
-  <script src="one-day-pt.js?v=85"></script>
-  <script src="admin-routine-alerts.js?v=85"></script>
-  <script src="member-community-badges.js?v=85"></script>
-  <script src="cardio-programs.js?v=85"></script>
-  <script src="script.js?v=85"></script>
-  <script src="guest-demo.js?v=85"></script>
+  <script src="exercise-data.js?v=86"></script>
+  <script src="routine-components.js?v=86"></script>
+  <script src="one-day-pt.js?v=86"></script>
+  <script src="admin-routine-alerts.js?v=86"></script>
+  <script src="member-community-badges.js?v=86"></script>
+  <script src="cardio-programs.js?v=86"></script>
+  <script src="script.js?v=86"></script>
+  <script src="guest-demo.js?v=86"></script>
 </body>
 
 
