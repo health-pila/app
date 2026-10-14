@@ -1,4 +1,4 @@
-// 운동 구성 JSON 검사와 카드 미리보기. 회원 데이터는 저장하지 않습니다.
+// 운동 구성 JSON 검사·카드 표시 및 브라우저에 저장하는 회원별 중량 기록.
 (function () {
   "use strict";
 
@@ -281,6 +281,156 @@
     window.scrollTo({ left: left, top: top, behavior: "instant" });
   }
 
+  // 회원별·운동별 5세트 기록. 이전 텍스트 메모는 별도 키에 그대로 보존합니다.
+  function createWeightRecordControls(exerciseId, exerciseName, userId, panelId) {
+    const identity = JSON.stringify([userId, exerciseId]);
+    const storageKey = "exerciseWeightSets:" + identity;
+    const legacyKey = "exerciseWeightNote:" + identity;
+    const fields = [
+      { key: "weight", label: "중량(kg)", mode: "decimal", limit: 8 },
+      { key: "reps", label: "횟수", mode: "numeric", limit: 5 },
+      { key: "comment", label: "코멘트", limit: 120 }
+    ];
+    const pendingChanges = new Map();
+    const inputs = [];
+    const emptySets = () => Array.from({ length: 5 }, () => ({ weight: "", reps: "", comment: "" }));
+
+    function readSets() {
+      const raw = localStorage.getItem(storageKey);
+      if (raw === null) return emptySets();
+      const saved = JSON.parse(raw);
+      if (saved?.version !== 1 || !Array.isArray(saved.sets) || saved.sets.length !== 5 ||
+          saved.sets.some(set => !set || fields.some(field => typeof set[field.key] !== "string"))) {
+        throw new Error("중량 기록 형식을 확인할 수 없습니다.");
+      }
+      return saved.sets;
+    }
+
+    const button = element("button", "routine-weight-button", "▼ 중량 기록");
+    button.type = "button";
+    button.setAttribute("aria-expanded", "false");
+    button.setAttribute("aria-controls", panelId);
+    const panel = element("div", "routine-weight-panel");
+    panel.id = panelId;
+    panel.hidden = true;
+
+    const toolbar = element("div", "routine-weight-toolbar");
+    const title = element("strong", "", "세트별 기록");
+    const reset = element("button", "routine-weight-reset", "초기화");
+    reset.type = "button";
+    reset.setAttribute("aria-label", exerciseName + " 세트 기록 초기화");
+    toolbar.append(title, reset);
+
+    const scroll = element("div", "routine-weight-table-scroll");
+    scroll.tabIndex = 0;
+    scroll.setAttribute("role", "region");
+    scroll.setAttribute("aria-label", exerciseName + " 5세트 기록표, 좌우로 이동 가능");
+    const table = element("table", "routine-weight-table");
+    table.setAttribute("aria-label", exerciseName + " 중량·횟수·코멘트");
+    const head = element("thead");
+    const headingRow = element("tr");
+    const corner = element("th", "", "항목");
+    corner.scope = "col";
+    headingRow.append(corner);
+    for (let index = 0; index < 5; index++) {
+      const heading = element("th", "", (index + 1) + "세트");
+      heading.scope = "col";
+      headingRow.append(heading);
+    }
+    head.append(headingRow);
+    const body = element("tbody");
+    fields.forEach(field => {
+      const row = element("tr");
+      const label = element("th", "", field.label);
+      label.scope = "row";
+      row.append(label);
+      for (let index = 0; index < 5; index++) {
+        const cell = element("td");
+        const input = element(field.key === "comment" ? "textarea" : "input", "routine-weight-cell");
+        if (field.key === "comment") input.rows = 2;
+        else {
+          input.type = "text";
+          input.inputMode = field.mode;
+          input.autocomplete = "off";
+        }
+        input.maxLength = field.limit;
+        input.placeholder = "—";
+        input.setAttribute("aria-label", exerciseName + " " + (index + 1) + "세트 " + field.label);
+        input.dataset.setIndex = String(index);
+        input.dataset.field = field.key;
+        input.addEventListener("input", () => {
+          pendingChanges.set(index + ":" + field.key, { index, key: field.key, value: input.value });
+          try {
+            const sets = readSets();
+            pendingChanges.forEach(change => { sets[change.index][change.key] = change.value; });
+            localStorage.setItem(storageKey, JSON.stringify({ version: 1, sets }));
+            pendingChanges.clear();
+            status.textContent = "이 브라우저에 저장했어요.";
+          } catch (error) {
+            status.textContent = "저장하지 못했어요. 페이지를 닫기 전에 입력 내용을 복사해 주세요.";
+          }
+        });
+        inputs.push({ input, index, key: field.key });
+        cell.append(input);
+        row.append(cell);
+      }
+      body.append(row);
+    });
+    table.append(head, body);
+    scroll.append(table);
+    const hint = element("p", "routine-weight-scroll-hint", "5세트까지 기록 가능합니다.");
+    const legacy = element("details", "routine-weight-legacy");
+    legacy.hidden = true;
+    const legacyText = element("p");
+    legacy.append(element("summary", "", "기존 메모 보기"), legacyText);
+    const status = element("p", "routine-weight-status");
+    status.setAttribute("role", "status");
+
+    function restore() {
+      if (pendingChanges.size) return; // 저장에 실패한 입력은 접었다 펼쳐도 유지합니다.
+      try {
+        const sets = readSets();
+        inputs.forEach(({ input, index, key }) => { input.value = sets[index][key]; });
+        status.textContent = "";
+      } catch (error) {
+        status.textContent = "기록을 불러오지 못했어요. 브라우저 저장 상태를 확인해 주세요.";
+      }
+      try {
+        const note = localStorage.getItem(legacyKey) || "";
+        legacyText.textContent = note;
+        legacy.hidden = !note.trim();
+      } catch (error) {
+        status.textContent = "기존 메모를 불러오지 못했어요. 브라우저 저장 상태를 확인해 주세요.";
+      }
+    }
+
+    reset.addEventListener("click", () => {
+      if (!window.confirm(exerciseName + "의 1~5세트 기록을 모두 지울까요?\n기존 텍스트 메모는 유지됩니다.")) return;
+      try {
+        localStorage.removeItem(storageKey);
+        pendingChanges.clear();
+        inputs.forEach(({ input }) => { input.value = ""; });
+        status.textContent = "세트 기록을 초기화했어요.";
+      } catch (error) {
+        status.textContent = "초기화하지 못했어요. 기록은 그대로 유지됩니다.";
+      }
+    });
+
+    button.addEventListener("click", () => {
+      preservePagePosition(() => {
+        const willOpen = panel.hidden;
+        if (willOpen) restore();
+        panel.hidden = !willOpen;
+        button.setAttribute("aria-expanded", String(willOpen));
+        button.textContent = willOpen ? "▲ 중량 기록 접기" : "▼ 중량 기록";
+        // 입력칸에 자동 초점을 주지 않아 모바일 자판이 바로 열리지 않습니다.
+      });
+    });
+    panel.append(toolbar, scroll, hint, legacy, status);
+    return { button, panel };
+  }
+
+
   function createExerciseCard(entry, options) {
     const exercise = window.ExerciseDB.getExerciseById(entry.exerciseId);
     if (!exercise) throw new Error("운동DB에 없는 운동ID입니다: " + entry.exerciseId);
@@ -474,79 +624,13 @@
     }
 
     card.append(main, actions, details, mediaArea);
-    // 회원별·운동별 중량 메모
-if (options?.userId) {
-  const storageKey = "exerciseWeightNote:" + JSON.stringify([
-    options.userId,
-    entry.exerciseId
-  ]);
-
-  const weightButton = element(
-    "button",
-    "routine-weight-button",
-    "▼ 중량 기록"
-  );
-  weightButton.type = "button";
-  weightButton.setAttribute("aria-expanded", "false");
-
-  const weightPanel = element("div", "routine-weight-panel");
-  weightPanel.id = details.id + "-weight";
-  weightPanel.hidden = true;
-  weightButton.setAttribute("aria-controls", weightPanel.id);
-
-  const weightInput = element("textarea", "routine-weight-input");
-  weightInput.rows = 3;
-  weightInput.maxLength = 500;
-  weightInput.placeholder = "중량 및 운동 코멘트를 자유롭게 기록해보세요.";
-  weightInput.setAttribute("aria-label", exercise.name + " 중량 기록");
-
-  const weightStatus = element(
-    "p",
-    "routine-weight-status",
-    ""
-  );
-
-  weightInput.addEventListener("input", function () {
-    try {
-      if (weightInput.value.trim()) {
-        localStorage.setItem(storageKey, weightInput.value);
-      } else {
-        localStorage.removeItem(storageKey);
-      }
-      weightStatus.textContent = "이 브라우저에 저장했어요.";
-    } catch (error) {
-      weightStatus.textContent =
-        "저장하지 못했어요. 페이지를 닫으면 내용이 사라질 수 있어요.";
+    if (options?.userId) {
+      const weight = createWeightRecordControls(
+        entry.exerciseId, exercise.name, options.userId, details.id + "-weight"
+      );
+      actions.append(weight.button);
+      card.append(weight.panel);
     }
-  });
-
-  weightButton.addEventListener("click", function () {
-    preservePagePosition(function () {
-      const willOpen = weightPanel.hidden;
-
-      if (willOpen) {
-        try {
-          weightInput.value = localStorage.getItem(storageKey) || "";
-          weightStatus.textContent =
-            "";
-        } catch (error) {
-          weightStatus.textContent =
-            "브라우저 저장소를 사용할 수 없어요.";
-        }
-      }
-
-      weightPanel.hidden = !willOpen;
-      weightButton.setAttribute("aria-expanded", String(willOpen));
-      weightButton.textContent =
-        willOpen ? "▲ 중량 기록 접기" : "▼ 중량 기록";
-      
-    });
-  });
-
-  weightPanel.append(weightInput, weightStatus);
-  actions.append(weightButton);
-  card.append(weightPanel);
-}
     return card;
   }
 

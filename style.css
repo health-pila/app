@@ -1359,7 +1359,7 @@ body {
 .workout-record-caption {
   min-height: 58px;
   margin: 0;
-  padding: 8px 6px 10x;
+  padding: 8px 6px 10px;
   color: #25304a;
   border-bottom: 1px solid #e1ddd4;
   white-space: pre-wrap;
@@ -5094,8 +5094,9 @@ body.naver-shortcut-guide-open { overflow: hidden; }
   grid-row: 2;
 }
 
-/* 펼쳐지는 중량 기록 입력칸 */
+/* 펼쳐지는 5세트 기록표 */
 .routine-weight-panel {
+  min-width: 0;
   margin-top: 12px;
   padding: 12px;
   border: 1px solid #dce2eb;
@@ -5103,30 +5104,128 @@ body.naver-shortcut-guide-open { overflow: hidden; }
   background: #f8fafc;
 }
 
-.routine-weight-input {
+.routine-weight-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #18243b;
+}
+
+.routine-weight-reset {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid #e3b9a7;
+  border-radius: 8px;
+  background: #fff;
+  color: #a44422;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.routine-weight-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #dce2eb;
+  border-radius: 8px;
+  overscroll-behavior-x: contain;
+}
+
+.routine-weight-table {
+  width: 472px;
+  min-width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: #18243b;
+  background: #fff;
+  font-size: 13px;
+}
+
+.routine-weight-table th,
+.routine-weight-table td {
+  padding: 4px;
+  border-right: 1px solid #dce2eb;
+  border-bottom: 1px solid #dce2eb;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.routine-weight-table th {
+  height: 34px;
+  font-weight: 700;
+  background: #fff3e8;
+}
+
+.routine-weight-table th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: 64px;
+  background: #fff3e8;
+}
+
+.routine-weight-table tr > :last-child { border-right: 0; }
+.routine-weight-table tbody tr:last-child > * { border-bottom: 0; }
+
+.routine-weight-cell {
   display: block;
   box-sizing: border-box;
   width: 100%;
-  min-height: 90px;
-  padding: 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  min-width: 0;
+  min-height: 40px;
+  margin: 0;
+  padding: 6px 3px;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
   background: #fff;
   color: #18243b;
   font: inherit;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.4;
+  text-align: center;
+}
+
+textarea.routine-weight-cell {
+  min-height: 62px;
   resize: vertical;
+  text-align: left;
 }
 
-.routine-weight-input:focus {
-  border-color: var(--brand-orange);
-  outline: 2px solid rgba(236, 106, 26, 0.15);
+.routine-weight-cell:focus,
+.routine-weight-reset:focus-visible,
+.routine-weight-table-scroll:focus-visible {
+  outline: 2px solid var(--brand-orange);
+  outline-offset: 1px;
 }
 
+.routine-weight-scroll-hint,
 .routine-weight-status {
   margin: 8px 0 0;
   color: #64748b;
   font-size: 12px;
+  line-height: 1.5;
+}
+
+.routine-weight-status:empty { display: none; }
+
+.routine-weight-legacy {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #dce2eb;
+  color: #526078;
+  font-size: 13px;
+}
+
+.routine-weight-legacy summary { cursor: pointer; }
+.routine-weight-legacy p {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   line-height: 1.5;
 }
