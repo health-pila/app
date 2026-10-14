@@ -382,6 +382,7 @@ let memberInquiryVisibleCount =
 // 오래 걸린 이전 문의 조회가 새 화면을 덮어쓰지 않도록 구분합니다.
 let memberInquiryLoadRequestId = 0;
 let adminInquiryLoadRequestId = 0;
+let adminInquiryAlertLoadRequestId = 0;
 
 let inquiryRealtimeChannel = null;
 let inquiryRealtimeRefreshTimer = null;
@@ -418,6 +419,7 @@ function refreshMemberRoutineWhenVisible() {
 
   scheduleMemberRoutineRealtimeRefresh();
   scheduleAdminRoutineRequestRefresh();
+  if (!adminScreen.hidden) scheduleInquiryRealtimeRefresh("admin", "list");
   scheduleCommunityRealtimeRefresh();
   refreshAdminMembersIfNeeded();
 }
@@ -530,6 +532,7 @@ function scheduleInquiryRealtimeRefresh(
 async function stopInquiryRealtimeSubscription() {
   memberInquiryLoadRequestId += 1;
   adminInquiryLoadRequestId += 1;
+  adminInquiryAlertLoadRequestId += 1;
   if (inquiryRealtimeRefreshTimer) {
     clearTimeout(
       inquiryRealtimeRefreshTimer
@@ -627,6 +630,8 @@ async function startInquiryRealtimeSubscription(
         refreshInquirySetting
       )
       .subscribe(function (status) {
+        if (inquiryRealtimeChannel !== realtimeChannel) return;
+        if (status === "SUBSCRIBED" && screenType === "admin") refreshInquiryList();
         if (
           status === "CHANNEL_ERROR" ||
           status === "TIMED_OUT"
@@ -5655,6 +5660,36 @@ function renderAdminInquiries(inquiries) {
   });
 }
 
+// 목록 필터/더보기와 무관한 알림용 메타데이터 조회. 본문과 회원 개인정보는 조회하지 않습니다.
+async function loadAdminInquiryAlerts() {
+  if (adminScreen.hidden) return;
+  const requestId = ++adminInquiryAlertLoadRequestId;
+  const isCurrent = () => requestId === adminInquiryAlertLoadRequestId && !adminScreen.hidden;
+  const rows = [];
+  const pageSize = 500;
+  let offset = 0;
+  try {
+    while (isCurrent()) {
+      const { data, error, count } = await supabaseClient
+        .from("member_inquiries")
+        .select("id, status, archived_at, created_at, last_message_at", { count: "exact" })
+        .order("id", { ascending: true })
+        .range(offset, offset + pageSize - 1);
+      if (!isCurrent()) return;
+      if (error) throw error;
+      const page = data || [];
+      rows.push(...page);
+      offset += page.length;
+      if (page.length === 0 || (typeof count === "number" ? offset >= count : page.length < pageSize)) break;
+    }
+    if (isCurrent()) updateAdminRoutineAlerts("syncInquiries", rows);
+  } catch (error) {
+    if (!isCurrent()) return;
+    console.warn("회원 문의 알림 조회 실패:", error);
+    updateAdminRoutineAlerts("inquiryError");
+  }
+}
+
 // 관리자용 회원 문의 목록 불러오기
 async function loadAdminInquiries(
   preserveCurrentList = false
@@ -5678,6 +5713,7 @@ async function loadAdminInquiries(
   }
 
   loadMoreAdminInquiriesButton.disabled = true;
+  const alertRefresh = loadAdminInquiryAlerts();
 
   try {
     let inquiryQuery =
@@ -5851,6 +5887,7 @@ async function loadAdminInquiries(
     loadMoreAdminInquiriesButton.hidden = true;
 
   } finally {
+    await alertRefresh;
     if (isCurrentRequest()) loadMoreAdminInquiriesButton.disabled = false;
   }
 }

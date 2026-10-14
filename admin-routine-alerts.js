@@ -1,57 +1,64 @@
-/* 관리자 루틴 신청 알림. 신청 데이터는 읽기만 하며 발송/배정 기능과 분리합니다. */
+/* 관리자 루틴 신청·회원 문의 알림. 데이터는 읽기만 하며 배정/답변 기능과 분리합니다. */
 (function () {
   "use strict";
   const screen = document.getElementById("adminScreen");
-  const countLabel = document.getElementById("adminRoutineAlertCount");
-  const soundButton = document.getElementById("adminRoutineSoundToggle");
-  const testButton = document.getElementById("adminRoutineSoundTest");
-  const status = document.getElementById("adminRoutineAlertStatus");
+  const sections = [
+    { kind: "routine", prefix: "adminRoutine", storagePrefix: "adminRoutineAlerts:v1:", label: "루틴 신청" },
+    { kind: "inquiry", prefix: "adminInquiry", storagePrefix: "adminInquiryAlerts:v1:", label: "회원 문의" }
+  ].map(section => ({ ...section,
+    countLabel: document.getElementById(section.prefix + "AlertCount"),
+    soundButton: document.getElementById(section.prefix + "SoundToggle"),
+    testButton: document.getElementById(section.prefix + "SoundTest"),
+    status: document.getElementById(section.prefix + "AlertStatus"),
+    initialized: false, count: 0, sequence: 0, seen: new Set(), storageFailed: false, loadFailed: false
+  }));
   const favicon = document.querySelector('link[rel="icon"]');
-  if (!screen || !countLabel || !soundButton || !testButton || !status) return;
+  if (!screen || sections.some(section => !section.countLabel || !section.soundButton || !section.testButton || !section.status)) return;
 
   const originalTitle = document.title;
   const originalIcon = favicon?.getAttribute("href");
   const originalSizes = favicon?.getAttribute("sizes");
   const logo = new Image();
-  let userId = "", generation = 0, updateSequence = 0;
-  let initialized = false, pendingCount = 0, soundEnabled = false;
-  let audioContext = null, audioBusy = false;
-  let seenInMemory = new Set(), storageFailed = false;
+  let userId = "", generation = 0, soundEnabled = false;
+  let audioContext = null, audioBusy = false, nextToneAt = 0;
   let queue = Promise.resolve();
 
   function active(ticket = generation) {
     return ticket === generation && !!userId && !screen.hidden;
   }
-  function storageKey() { return "adminRoutineAlerts:v1:" + userId; }
-  function readSeen() {
+  function storageKey(section) { return section.storagePrefix + userId; }
+  function readSeen(section) {
     try {
-      const raw = localStorage.getItem(storageKey());
-      if (!raw) return new Set(seenInMemory);
+      const raw = localStorage.getItem(storageKey(section));
+      if (!raw) return new Set(section.seen);
       const data = JSON.parse(raw);
       if (data.version !== 1 || !Array.isArray(data.seen)) throw new Error("Invalid alert state");
-      return new Set([...seenInMemory, ...data.seen.filter(value => typeof value === "string")]);
+      return new Set([...section.seen, ...data.seen.filter(value => typeof value === "string")]);
     } catch (_) {
-      storageFailed = true;
-      return new Set(seenInMemory);
+      section.storageFailed = true;
+      return new Set(section.seen);
     }
   }
-  function saveSeen(seen) {
-    // 재접속 시 중복 알림을 막기 위해 최근 신청 식별자만 저장합니다.
-    seenInMemory = new Set([...seen].slice(-2000));
+  function saveSeen(section, seen, currentKeys) {
+    // 현재 목록의 식별자는 모두 보존하고, 사라진 과거 기록만 개수를 제한합니다.
+    section.seen = new Set([...seen].slice(-2000).concat(currentKeys));
     try {
-      localStorage.setItem(storageKey(), JSON.stringify({ version: 1, seen: [...seenInMemory] }));
-      storageFailed = false;
-    } catch (_) { storageFailed = true; }
+      localStorage.setItem(storageKey(section), JSON.stringify({ version: 1, seen: [...section.seen] }));
+      section.storageFailed = false;
+    } catch (_) { section.storageFailed = true; }
   }
   function renderControls(message = "") {
-    soundButton.textContent = soundEnabled ? "알림음 끄기" : "알림음 켜기";
-    soundButton.setAttribute("aria-pressed", String(soundEnabled));
-    soundButton.disabled = audioBusy;
-    testButton.disabled = audioBusy;
-    status.textContent = message || (soundEnabled
-      ? "알림음 켜짐 · 새 신청이 들어오면 짧게 울려요."
-      : "알림음 꺼짐 · 새 신청은 탭에 표시돼요.");
-    if (storageFailed) status.textContent += " 알림 이력을 저장하지 못해 여러 탭에서 소리가 겹칠 수 있어요.";
+    sections.forEach(section => {
+      section.soundButton.textContent = soundEnabled ? "알림음 끄기" : "알림음 켜기";
+      section.soundButton.setAttribute("aria-pressed", String(soundEnabled));
+      section.soundButton.disabled = audioBusy;
+      section.testButton.disabled = audioBusy;
+      section.status.textContent = message || (soundEnabled
+        ? "알림음 켜짐 · 새 루틴 신청과 회원 문의를 알려드려요."
+        : "알림음 꺼짐 · 신청과 문의는 탭에 표시돼요.");
+      if (section.storageFailed) section.status.textContent += " 알림 이력을 저장하지 못해 여러 탭에서 소리가 겹칠 수 있어요.";
+      if (section.loadFailed) section.status.textContent += " 문의 알림을 갱신하지 못했어요. 연결 후 다시 확인해 주세요.";
+    });
   }
   function restoreIcon() {
     if (!favicon) return;
@@ -61,10 +68,16 @@
     else favicon.setAttribute("sizes", originalSizes);
   }
   function renderBadge() {
-    const count = active() ? pendingCount : 0;
-    document.title = count ? `(신청 ${count}건) ${originalTitle}` : originalTitle;
-    countLabel.textContent = `대기 ${count}건`;
-    countLabel.classList.toggle("has-requests", count > 0);
+    const counts = sections.map(section => active() ? section.count : 0);
+    const count = counts[0] + counts[1];
+    const labels = [];
+    if (counts[0]) labels.push(`신청 ${counts[0]}건`);
+    if (counts[1]) labels.push(`문의 ${counts[1]}건`);
+    document.title = count ? `(${labels.join(" · ")}) ${originalTitle}` : originalTitle;
+    sections.forEach((section, index) => {
+      section.countLabel.textContent = section.kind === "inquiry" ? `답변 대기 ${counts[index]}건` : `대기 ${counts[index]}건`;
+      section.countLabel.classList.toggle("has-requests", counts[index] > 0);
+    });
     if (!count) { restoreIcon(); return; }
     if (!favicon) return;
     try {
@@ -97,10 +110,12 @@
     }
     if (!active(ticket) || context !== audioContext) return;
     if (context.state !== "running") throw new Error("Audio is suspended");
+    const toneStart = Math.max(context.currentTime, nextToneAt);
+    nextToneAt = toneStart + 0.38;
     [660, 880].forEach((frequency, index) => {
       const oscillator = context.createOscillator();
       const gain = context.createGain();
-      const start = context.currentTime + index * 0.16;
+      const start = toneStart + index * 0.16;
       oscillator.type = "sine";
       oscillator.frequency.value = frequency;
       gain.gain.setValueAtTime(0, start);
@@ -113,7 +128,7 @@
   }
   function closeAudio() {
     const previous = audioContext;
-    audioContext = null;
+    audioContext = null; nextToneAt = 0;
     if (previous && previous.state !== "closed") previous.close().catch(() => {});
   }
   async function testSound(enable) {
@@ -124,74 +139,92 @@
       await playTone(ticket);
       if (!active(ticket)) return;
       if (enable) soundEnabled = true;
-      renderControls(enable ? "알림음을 켰어요. 새 신청이 들어오면 알려드릴게요."
-        : "테스트 소리를 재생했어요. " + (soundEnabled ? "새 신청 알림음이 켜져 있어요." : "자동 알림은 ‘알림음 켜기’를 눌러주세요."));
+      renderControls(enable ? "알림음을 켰어요. 새 루틴 신청과 회원 문의를 알려드릴게요."
+        : "테스트 소리를 재생했어요. " + (soundEnabled ? "신청·문의 알림음이 켜져 있어요." : "자동 알림은 ‘알림음 켜기’를 눌러주세요."));
     } catch (_) {
       if (active(ticket)) {
         soundEnabled = false; closeAudio();
         renderControls("소리를 재생하지 못했어요. 탭 음소거와 PC 볼륨을 확인하고 다시 켜주세요.");
       }
     } finally {
-      if (active(ticket)) { audioBusy = false; soundButton.disabled = false; testButton.disabled = false; }
+      if (active(ticket)) { audioBusy = false; sections.forEach(section => { section.soundButton.disabled = false; section.testButton.disabled = false; }); }
     }
   }
-  soundButton.addEventListener("click", () => {
-    if (!active()) return;
-    if (soundEnabled) { soundEnabled = false; closeAudio(); renderControls(); }
-    else void testSound(true);
+  sections.forEach(section => {
+    section.soundButton.addEventListener("click", () => {
+      if (!active()) return;
+      if (soundEnabled) { soundEnabled = false; closeAudio(); renderControls(); }
+      else void testSound(true);
+    });
+    section.testButton.addEventListener("click", () => { void testSound(false); });
   });
-  testButton.addEventListener("click", () => { void testSound(false); });
 
   function start(id) {
     if (userId === id && active()) return;
-    reset();
-    userId = id;
-    seenInMemory = readSeen();
+    reset(); userId = id;
+    sections.forEach(section => { section.seen = readSeen(section); });
     renderBadge(); renderControls();
   }
   function reset() {
-    generation += 1; updateSequence += 1;
-    userId = ""; initialized = false; pendingCount = 0;
-    soundEnabled = false; audioBusy = false; storageFailed = false;
-    seenInMemory = new Set();
+    generation += 1; userId = ""; soundEnabled = false; audioBusy = false;
+    sections.forEach(section => {
+      section.sequence += 1; section.initialized = false; section.count = 0;
+      section.storageFailed = false; section.loadFailed = false; section.seen = new Set();
+    });
     closeAudio(); renderBadge(); renderControls();
   }
-  function sync(rows) {
-    if (!active() || !Array.isArray(rows)) return Promise.resolve();
-    const ticket = generation, sequence = ++updateSequence;
-    const keys = [...new Set(rows.filter(row => row && row.id && row.status === "pending")
-      .map(row => JSON.stringify([row.id, row.requested_at || ""])) )];
-    pendingCount = keys.length;
+  function syncSection(section, pendingKeys, observedKeys) {
+    if (!active()) return Promise.resolve();
+    const ticket = generation, sequence = ++section.sequence;
+    const keys = [...new Set(pendingKeys)];
+    const observed = [...new Set(observedKeys)];
+    section.count = keys.length; section.loadFailed = false;
     renderBadge();
-    const key = storageKey();
+    const key = storageKey(section);
     const update = () => {
-      if (!active(ticket) || sequence !== updateSequence) return;
-      const seen = readSeen();
+      if (!active(ticket) || sequence !== section.sequence) return;
+      const seen = readSeen(section);
       const fresh = keys.filter(value => !seen.has(value));
-      const shouldRing = initialized && fresh.length > 0 && soundEnabled;
-      keys.forEach(value => { seen.delete(value); seen.add(value); });
-      saveSeen(seen);
-      initialized = true;
+      const shouldRing = section.initialized && fresh.length > 0 && soundEnabled;
+      observed.forEach(value => { seen.delete(value); seen.add(value); });
+      saveSeen(section, seen, observed);
+      section.initialized = true;
       renderControls();
       if (shouldRing) {
-        // 재생 전에 이력을 저장해 다른 탭에서 같은 신청의 소리가 겹치지 않게 합니다.
         void playTone(ticket).catch(() => {
           if (!active(ticket)) return;
           soundEnabled = false; closeAudio();
-          renderControls("새 신청 알림음을 재생하지 못했어요. ‘알림음 켜기’를 다시 눌러주세요.");
+          renderControls("알림음을 재생하지 못했어요. ‘알림음 켜기’를 다시 눌러주세요.");
         });
-        renderControls(`새 루틴 신청 ${fresh.length}건이 들어왔어요.`);
+        renderControls(`새 ${section.label} ${fresh.length}건이 들어왔어요.`);
       }
     };
-    // Chrome의 탭 간 잠금으로 같은 관리자 계정의 중복 알림음을 방지합니다.
     queue = queue.catch(() => {}).then(() => {
       if (navigator.locks?.request) return navigator.locks.request(key, update);
       return update();
-    }).catch(() => { if (active(ticket)) renderControls("알림 상태를 갱신하지 못했어요. 신청 목록은 아래에서 확인해 주세요."); });
+    }).catch(() => { if (active(ticket)) renderControls("알림 상태를 갱신하지 못했어요. 아래 목록을 확인해 주세요."); });
     return queue;
+  }
+  function sync(rows) {
+    if (!Array.isArray(rows)) return Promise.resolve();
+    const keys = rows.filter(row => row && row.id && row.status === "pending")
+      .map(row => JSON.stringify([row.id, row.requested_at || ""]));
+    return syncSection(sections[0], keys, keys);
+  }
+  function syncInquiries(rows) {
+    if (!Array.isArray(rows)) return Promise.resolve();
+    const valid = rows.filter(row => row && row.id);
+    const keyOf = row => JSON.stringify([row.id, row.last_message_at || row.created_at || ""]);
+    const waiting = valid.filter(row => row.status === "waiting" && !row.archived_at);
+    // 답변 완료·보관함의 마지막 메시지도 기억해 복원만 했을 때 울리지 않게 합니다.
+    return syncSection(sections[1], waiting.map(keyOf), valid.map(keyOf));
+  }
+  function inquiryError() {
+    if (!active()) return;
+    sections[1].loadFailed = true; renderControls();
   }
   // 로그아웃/회원 화면 전환 후 늦게 도착한 비동기 알림을 차단합니다.
   new MutationObserver(() => { if (screen.hidden && userId) reset(); })
     .observe(screen, { attributes: true, attributeFilter: ["hidden"] });
-  window.AdminRoutineAlerts = Object.freeze({ start, sync, reset });
+  window.AdminRoutineAlerts = Object.freeze({ start, sync, syncInquiries, inquiryError, reset });
 })();
