@@ -526,7 +526,9 @@
       difficulty: 2,
       cautionTags: ["손목","팔꿈치"],
       videoUrl: "",
-      defaultGifUrl: "",
+      // 2026-10-14 운동DB_MASTER N27 원본 GIF를 앱에 포함합니다.
+      // https://drive.google.com/file/d/167T2IT4Uihm8bbFL-eO1LduRNT3fFfl-/view
+      defaultGifUrl: "./images/exercises/ex026-dumbbell-curl.gif?v=95",
       enabled: true
     },
     {

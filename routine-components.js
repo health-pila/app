@@ -132,9 +132,11 @@
   const openMedia = new Set();
   let mediaObserver = null;
 
-  function safeMediaUrl(value) {
+  function safeMediaUrl(value, baseUrl) {
     try {
-      const url = new URL(String(value || "").trim());
+      const source = String(value || "").trim();
+      if (!source) return "";
+      const url = new URL(source, baseUrl);
       if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) return "";
       return url.href;
     } catch (error) {
@@ -579,7 +581,7 @@
     function openVideo() {
       const videoValue = String(exercise.videoUrl || "").trim();
       const videoUrl = safeMediaUrl(videoValue);
-      const gifUrl = safeMediaUrl(exercise.defaultGifUrl);
+      const gifUrl = safeMediaUrl(exercise.defaultGifUrl, document.baseURI);
       if (videoValue) {
         const embedUrl = youtubeEmbedUrl(videoValue);
         if (embedUrl) {
