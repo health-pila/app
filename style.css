@@ -5320,7 +5320,7 @@ textarea.routine-weight-cell {
   border-bottom: 1px solid #e4e8ef;
   background: #fff;
 }
-.guest-demo-label { color: #657087; font-size: 12px; font-weight: 700; }
+.guest-demo-label { color: #657087; font-size: 14px; font-weight: 700; }
 #closeGuestDemo {
   width: auto;
   min-height: 40px;
