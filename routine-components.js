@@ -245,6 +245,15 @@
 
   window.addEventListener("pagehide", closeEquipmentImage);
 
+  // 특정 체험/미리보기 영역을 닫을 때 확대 사진과 영상도 즉시 정리합니다.
+  function closeMediaWithin(container) {
+    if (!container) return;
+    if (equipmentImageState && container.contains(equipmentImageState.trigger)) closeEquipmentImage();
+    Array.from(openMedia).forEach(function (media) {
+      if (container.contains(media.area)) media.close();
+    });
+  }
+
   function stopAllVideos() {
     Array.from(openMedia).forEach(function (media) { media.close(); });
   }
@@ -282,7 +291,7 @@
   }
 
   // 회원별·운동별 5세트 기록. 이전 텍스트 메모는 별도 키에 그대로 보존합니다.
-  function createWeightRecordControls(exerciseId, exerciseName, userId, panelId) {
+  function createWeightRecordControls(exerciseId, exerciseName, userId, panelId, recordStorage) {
     const identity = JSON.stringify([userId, exerciseId]);
     const storageKey = "exerciseWeightSets:" + identity;
     const legacyKey = "exerciseWeightNote:" + identity;
@@ -296,7 +305,7 @@
     const emptySets = () => Array.from({ length: 5 }, () => ({ weight: "", reps: "", comment: "" }));
 
     function readSets() {
-      const raw = localStorage.getItem(storageKey);
+      const raw = (recordStorage || localStorage).getItem(storageKey);
       if (raw === null) return emptySets();
       const saved = JSON.parse(raw);
       if (saved?.version !== 1 || !Array.isArray(saved.sets) || saved.sets.length !== 5 ||
@@ -363,9 +372,9 @@
           try {
             const sets = readSets();
             pendingChanges.forEach(change => { sets[change.index][change.key] = change.value; });
-            localStorage.setItem(storageKey, JSON.stringify({ version: 1, sets }));
+            (recordStorage || localStorage).setItem(storageKey, JSON.stringify({ version: 1, sets }));
             pendingChanges.clear();
-            status.textContent = "이 브라우저에 저장했어요.";
+            status.textContent = recordStorage ? "체험 기록을 입력했어요." : "이 브라우저에 저장했어요.";
           } catch (error) {
             status.textContent = "저장하지 못했어요. 페이지를 닫기 전에 입력 내용을 복사해 주세요.";
           }
@@ -396,7 +405,7 @@
         status.textContent = "기록을 불러오지 못했어요. 브라우저 저장 상태를 확인해 주세요.";
       }
       try {
-        const note = localStorage.getItem(legacyKey) || "";
+        const note = (recordStorage || localStorage).getItem(legacyKey) || "";
         legacyText.textContent = note;
         legacy.hidden = !note.trim();
       } catch (error) {
@@ -406,7 +415,7 @@
 
     reset.addEventListener("click", () => {
       try {
-        localStorage.removeItem(storageKey);
+        (recordStorage || localStorage).removeItem(storageKey);
         pendingChanges.clear();
         inputs.forEach(({ input }) => { input.value = ""; });
         status.textContent = "세트 기록을 초기화했어요.";
@@ -467,7 +476,7 @@
       placeholder.hidden = false;
       placeholder.textContent = "사진을 불러오지 못했어요";
     });
-    const imageUrl = window.ExerciseDB.getExerciseImageUrl(entry.exerciseId);
+    const imageUrl = options?.imageUrls?.[entry.exerciseId] || window.ExerciseDB.getExerciseImageUrl(entry.exerciseId);
     if (imageUrl) {
       image.src = imageUrl;
     } else {
@@ -625,7 +634,7 @@
     card.append(main, actions, details, mediaArea);
     if (options?.userId) {
       const weight = createWeightRecordControls(
-        entry.exerciseId, exercise.name, options.userId, details.id + "-weight"
+        entry.exerciseId, exercise.name, options.userId, details.id + "-weight", options.weightStorage
       );
       actions.append(weight.button);
       card.append(weight.panel);
@@ -843,7 +852,7 @@
 
   // 저장 단계에서도 같은 검사 함수를 재사용합니다.
   window.RoutineComponents = Object.freeze({
-    parseRoutineJson, resetAdminPreview, renderRoutine, stopAllVideos,
+    parseRoutineJson, resetAdminPreview, renderRoutine, stopAllVideos, closeMediaWithin,
     configureAdminContext, syncAdminApplyButton, getValidatedAdminRoutine
   });
 
