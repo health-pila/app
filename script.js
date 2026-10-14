@@ -409,6 +409,16 @@ function updateAdminRoutineAlerts(method, ...args) {
 }
 
 
+function updateMemberCommunityBadges(method, ...args) {
+  try {
+    Promise.resolve(window.MemberCommunityBadges?.[method](...args)).catch(error => {
+      console.warn("회원 커뮤니티 배지 처리 실패:", error);
+    });
+  } catch (error) {
+    console.warn("회원 커뮤니티 배지 처리 실패:", error);
+  }
+}
+
 function refreshMemberRoutineWhenVisible() {
   if (
     document.visibilityState !==
@@ -420,6 +430,7 @@ function refreshMemberRoutineWhenVisible() {
   scheduleMemberRoutineRealtimeRefresh();
   scheduleAdminRoutineRequestRefresh();
   if (!adminScreen.hidden) scheduleInquiryRealtimeRefresh("admin", "list");
+  if (!appScreen.hidden) scheduleInquiryRealtimeRefresh("member", "list");
   scheduleCommunityRealtimeRefresh();
   refreshAdminMembersIfNeeded();
 }
@@ -433,6 +444,7 @@ window.addEventListener(
   "pageshow",
   refreshMemberRoutineWhenVisible
 );
+window.addEventListener("online", refreshMemberRoutineWhenVisible);
 
 const inquiryRealtimeRefreshTargets =
   new Set();
@@ -631,7 +643,7 @@ async function startInquiryRealtimeSubscription(
       )
       .subscribe(function (status) {
         if (inquiryRealtimeChannel !== realtimeChannel) return;
-        if (status === "SUBSCRIBED" && screenType === "admin") refreshInquiryList();
+        if (status === "SUBSCRIBED") refreshInquiryList();
         if (
           status === "CHANNEL_ERROR" ||
           status === "TIMED_OUT"
@@ -1314,6 +1326,7 @@ async function loadMemberInquiryMessages(
     });
 
     messageList.dataset.loaded = "true";
+    updateMemberCommunityBadges("observeReplies", inquiryId, messages, messageList);
 
   } catch (messagesError) {
     console.error(
@@ -1440,6 +1453,7 @@ function renderMemberInquiries(inquiries) {
 
     inquiryCard.className =
       "member-inquiry-card";
+    inquiryCard.dataset.memberInquiryId = String(inquiry.id);
 
     const summaryButton =
       document.createElement("button");
@@ -1709,6 +1723,8 @@ function renderMemberInquiries(inquiries) {
       );
     }
   });
+  updateMemberCommunityBadges("render");
+  updateMemberCommunityBadges("checkSoon");
 }
 
 
@@ -1724,6 +1740,7 @@ async function loadMemberInquiries(
       visibleCount === memberInquiryVisibleCount;
   }
   if (!isCurrentRequest()) return;
+  updateMemberCommunityBadges("refreshReplies");
 
   if (!preserveCurrentList) {
     memberInquiryList.replaceChildren();
@@ -1959,6 +1976,7 @@ function showCommunityMenu(menuName) {
     button.tabIndex =
       isSelected && !button.disabled ? 0 : -1;
   });
+  updateMemberCommunityBadges("checkSoon");
 }
 
 // 중분류 버튼 클릭 및 키보드 조작
@@ -2050,6 +2068,7 @@ if (tabName === "community") {
     top: 0,
     behavior: "smooth"
   });
+  updateMemberCommunityBadges("checkSoon");
 }
 
 // 하단 탭 버튼 클릭 기능
@@ -2805,6 +2824,7 @@ async function loadCommunityPosts(preserveCurrentList = false) {
     }));
     if (!isCurrent()) return;
     renderCommunityPosts(prepared);
+    updateMemberCommunityBadges("syncNews", prepared);
   } catch (error) {
     if (!isCurrent()) return;
     console.error("센터 소식 불러오기 실패:", error);
@@ -8614,6 +8634,8 @@ async function loadMemberRoutine(
 // 일반 회원 화면 표시
 async function showWorkoutApp(userId) {
   updateAdminRoutineAlerts("reset");
+  updateMemberCommunityBadges("start", userId, supabaseClient);
+  openMemberInquiryId = null;
   resetRoutineChangeRequest(userId);
   routineRequestStatusLoadId += 1;
   routineRequestStatusMessage.hidden = true;
@@ -9212,6 +9234,7 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId) {
+  updateMemberCommunityBadges("reset");
   resetRoutineChangeRequest();
   stopAdminMemberAutoRefresh();
   await stopCommunityRealtimeSubscription();
@@ -10268,6 +10291,7 @@ async function handleLogout() {
 
     window.OneDayPT.reset();
     updateAdminRoutineAlerts("reset");
+    updateMemberCommunityBadges("reset");
     resetRoutineChangeRequest();
 
     // 진행 중이던 루틴 조회 결과가 나중에 반영되지 않도록 취소

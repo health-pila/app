@@ -5383,3 +5383,42 @@ textarea.routine-weight-cell {
   .guest-demo-section { margin: 10px; padding: 18px 12px; }
   #guestDemoDialog .routine-component-actions button { font-size: 12px; }
 }
+
+
+/* 회원 커뮤니티의 미확인 소식·답변 */
+.member-community-badge {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 12px;
+  background: #d92d20;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.member-tab-button .member-community-badge {
+  right: calc(50% - 30px);
+}
+
+.member-community-badge.is-inline {
+  position: static;
+  flex-shrink: 0;
+  height: 21px;
+  border: 0;
+  padding: 0 6px;
+}
+
+.member-community-badge[hidden] {
+  display: none;
+}
