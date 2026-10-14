@@ -396,6 +396,18 @@ let adminRoutineRequestRealtimeChannel = null;
 let adminRoutineRequestRefreshTimer = null;
 let adminRoutineRequestLoadId = 0;
 
+// 알림 오류가 회원 조회나 루틴 배정을 중단시키지 않도록 별도로 처리합니다.
+function updateAdminRoutineAlerts(method, ...args) {
+  try {
+    Promise.resolve(window.AdminRoutineAlerts?.[method](...args)).catch(error => {
+      console.warn("관리자 신청 알림 처리 실패:", error);
+    });
+  } catch (error) {
+    console.warn("관리자 신청 알림 처리 실패:", error);
+  }
+}
+
+
 function refreshMemberRoutineWhenVisible() {
   if (
     document.visibilityState !==
@@ -8564,6 +8576,7 @@ async function loadMemberRoutine(
 
 // 일반 회원 화면 표시
 async function showWorkoutApp(userId) {
+  updateAdminRoutineAlerts("reset");
   resetRoutineChangeRequest(userId);
   routineRequestStatusLoadId += 1;
   routineRequestStatusMessage.hidden = true;
@@ -8924,6 +8937,7 @@ async function loadAdminRoutineRequests(
     }
 
     renderAdminRoutineRequests(requestsWithProfiles);
+    updateAdminRoutineAlerts("sync", requestsWithProfiles);
   } catch (loadError) {
     if (!canUpdateList()) {
       return;
@@ -9168,6 +9182,7 @@ async function showAdminApp(userId) {
   loginScreen.hidden = true;
   appScreen.hidden = true;
   adminScreen.hidden = false;
+  updateAdminRoutineAlerts("start", userId);
 
   adminRoutineEditor.hidden = true;
   adminMemberInfo.textContent = "루틴을 관리할 회원을 선택해 주세요.";
@@ -10215,6 +10230,7 @@ async function handleLogout() {
     }
 
     window.OneDayPT.reset();
+    updateAdminRoutineAlerts("reset");
     resetRoutineChangeRequest();
 
     // 진행 중이던 루틴 조회 결과가 나중에 반영되지 않도록 취소

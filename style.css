@@ -5229,3 +5229,56 @@ textarea.routine-weight-cell {
   overflow-wrap: anywhere;
   line-height: 1.5;
 }
+
+
+/* v79: 관리자 루틴 신청 알림 설정 */
+.admin-routine-alerts {
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid #f2d6c0;
+  border-radius: 12px;
+  background: #fff8f1;
+}
+.admin-routine-alerts-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #17233e;
+  font-size: 14px;
+}
+.admin-routine-alert-count {
+  flex-shrink: 0;
+  padding: 4px 9px;
+  border-radius: 20px;
+  background: #edf0f5;
+  color: #596174;
+  font-size: 12px;
+  font-weight: 700;
+}
+.admin-routine-alert-count.has-requests { background: #fde6e7; color: #ad2030; }
+.admin-routine-alert-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+#adminScreen .admin-routine-alert-actions button {
+  width: auto;
+  min-height: 40px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #e8c4a7;
+  border-radius: 8px;
+  background: #fff;
+  color: #864212;
+  font-size: 13px;
+  font-weight: 700;
+}
+#adminScreen .admin-routine-alert-actions button[aria-pressed="true"] {
+  background: #17233e;
+  border-color: #17233e;
+  color: #fff;
+}
+#adminScreen .admin-routine-alert-actions button:focus-visible {
+  outline: 2px solid #ec6a1a;
+  outline-offset: 2px;
+}
+#adminScreen .admin-routine-alert-actions button:disabled { opacity: 0.6; cursor: wait; }
+#adminScreen .admin-routine-alert-status { margin: 10px 0 0; color: #864212; font-size: 13px; line-height: 1.5; }
+#adminScreen .admin-routine-alert-help { margin: 6px 0 0; color: #697386; font-size: 12px; line-height: 1.6; }
