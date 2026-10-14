@@ -4221,10 +4221,12 @@ body.camera-open {
 
 :is(#appScreen, #adminScreen) .member-app-topbar .screen-logo-top {
   flex-shrink: 0;
-  width: 132px;
-  height: 40px;
-  max-width: calc(100% - 108px);
-  margin: 0;
+  /* White backing is part of the SVG image, including in forced dark mode.
+     Negative margins preserve the original logo footprint and header spacing. */
+  width: 144px;
+  height: 48px;
+  max-width: calc(100% - 96px);
+  margin: -4px -6px;
   object-fit: contain;
 }
 
