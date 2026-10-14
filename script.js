@@ -8633,6 +8633,7 @@ async function loadMemberRoutine(
 
 // 일반 회원 화면 표시
 async function showWorkoutApp(userId) {
+  window.MemberCardioPrograms?.start(userId);
   updateAdminRoutineAlerts("reset");
   updateMemberCommunityBadges("start", userId, supabaseClient);
   openMemberInquiryId = null;
@@ -9234,6 +9235,7 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId) {
+  window.MemberCardioPrograms?.reset();
   updateMemberCommunityBadges("reset");
   resetRoutineChangeRequest();
   stopAdminMemberAutoRefresh();
@@ -10290,6 +10292,7 @@ async function handleLogout() {
     }
 
     window.OneDayPT.reset();
+    window.MemberCardioPrograms?.reset();
     updateAdminRoutineAlerts("reset");
     updateMemberCommunityBadges("reset");
     resetRoutineChangeRequest();
@@ -10598,6 +10601,7 @@ initializeLogin();
   "use strict";
   const app = document.querySelector("#appScreen");
   const routinePanel = document.querySelector("#routineTabPanel");
+  const assignedPanel = document.querySelector("#memberAssignedRoutinePanel");
   const widget = document.querySelector("#memberRestTimer");
   const toggle = document.querySelector("#restTimerToggle");
   const toggleLabel = document.querySelector("#restTimerToggleLabel");
@@ -10625,7 +10629,7 @@ initializeLogin();
   }
 
   function isVisible() {
-    return !app.hidden && !routinePanel.hidden && document.visibilityState === "visible";
+    return !app.hidden && !routinePanel.hidden && !assignedPanel?.hidden && document.visibilityState === "visible";
   }
 
   function stopTicker() {
@@ -10703,13 +10707,13 @@ initializeLogin();
   }
 
   function syncVisibility() {
-    widget.hidden = app.hidden || routinePanel.hidden;
+    widget.hidden = app.hidden || routinePanel.hidden || Boolean(assignedPanel?.hidden);
     if (app.hidden) {
       duration = 60;
       resetTimer();
       collapse();
     } else {
-      if (routinePanel.hidden) collapse();
+      if (routinePanel.hidden || assignedPanel?.hidden) collapse();
       updateRemaining();
       render();
       positionWidget();
@@ -10787,6 +10791,7 @@ initializeLogin();
   const observer = new MutationObserver(syncVisibility);
   observer.observe(app, { attributes: true, attributeFilter: ["hidden"] });
   observer.observe(routinePanel, { attributes: true, attributeFilter: ["hidden"] });
+  if (assignedPanel) observer.observe(assignedPanel, { attributes: true, attributeFilter: ["hidden"] });
   if (nav && window.ResizeObserver) new window.ResizeObserver(positionWidget).observe(nav);
   window.addEventListener("resize", positionWidget);
   window.addEventListener("pagehide", stopTicker);

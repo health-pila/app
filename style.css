@@ -4858,15 +4858,6 @@ body.camera-open {
   }
 }
 
-.member-routine-hero .member-cardio-notice {
-  margin: 0 0 8px;
-  color: #657087;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1.6;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-}
 /* 이메일 비밀번호 재설정 */
 .auth-text-link {
   box-sizing: border-box;
@@ -4974,7 +4965,7 @@ body.camera-open {
 .one-day-pt-count { margin-left: auto; white-space: nowrap; font-size: 13px; }
 .one-day-pt-entry > p {
   margin: 8px 3px 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--brand-orange);
   font-weight: 700;

@@ -1,0 +1,215 @@
+/* 운동 구성 중분류와 유산소 프로그램 전용 스타일 */
+.member-cardio-intro {
+  margin: 0;
+  color: #697586;
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+.member-routine-menu {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 0 14px 20px;
+  padding: 4px;
+  border: 1px solid #e0e6ee;
+  border-radius: 13px;
+  background: #fff;
+}
+.member-routine-menu-button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 4px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #697586;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.member-routine-menu-button.is-active {
+  background: #fff2e7;
+  color: #ce570a;
+}
+.member-routine-menu-button:focus-visible,
+.cardio-program-summary:focus-visible {
+  outline: 2px solid var(--brand-orange);
+  outline-offset: -3px;
+}
+#memberAssignedRoutinePanel > .member-assigned-routine {
+  margin: 0 20px 16px;
+}
+.member-cardio-panel {
+  padding: 0 18px 24px;
+}
+.cardio-program-group + .cardio-program-group {
+  margin-top: 28px;
+}
+.cardio-group-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.cardio-group-heading > svg {
+  flex-shrink: 0;
+  width: 21px;
+  height: 21px;
+  color: var(--brand-orange);
+}
+.cardio-group-heading h3 {
+  margin: 0;
+  color: var(--brand-navy);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+.cardio-group-heading small {
+  margin-left: auto;
+  color: #697586;
+  font-size: 11px;
+}
+.cardio-program-card {
+  margin-top: 10px;
+  border: 1px solid #e0e6ee;
+  border-radius: 15px;
+  overflow: hidden;
+  background: #fff;
+}
+.cardio-program-summary {
+  display: block;
+  padding: 16px 16px 11px;
+  list-style: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cardio-program-summary::-webkit-details-marker { display: none; }
+.cardio-program-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cardio-program-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #697586;
+  font-size: 11px;
+  font-weight: 700;
+}
+.cardio-level-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 12px;
+}
+.cardio-level-bars i {
+  display: block;
+  width: 4px;
+  border-radius: 1px;
+  background: #e0e6ee;
+}
+.cardio-level-bars i:nth-child(1) { height: 5px; }
+.cardio-level-bars i:nth-child(2) { height: 8px; }
+.cardio-level-bars i:nth-child(3) { height: 12px; }
+.cardio-level-bars i.is-lit { background: var(--brand-orange); }
+.cardio-program-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #697586;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.cardio-program-time svg { width: 13px; height: 13px; }
+.cardio-program-name {
+  display: block;
+  margin: 9px 0 4px;
+  color: var(--brand-navy);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: -0.5px;
+  word-break: keep-all;
+}
+.cardio-program-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e6ee;
+  color: #ce570a;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.cardio-program-action svg { width: 16px; height: 16px; }
+.cardio-close-label { display: none; }
+.cardio-program-card[open] .cardio-open-label { display: none; }
+.cardio-program-card[open] .cardio-close-label { display: inline; }
+.cardio-program-card[open] .cardio-program-action svg { transform: rotate(180deg); }
+.cardio-program-content { padding: 4px 16px 16px; }
+.cardio-program-equipment {
+  margin: 1px 0 11px;
+  color: #697586;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.cardio-program-steps { margin: 0; padding: 0; list-style: none; }
+.cardio-program-step {
+  display: grid;
+  grid-template-columns: 23px 1fr auto;
+  gap: 8px;
+  align-items: start;
+  padding: 10px 0;
+  border-top: 1px solid #e0e6ee;
+}
+.cardio-step-number {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: #fff2e7;
+  color: #ce570a;
+  font-size: 11px;
+}
+.cardio-step-description { min-width: 0; }
+.cardio-step-description strong {
+  color: var(--brand-navy);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+.cardio-step-description p {
+  margin: 4px 0 0;
+  color: #697586;
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.cardio-step-time {
+  color: var(--brand-navy);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.cardio-program-guidance {
+  margin: 6px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #edf1f6;
+  color: #697586;
+  font-size: 11px;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+@media (max-width: 360px) {
+  .member-cardio-panel { padding-right: 12px; padding-left: 12px; }
+  .cardio-program-summary { padding-right: 13px; padding-left: 13px; }
+}
