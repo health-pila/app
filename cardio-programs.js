@@ -1,27 +1,164 @@
 // 유산소 프로그램 문구·시간·속도는 아래 CARDIO_PROGRAM_GROUPS에서 수정합니다.
 // minutes: 총 소요 시간, level: 1=저강도 / 2=중강도 / 3=고강도.
-// steps: [구간 이름, 운동 방법, 구간 시간]. 총 시간과 구간 시간의 합을 함께 맞춰주세요.
+// steps: [구간 이름, 운동 방법, 구간 시간]. 총 시간과 각 단계의 합을 맞춰주세요.
+// guidance: 각 프로그램의 하단 안내문. 속도는 참고값이며 강도는 RPE와 호흡 상태를 우선합니다.
 const CARDIO_PROGRAM_GROUPS = [
   {
-    id: "weight", title: "체중감량", icon: "flame",
-    programs: [
-      { id: "weight-low", level: 1, name: "부담 없이 걷기", minutes: 20,
-        steps: [["준비운동", "편하게 걷기 · 3 ~ 4 km/h", "5분"], ["일정한 속도로 걷기", "걷기 · 4 ~ 5 km/h", "10분"], ["마무리", "속도를 서서히 낮추기", "5분"]] },
-      { id: "weight-medium", level: 2, name: "꾸준히 빠르게 걷기", minutes: 30,
-        steps: [["준비운동", "편하게 걷기 · 3 ~ 4 km/h", "5분"], ["빠르게 걷기", "빠른 걸음 · 5 ~ 6 km/h", "20분"], ["마무리", "속도를 서서히 낮추기", "5분"]] },
-      { id: "weight-high", level: 3, name: "걷기와 달리기 번갈아", minutes: 30,
-        steps: [["준비운동", "걷기에서 가벼운 달리기로", "5분"], ["인터벌 · 4회 반복", "달리기 2분 + 걷기 3분", "20분"], ["마무리", "천천히 걸으며 호흡 정리", "5분"]] }
+    "id": "weight",
+    "title": "체중감량",
+    "icon": "flame",
+    "programs": [
+      {
+        "id": "weight-low",
+        "level": 1,
+        "name": "부담 없이 걷기",
+        "minutes": 20,
+        "steps": [
+          [
+            "준비운동",
+            "편하게 걷기 · 3 ~ 4 km/h",
+            "5분"
+          ],
+          [
+            "일정한 속도로 걷기",
+            "가볍게 걷기 · 4 ~ 5 km/h · 강도 3 ~ 4/10",
+            "10분"
+          ],
+          [
+            "마무리",
+            "3 ~ 3.5 km/h로 서서히 속도 낮추기",
+            "5분"
+          ]
+        ],
+        "guidance": "속도는 참고값이에요. 대화가 편안하게 가능한 강도로 걷고, 체력에 맞춰 조절해주세요."
+      },
+      {
+        "id": "weight-medium",
+        "level": 2,
+        "name": "꾸준히 빠르게 걷기",
+        "minutes": 30,
+        "steps": [
+          [
+            "준비운동",
+            "편하게 걷기 · 3 ~ 4 km/h",
+            "5분"
+          ],
+          [
+            "빠르게 걷기",
+            "빠른 걸음 · 4.8 ~ 6 km/h · 강도 5 ~ 6/10",
+            "20분"
+          ],
+          [
+            "마무리",
+            "3 ~ 4 km/h로 서서히 속도 낮추기",
+            "5분"
+          ]
+        ],
+        "guidance": "속도는 참고값이에요. 대화는 가능하지만 노래하기는 어려운 정도로 유지해주세요."
+      },
+      {
+        "id": "weight-high",
+        "level": 3,
+        "name": "걷기와 달리기 번갈아",
+        "minutes": 30,
+        "steps": [
+          [
+            "준비운동",
+            "편하게 걷기 · 3.5 ~ 4.5 km/h",
+            "5분"
+          ],
+          [
+            "인터벌 · 4회 반복",
+            "달리기 2분(6.5 ~ 8.5 km/h) + 걷기 3분(4 ~ 5 km/h)",
+            "20분"
+          ],
+          [
+            "마무리",
+            "3 ~ 4 km/h로 천천히 걸으며 호흡 정리",
+            "5분"
+          ]
+        ],
+        "guidance": "속도는 참고값이에요. 달릴 때 강도 7 ~ 8/10을 목표로 하되, 부담스럽다면 속도를 낮춰주세요."
+      }
     ]
   },
   {
-    id: "fitness", title: "체력강화", icon: "heart",
-    programs: [
-      { id: "fitness-low", level: 1, name: "기초 체력 차근차근", minutes: 15,
-        steps: [["준비운동", "편하게 걷기 · 3 ~ 4 km/h", "3분"], ["빠르게 걷기", "빠른 걸음 · 5 ~ 6 km/h", "9분"], ["마무리", "속도를 서서히 낮추기", "3분"]] },
-      { id: "fitness-medium", level: 2, name: "달리기 지속력 강화", minutes: 20,
-        steps: [["준비운동", "편하게 걷기에서 시작", "5분"], ["일정한 페이스 유지", "8 ~ 10 km/h", "10분"], ["마무리", "천천히 걸으며 호흡 정리", "5분"]] },
-      { id: "fitness-high", level: 3, name: "심폐 체력까지 업", minutes: 30,
-        steps: [["준비운동", "걷기에서 가벼운 달리기로", "5분"], ["인터벌 · 4회 반복", "달리기 3분 + 걷기 2분", "20분"], ["마무리", "천천히 걸으며 호흡 정리", "5분"]] }
+    "id": "fitness",
+    "title": "체력강화",
+    "icon": "heart",
+    "programs": [
+      {
+        "id": "fitness-low",
+        "level": 1,
+        "name": "기초 체력 차근차근",
+        "minutes": 20,
+        "steps": [
+          [
+            "준비운동",
+            "편하게 걷기 · 3 ~ 4 km/h",
+            "5분"
+          ],
+          [
+            "리듬 있게 걷기",
+            "일정하게 걷기 · 4 ~ 5.2 km/h · 강도 3 ~ 4/10",
+            "10분"
+          ],
+          [
+            "마무리",
+            "3 ~ 3.5 km/h로 서서히 속도 낮추기",
+            "5분"
+          ]
+        ],
+        "guidance": "속도는 참고값이에요. 대화가 편안한 강도로 시작해 규칙적인 걷기에 익숙해져 보세요."
+      },
+      {
+        "id": "fitness-medium",
+        "level": 2,
+        "name": "걷기·조깅 지속력 강화",
+        "minutes": 25,
+        "steps": [
+          [
+            "준비운동",
+            "편하게 걷기 · 3.5 ~ 4.5 km/h",
+            "5분"
+          ],
+          [
+            "일정한 페이스 유지",
+            "빠른 걷기 4.8 ~ 6 km/h 또는 느린 조깅 · 강도 5 ~ 6/10",
+            "15분"
+          ],
+          [
+            "마무리",
+            "3 ~ 4 km/h로 천천히 걸으며 호흡 정리",
+            "5분"
+          ]
+        ],
+        "guidance": "속도는 참고값이에요. 대화가 가능한 강도를 유지하고, 조깅이 버거우면 빠른 걷기로 조절해주세요."
+      },
+      {
+        "id": "fitness-high",
+        "level": 3,
+        "name": "심폐 체력까지 업",
+        "minutes": 30,
+        "steps": [
+          [
+            "준비운동",
+            "편하게 걷기 · 3.5 ~ 4.5 km/h",
+            "5분"
+          ],
+          [
+            "인터벌 · 4회 반복",
+            "달리기 3분(7 ~ 9 km/h) + 걷기 2분(4 ~ 5 km/h)",
+            "20분"
+          ],
+          [
+            "마무리",
+            "3 ~ 4 km/h로 천천히 걸으며 호흡 정리",
+            "5분"
+          ]
+        ],
+        "guidance": "속도는 참고값이에요. 달릴 때 강도 7 ~ 8/10을 목표로 하며, 무리된다면 걷기로 전환해주세요."
+      }
     ]
   }
 ];
@@ -38,6 +175,14 @@ const CARDIO_PROGRAM_GROUPS = [
   const restoreKey = "memberRoutineMenuBeforeRefresh";
   let currentUserId = "";
   let selected = "assigned";
+  const intensityGuidance = {
+    1: "저강도 (3 ~ 4/10): 호흡이 편안하고 자연스럽게 대화할 수 있는 정도.",
+    2: "중강도 (5 ~ 6/10): 호흡이 빨라지고 대화는 가능하지만 노래하기는 어려운 정도.",
+    3: "고강도 (7 ~ 8/10): 호흡이 많이 빨라지고 짧은 말만 가능한 정도."
+  };
+  const intensityPriority = "속도보다 자각운동강도(RPE, 0 ~ 10점)와 호흡 상태를 우선 기준으로 조절해주세요.";
+  const safetyGuidance = "운동 중 가슴 통증, 어지럼증, 비정상적인 호흡곤란 등이 발생하면 즉시 운동을 중단해주세요.";
+
 
   const icons = {
     flame: '<path d="M12 3c2 4 7 6 7 11a7 7 0 0 1-14 0c0-3 2-5 4-7 0 3 1 4 2 4 1-2 2-5 1-8Z"/>',
@@ -93,7 +238,15 @@ const CARDIO_PROGRAM_GROUPS = [
         row.append(number, description, element("span", "cardio-step-time", step[2]));
         steps.append(row);
       });
-      content.append(steps, element("p", "cardio-program-guidance", "속도는 참고값이에요. 무리하지 않는 범위에서 자신의 체력에 맞춰 조절해주세요."));
+      const guidance = element("p", "cardio-program-guidance", program.guidance);
+      guidance.append(
+        document.createElement("br"), document.createElement("br"),
+        document.createTextNode(intensityPriority), document.createElement("br"),
+        document.createTextNode(intensityGuidance[program.level]),
+        document.createElement("br"), document.createElement("br"),
+        document.createTextNode(safetyGuidance)
+      );
+      content.append(steps, guidance);
       details.append(summary, content);
       section.append(details);
     });
