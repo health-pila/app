@@ -24,7 +24,7 @@
   function storageKey() { return "oneDayPtCart:" + userId; }
   function saveCart() {
     if (role !== "member") return;
-    try { localStorage.setItem(storageKey(), JSON.stringify({ ids: cart, requestId })); } catch (_) {}
+    try { localStorage.setItem(storageKey(), JSON.stringify({ ids: cart, requestId })); } catch (_) { }
   }
   function restoreCart() {
     try {
@@ -42,25 +42,48 @@
   function updateAddButton(button) {
     const added = cart.includes(button.dataset.exerciseId);
     button.textContent = added
-  ? "✓ 1DAY PT 장바구니에 담았어요"
-  : "+ 이 운동을 PT 희망 종목에 담기";
+      ? "✓ 1DAY PT 장바구니에 담았어요"
+      : "+ 이 운동을 PT 희망 종목에 담기";
     button.classList.toggle("is-added", added);
     button.setAttribute("aria-pressed", String(added));
-    button.disabled = role !== "member" || added || submitting;
+    button.disabled = role !== "member" || submitting;
   }
   function createAddButton(exerciseId) {
     const button = node("button", "one-day-pt-add-button");
     button.type = "button";
     button.dataset.exerciseId = exerciseId;
     updateAddButton(button);
+
     button.addEventListener("click", () => {
-      if (role !== "member" || submitting || cart.includes(exerciseId)) return;
-      if (!window.ExerciseDB.getExerciseById(exerciseId)) return;
-      if (cart.length >= MAX_ITEMS) { feedback("운동은 최대 5개까지 담을 수 있어요. 장바구니에서 운동을 빼고 다시 담아 주세요."); return; }
-      cart.push(exerciseId); requestId = ""; saveCart(); renderCart();
+      if (role !== "member" || submitting) return;
+
+      const exercise = window.ExerciseDB.getExerciseById(exerciseId);
+      if (!exercise) return;
+
+      const added = cart.includes(exerciseId);
+
+      if (added) {
+        cart = cart.filter(id => id !== exerciseId);
+      } else {
+        if (cart.length >= MAX_ITEMS) {
+          feedback("운동은 최대 5개까지 담을 수 있어요. 담긴 운동의 버튼을 다시 눌러 빼주세요.");
+          return;
+        }
+        cart.push(exerciseId);
+      }
+
+      requestId = "";
+      saveCart();
+      renderCart();
       $("oneDayPtSubmitMessage").textContent = "";
-      feedback(window.ExerciseDB.getExerciseById(exerciseId).name + "을(를) 담았어요. (" + cart.length + " / 5)");
+
+      feedback(
+        added
+          ? exercise.name + "을(를) 장바구니에서 뺐어요."
+          : exercise.name + "을(를) 담았어요. (" + cart.length + " / 5)"
+      );
     });
+
     return button;
   }
   function renderCart() {
@@ -247,7 +270,7 @@
   function reset() {
     generation++; memberSequence++; adminSequence++;
     clearTimeout(refreshTimer); clearTimeout(feedbackTimer);
-    if (channel && client) Promise.resolve(client.removeChannel(channel)).catch(() => {});
+    if (channel && client) Promise.resolve(client.removeChannel(channel)).catch(() => { });
     channel = null; role = ""; userId = "";
     cart = []; requestId = ""; memberRows = []; memberReady = false; memberLoading = false; submitting = false;
     adminRows = []; adminLimit = 20; adminHasMore = false; adminLoading = false; adminSaving = false;
