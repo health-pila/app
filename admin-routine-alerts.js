@@ -104,7 +104,7 @@
       oscillator.type = "sine";
       oscillator.frequency.value = frequency;
       gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(0.12, start + 0.015);
+      gain.gain.linearRampToValueAtTime(0.8, start + 0.015);
       gain.gain.exponentialRampToValueAtTime(0.001, start + 0.14);
       oscillator.connect(gain); gain.connect(context.destination);
       oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
