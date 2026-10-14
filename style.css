@@ -163,7 +163,9 @@ body {
    헬스와 필라테스 브랜드 테마
 ================================= */
 
+/* 브라우저의 자동 다크 변환을 제한하고 기존 밝은 화면을 유지합니다. */
 :root {
+  color-scheme: only light;
   --brand-navy: #17233e;
   --brand-blue: #1f5faa;
   --brand-orange: #f56a00;
