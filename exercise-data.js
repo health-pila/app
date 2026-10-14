@@ -1,9 +1,15 @@
-// 운동 구성 컴포넌트 DB — 시제품용 로컬 데이터
-// 출처: 2026-10-01 Google Sheets 원본 '운동 구성 컴포넌트 DB'의 운동DB_MASTER.
-// Google Sheets와 자동 동기화되지 않습니다.
-// 운동ID, 설명, 난이도, 이미지/영상 주소는 시트 기준입니다.
+// 운동 구성 컴포넌트 DB — 시트에서 검수한 로컬 데이터
+// 출처: 2026-10-14 Google Sheets 원본 '운동 구성 컴포넌트 DB'의 운동DB_MASTER.
+// Google Sheets와 자동 동기화되지 않습니다. 다음 변경 시 다시 반영해야 합니다.
+// 사용여부 Y인 31종만 새 루틴에 사용합니다. 미승인 8종은 enabled: false로 보관합니다.
+// 운동ID, 설명, 난이도, 이미지/영상 주소는 시트 기준입니다. 관리메모는 회원 화면에 포함하지 않습니다.
 // 횟수, 세트, 휴식시간, 운동 순서는 회원별 루틴에서 따로 관리합니다.
-// 이미지 주소는 원본 공유 링크를 보관하고, 표시할 때만 변환합니다.
+// 기구 이미지 주소는 공유 링크를 보관하고 표시할 때 변환합니다. GIF는 원본 파일을 앱에 동봉합니다.
+// EX024 GIF 원본: https://drive.google.com/file/d/1XeuWxMRUlx1yisKDtmPJTqZTZj1-MIEs/view?usp=drive_link
+// EX026 GIF 원본: https://drive.google.com/file/d/167T2IT4Uihm8bbFL-eO1LduRNT3fFfl-/view?usp=drive_link
+// EX027 GIF 원본: https://drive.google.com/file/d/12WIFl55c9VOFsjeJI9hieotHa7M_sBGn/view?usp=drive_link
+// EX029 GIF 원본: https://drive.google.com/file/d/1ZxXziDCAlOHgCSbre7QZOMh_k04IIcM_/view?usp=drive_link
+// EX038 GIF 원본: https://drive.google.com/file/d/1sHEQCdgMeZ32IHdENbk6lewDH_CU8bav/view?usp=drive_link
 
 (function () {
   "use strict";
@@ -202,7 +208,7 @@
       keyPoints: "상체를 최대한 곧게 유지한 채 동작합니다.",
       breathing: "힘을 쓸 때 내쉬고, 돌아올 때 들이마십니다.",
       checklist: ["등이 구부정하게 되어 있지는 않나요?","기구를 쿵쾅거리며 하고 있지는 않나요?","15개를 다 해도 힘들지 않다면 너무 가벼운 거예요."],
-      alternativeExerciseIds: [],
+      alternativeExerciseIds: ["EX020"],
       difficulty: 2,
       cautionTags: ["고관절","무릎"],
       videoUrl: "https://youtu.be/B3zqt-jfIXY",
@@ -395,7 +401,7 @@
       name: "힙 쓰러스트",
       bodyParts: ["엉덩이","허벅지 뒤"],
       exerciseType: "하체_고관절신전",
-      equipmentType: "프리웨이트",
+      equipmentType: "머신",
       purposeTags: ["둔근","하체근력","고관절신전"],
       benefits: "엉덩이 근력을 강화하고 고관절을 펴는 힘을 기르는 데 도움을 줍니다.",
       instructions: "등 윗부분을 지지대에 안정적으로 두고 발을 바닥에 고정합니다. 엉덩이를 들어 올릴 때 허리를 과하게 젖히지 말고 엉덩이에 힘을 준 뒤 천천히 내려옵니다.",
@@ -486,7 +492,7 @@
       difficulty: 1,
       cautionTags: ["허리","무릎"],
       videoUrl: "",
-      defaultGifUrl: "",
+      defaultGifUrl: "./images/exercises/ex024-bridge.gif?v=96",
       enabled: true
     },
     {
@@ -522,12 +528,10 @@
       keyPoints: "팔꿈치를 몸통 옆에 두고 손목을 곧게 유지합니다. 몸을 흔들지 않고 팔꿈치를 굽혀 덤벨을 올린 뒤 천천히 내립니다.",
       breathing: "덤벨을 올릴 때 내쉬고, 내릴 때 들이마십니다.",
       checklist: ["몸을 앞뒤로 흔들어 덤벨을 올리고 있지는 않나요?","팔꿈치가 앞으로 크게 빠지지는 않나요?","덤벨을 내릴 때도 속도를 조절하고 있나요?"],
-      alternativeExerciseIds: [],
+      alternativeExerciseIds: ["EX029","EX031"],
       difficulty: 2,
       cautionTags: ["손목","팔꿈치"],
       videoUrl: "",
-      // 2026-10-14 운동DB_MASTER N27 원본 GIF를 앱에 포함합니다.
-      // https://drive.google.com/file/d/167T2IT4Uihm8bbFL-eO1LduRNT3fFfl-/view
       defaultGifUrl: "./images/exercises/ex026-dumbbell-curl.gif?v=95",
       enabled: true
     },
@@ -548,7 +552,7 @@
       difficulty: 2,
       cautionTags: ["팔꿈치"],
       videoUrl: "",
-      defaultGifUrl: "",
+      defaultGifUrl: "./images/exercises/ex027-dumbbell-kickback.gif?v=96",
       enabled: true
     },
     {
@@ -570,6 +574,226 @@
       videoUrl: "https://youtu.be/028E5nNh9kE",
       defaultGifUrl: "",
       enabled: true
+    },
+    {
+      exerciseId: "EX029",
+      imageUrl: "https://drive.google.com/file/d/1VdfnaqCClZbABCp8nwjwBJHa-M14ZeJo/view?usp=drive_link",
+      name: "해머 컬",
+      bodyParts: ["이두","팔"],
+      exerciseType: "상체_팔꿈치굴곡",
+      equipmentType: "덤벨",
+      purposeTags: ["팔근력","이두","전완"],
+      benefits: "이두근과 팔꿈치를 굽히는 주변 근육을 강화하고 팔의 당기는 힘을 기르는 데 도움을 줍니다.",
+      instructions: "양손에 덤벨을 들고 손바닥이 서로 마주보도록 섭니다. 팔꿈치를 몸통 옆에 둔 채 덤벨을 어깨 쪽으로 올리고, 손목 방향을 유지하며 천천히 내립니다.",
+      keyPoints: "손바닥이 마주보는 방향과 곧은 손목을 유지합니다. 상체를 흔들거나 팔꿈치를 앞으로 많이 보내지 않습니다.",
+      breathing: "덤벨을 올릴 때 내쉬고, 내릴 때 들이마십니다.",
+      checklist: ["몸을 흔들거나 어깨를 으쓱하지 않나요?","덤벨을 내릴 때도 속도를 조절하나요?"],
+      alternativeExerciseIds: ["EX026"],
+      difficulty: 2,
+      cautionTags: ["어깨"],
+      videoUrl: "",
+      defaultGifUrl: "./images/exercises/ex029-hammer-curl.gif?v=96",
+      enabled: true
+    },
+    {
+      exerciseId: "EX030",
+      imageUrl: "",
+      name: "바벨 컬",
+      bodyParts: ["이두","팔"],
+      exerciseType: "상체_팔꿈치굴곡",
+      equipmentType: "덤벨",
+      purposeTags: ["팔근력","이두","상체근력"],
+      benefits: "이두근을 강화해 팔꿈치를 굽히는 힘과 상체 당기기 동작의 보조 근력 향상에 도움을 줍니다.",
+      instructions: "바벨을 손바닥이 앞을 향하도록 편안한 어깨너비 정도로 잡습니다. 복부에 힘을 주고 팔꿈치를 몸통 옆에 둔 채 바를 올린 뒤 천천히 내립니다.",
+      keyPoints: "손목이 뒤로 꺾이지 않도록 하고 허리를 젖히는 반동을 피합니다. 바를 잡았을 때 손목이나 팔꿈치에 통증이 있으면 중단합니다.",
+      breathing: "바벨을 올릴 때 내쉬고, 내릴 때 들이마십니다. 숨을 오래 참지 않습니다.",
+      checklist: ["허리를 뒤로 젖혀 바를 올리고 있지는 않나요?","팔꿈치가 앞으로 많이 빠지지 않나요?","손목을 꺾으면서 들어올리지는 않나요?"],
+      alternativeExerciseIds: ["EX026"],
+      difficulty: 4,
+      cautionTags: ["손목","허리"],
+      videoUrl: "",
+      defaultGifUrl: "",
+      enabled: false
+    },
+    {
+      exerciseId: "EX031",
+      imageUrl: "",
+      name: "시티드 덤벨 컬",
+      bodyParts: ["이두","팔"],
+      exerciseType: "상체_팔꿈치굴곡",
+      equipmentType: "덤벨",
+      purposeTags: ["팔근력","이두","상체근력"],
+      benefits: "앉은 자세에서 이두근을 강화하고 상체 반동을 줄여 팔꿈치를 굽히는 힘을 기르는 데 도움을 줍니다.",
+      instructions: "벤치에 앉아 발바닥을 바닥에 붙이고 덤벨을 몸 옆에 둡니다. 손바닥이 앞을 향하도록 잡고 팔꿈치 위치를 유지하며 덤벨을 올린 뒤 천천히 내립니다.",
+      keyPoints: "허리를 과하게 젖히거나 몸을 흔들지 않습니다. 어깨를 으쓱하지 않고 손목과 팔뚝이 나란하도록 유지합니다.",
+      breathing: "덤벨을 올릴 때 내쉬고, 내릴 때 들이마십니다.",
+      checklist: ["팔꿈치를 앞뒤로 크게 흔들지는 않나요?","덤벨을 천천히 내리고 있나요?"],
+      alternativeExerciseIds: ["EX026"],
+      difficulty: 2,
+      cautionTags: ["손목"],
+      videoUrl: "",
+      defaultGifUrl: "",
+      enabled: false
+    },
+    {
+      exerciseId: "EX032",
+      imageUrl: "",
+      name: "스탠딩 트라이셉스 덤벨 익스텐션",
+      bodyParts: ["삼두","팔"],
+      exerciseType: "상체_팔꿈치신전",
+      equipmentType: "덤벨",
+      purposeTags: ["팔근력","삼두","상체근력"],
+      benefits: "삼두근을 강화해 팔꿈치를 펴는 힘과 상체 밀기 동작의 보조 근력 향상에 도움을 줍니다.",
+      instructions: "양손으로 덤벨 하나를 안정적으로 잡고 머리 위로 올립니다. 복부에 힘을 주고 위팔 위치를 유지하며 팔꿈치를 굽혀 덤벨을 머리 뒤로 내린 다음 천천히 팔을 폅니다.",
+      keyPoints: "머리를 덤벨에 부딪치지 않도록 간격을 확보하고 허리를 과하게 젖히지 않습니다. 어깨가 편안한 범위에서만 움직입니다.",
+      breathing: "팔을 펴 덤벨을 올릴 때 내쉬고, 머리 뒤로 내릴 때 들이마십니다.",
+      checklist: ["허리가 과하게 꺾이지는 않나요?","팔의 반동이 많지는 않나요?"],
+      alternativeExerciseIds: ["EX009","EX027"],
+      difficulty: 3,
+      cautionTags: ["어깨"],
+      videoUrl: "",
+      defaultGifUrl: "",
+      enabled: false
+    },
+    {
+      exerciseId: "EX033",
+      imageUrl: "",
+      name: "시티드 덤벨 숄더 프레스",
+      bodyParts: ["어깨","삼두"],
+      exerciseType: "상체_수직밀기",
+      equipmentType: "덤벨",
+      purposeTags: ["어깨근력","상체근력","삼두"],
+      benefits: "어깨와 삼두의 근력을 강화하고 팔을 머리 위로 밀어 올리는 힘을 기르는 데 도움을 줍니다.",
+      instructions: "등받이가 있는 벤치에 앉아 양발을 바닥에 고정하고 덤벨을 어깨 높이로 듭니다. 팔꿈치를 몸통보다 약간 앞에 두고 덤벨을 위로 밀어 올린 뒤 편안한 범위까지 천천히 내립니다.",
+      keyPoints: "손목과 팔꿈치가 직각이 되도록 하고 허리를 과하게 젖히지 않습니다. 덤벨을 서로 부딪치지 않게 조절하며 어깨에 통증이 생기면 중단합니다.",
+      breathing: "덤벨을 밀어 올릴 때 내쉬고, 내릴 때 들이마십니다.",
+      checklist: ["손목이 뒤로 과하게 꺾이지 않나요?","고개를 내밀지는 않고 있나요?"],
+      alternativeExerciseIds: ["EX017"],
+      difficulty: 3,
+      cautionTags: ["목"],
+      videoUrl: "",
+      defaultGifUrl: "",
+      enabled: false
+    },
+    {
+      exerciseId: "EX034",
+      imageUrl: "https://drive.google.com/file/d/107N0zZVnUSAXgoYvStvCyxeUjsSuPnMJ/view?usp=drive_link",
+      name: "백 익스텐션",
+      bodyParts: ["허벅지 뒤","엉덩이"],
+      exerciseType: "하체_힙힌지",
+      equipmentType: "머신",
+      purposeTags: ["둔근","햄스트링","코어안정"],
+      benefits: "엉덩이와 허벅지 뒤쪽 근력을 기르고 몸통을 안정적으로 유지하며 고관절을 펴는 동작을 익히는 데 도움을 줍니다.",
+      instructions: "백 익스텐션 벤치에서 패드를 골반이 접히는 부분 아래에 맞추고 발을 고정합니다. 허리의 자연스러운 곡선을 유지하며 고관절을 접어 상체를 숙인 뒤, 엉덩이에 힘을 주어 몸통과 다리가 일직선이 될 때까지만 올라옵니다.",
+      keyPoints: "허리를 뒤로 꺾어 높이 올라가지 않습니다. 반동 없이 움직여야 합니다.",
+      breathing: "상체를 숙일 때 들이마시고, 일으킬 때 내쉽니다. 복부에 힘을 유지하되 숨을 오래 참지 않습니다.",
+      checklist: ["패드가 배를 눌러 고관절 움직임을 막지는 않나요?","올라온 뒤 허리를 뒤로 과하게 젖히지 않나요?"],
+      alternativeExerciseIds: ["EX020","EX024"],
+      difficulty: 3,
+      cautionTags: ["허리"],
+      videoUrl: "https://www.youtube.com/shorts/07D9XpWKfyc?feature=share",
+      defaultGifUrl: "",
+      enabled: true
+    },
+    {
+      exerciseId: "EX035",
+      imageUrl: "https://drive.google.com/file/d/1VPJYmNnL40ymtMv-P4VjXIKDaYEu-VEa/view?usp=drive_link",
+      name: "바벨 벤치 프레스",
+      bodyParts: ["가슴","삼두","어깨"],
+      exerciseType: "상체_수평밀기",
+      equipmentType: "바벨",
+      purposeTags: ["가슴근력","상체근력","삼두"],
+      benefits: "가슴과 삼두, 어깨 앞쪽 근육을 강화하고 상체의 밀어내는 힘을 기르는 데 도움을 줍니다.",
+      instructions: "평평한 벤치에 누워 양발을 바닥에 고정하고 어깨뼈를 안정적으로 받칩니다. 바를 엄지까지 감싸 잡고 손목 아래에 팔꿈치가 오도록 유지하면서 가슴 쪽으로 천천히 내린 뒤 밀어 올립니다.",
+      keyPoints: "안전바 높이를 먼저 맞추고 수행합니다. 어깨가 편안한 범위로 내립니다.",
+      breathing: "바를 내릴 때 들이마시고, 밀어 올릴 때 내쉽니다. 동작 중 숨을 오래 참지 않습니다.",
+      checklist: ["바가 내려오는 위치가 목에 너무 가깝지는 않나요?","손목이 뒤로 꺾이지는 않나요?"],
+      alternativeExerciseIds: ["EX003","EX007"],
+      difficulty: 5,
+      cautionTags: ["어깨"],
+      videoUrl: "",
+      defaultGifUrl: "",
+      enabled: false
+    },
+    {
+      exerciseId: "EX036",
+      imageUrl: "https://drive.google.com/file/d/1LtbnpMBvJUFlG8G4IelpvfOdyRXkEyID/view?usp=drive_link",
+      name: "싯 업",
+      bodyParts: ["복부"],
+      exerciseType: "코어_몸통굴곡",
+      equipmentType: "머신",
+      purposeTags: ["복부근력","코어","몸통조절"],
+      benefits: "복부 근력을 강화하고 상체를 일으키고 내리는 움직임을 조절하는 데 도움을 줍니다.",
+      instructions: "싯 업 벤치에 누워 무릎을 굽히고 발을 지지대에 안정적으로 고정합니다. 팔을 가슴 앞에 교차하고 복부에 힘을 주어 상체를 천천히 일으킨 뒤 반동 없이 내려옵니다.",
+      keyPoints: "손으로 머리나 목을 당기지 않습니다. 허리가 불편하면 중단하고, 벤치 경사와 움직임 범위를 조절합니다.",
+      breathing: "상체를 일으킬 때 내쉬고, 내려갈 때 들이마십니다.",
+      checklist: ["목을 과하게 당기지는 않나요?","반동으로 몸을 일으키지 않나요?","내려갈 때 몸을 떨어뜨리지 않고 속도를 조절하나요?"],
+      alternativeExerciseIds: ["EX023"],
+      difficulty: 3,
+      cautionTags: ["허리"],
+      videoUrl: "",
+      defaultGifUrl: "",
+      enabled: false
+    },
+    {
+      exerciseId: "EX037",
+      imageUrl: "https://drive.google.com/file/d/1P8uIEiORz9GSHJJanrUsmMGt4nAPoocA/view?usp=drive_link",
+      name: "스미스머신 숄더 프레스",
+      bodyParts: ["어깨","삼두"],
+      exerciseType: "상체_수직밀기",
+      equipmentType: "플레이트로드머신",
+      purposeTags: ["어깨근력","상체근력","삼두"],
+      benefits: "어깨와 삼두의 근력을 강화하고 고정된 바 경로에서 위로 밀어 올리는 힘을 기르는 데 도움을 줍니다.",
+      instructions: "스미스머신 안에 등받이 벤치를 놓고 바가 얼굴 앞을 지나도록 위치를 맞춥니다. 양발을 바닥에 고정하고 바를 엄지까지 감싸 잡은 뒤 안전걸이를 해제하여, 편안한 범위로 천천히 내리고 위로 밀어 올립니다.",
+      keyPoints: "목을 과하게 움직이거나 허리를 과하게 젖히지 않습니다.",
+      breathing: "바를 밀어 올릴 때 내쉬고, 내릴 때 들이마십니다.",
+      checklist: ["손목과 팔꿈치를 직각으로 잘 맞추셨나요?","허리가 과하게 꺾이지는 않나요?"],
+      alternativeExerciseIds: ["EX017"],
+      difficulty: 4,
+      cautionTags: ["목"],
+      videoUrl: "",
+      defaultGifUrl: "",
+      enabled: false
+    },
+    {
+      exerciseId: "EX038",
+      imageUrl: "https://drive.google.com/file/d/1V1ZkrSmqMksI_RrurSPmb-JoTj8HINfN/view?usp=drive_link",
+      name: "덤벨 래터럴 레이즈",
+      bodyParts: ["어깨"],
+      exerciseType: "상체_어깨외전",
+      equipmentType: "덤벨",
+      purposeTags: ["어깨근력","측면어깨","상체근력"],
+      benefits: "어깨 옆쪽 근육을 강화하고 팔을 옆으로 들어 올리는 힘을 기르는 데 도움을 줍니다.",
+      instructions: "양손에 덤벨을 들고 몸통을 안정적으로 세웁니다. 팔꿈치를 살짝 굽힌 채 팔을 몸통보다 약간 앞쪽의 옆 방향으로 어깨 높이 정도까지 올리고 천천히 내립니다.",
+      keyPoints: "가벼운 중량으로 시작해 몸을 흔들지 않습니다. 어깨를 과하게 으쓱하거나 엄지를 억지로 아래로 돌리지 않고 통증 없는 범위에서 움직입니다.",
+      breathing: "팔을 들어 올릴 때 내쉬고, 내릴 때 들이마십니다.",
+      checklist: ["몸을 흔드는 반동으로 덤벨을 올리지 않나요?","어깨를 귀 쪽으로 과하게 끌어올리지 않나요?","팔꿈치 각도를 유지하며 천천히 내리나요?"],
+      alternativeExerciseIds: ["EX033"],
+      difficulty: 3,
+      cautionTags: ["목"],
+      videoUrl: "",
+      defaultGifUrl: "./images/exercises/ex038-dumbbell-lateral-raise.gif?v=96",
+      enabled: true
+    },
+    {
+      exerciseId: "EX039",
+      imageUrl: "https://drive.google.com/file/d/1P8uIEiORz9GSHJJanrUsmMGt4nAPoocA/view?usp=drive_link",
+      name: "스미스머신 스쿼트",
+      bodyParts: ["허벅지 앞","엉덩이"],
+      exerciseType: "하체_무릎지배",
+      equipmentType: "플레이트로드머신",
+      purposeTags: ["하체근력","둔근","기초체력"],
+      benefits: "허벅지와 엉덩이 근력을 강화하고 고정된 바 경로에서 앉고 일어서는 힘을 기르는 데 도움을 줍니다.",
+      instructions: "바를 목뼈가 아닌 등 위쪽 근육에 올리고 양손으로 잡습니다. 발 위치를 바 경로에 맞춰 조절한 뒤 복부에 힘을 주고 무릎과 고관절을 함께 굽혀 내려갔다가 발바닥 전체로 바닥을 밀며 일어섭니다.",
+      keyPoints: "무릎은 발끝 방향으로 움직이며 허리가 과하게 말리지 않는 깊이까지만 내려갑니다.",
+      breathing: "내려갈 때 들이마시고, 일어설 때 내쉽니다. 복부에 힘을 유지하되 숨을 오래 참지 않습니다.",
+      checklist: ["바가 목뼈를 직접 누르고 있지는 않나요?","발뒤꿈치가 들리거나 무릎이 안쪽으로 무너지지 않나요?"],
+      alternativeExerciseIds: ["EX001","EX016","EX013"],
+      difficulty: 3,
+      cautionTags: ["무릎","허리","고관절"],
+      videoUrl: "",
+      defaultGifUrl: "",
+      enabled: false
     }
   ];
 
