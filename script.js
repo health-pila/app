@@ -973,7 +973,7 @@ async function loadMemberInquirySetting() {
 
     memberInquiryAvailabilityMessage.textContent =
       isMemberInquiryEnabled
-        ? "작성한 문의와 센터의 답변은 본인만 확인할 수 있습니다."
+        ? "문의와 답변은 본인만 확인할 수 있습니다."
         : "현재 1:1 문의 접수가 중단되어 있습니다.";
   } catch (settingError) {
     console.error(
@@ -1882,7 +1882,12 @@ loadMoreMemberInquiriesButton.addEventListener(
   }
 );
 
-// 센터 커뮤니티 중분류 메뉴
+// 센터 커뮤니티 중분류 메뉴: 문의하기를 첫 번째로 배치
+const inquiryMenuButton = document.getElementById(
+  "communityInquiryMenuButton"
+);
+inquiryMenuButton.parentElement.prepend(inquiryMenuButton);
+
 const communityMenuButtons = Array.from(
   document.querySelectorAll("[data-community-menu]")
 );
@@ -2000,10 +2005,12 @@ function showMemberTab(tabName) {
     return;
   }
 
-  // 센터 커뮤니티 진입 시 센터 소식을 기본으로 표시
-  if (tabName === "community") {
-    showCommunityMenu("news");
-  }
+// 센터 커뮤니티 진입 시 문의하기를 기본으로 표시
+if (tabName === "community") {
+  showCommunityMenu(
+    isMemberInquiryEnabled ? "inquiry" : "news"
+  );
+}
 
   Object.entries(memberTabPanels).forEach(
     ([panelName, panel]) => {
