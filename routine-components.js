@@ -300,7 +300,7 @@
       if (raw === null) return emptySets();
       const saved = JSON.parse(raw);
       if (saved?.version !== 1 || !Array.isArray(saved.sets) || saved.sets.length !== 5 ||
-          saved.sets.some(set => !set || fields.some(field => typeof set[field.key] !== "string"))) {
+        saved.sets.some(set => !set || fields.some(field => typeof set[field.key] !== "string"))) {
         throw new Error("중량 기록 형식을 확인할 수 없습니다.");
       }
       return saved.sets;
@@ -405,7 +405,6 @@
     }
 
     reset.addEventListener("click", () => {
-      if (!window.confirm(exerciseName + "의 1~5세트 기록을 모두 지울까요?\n기존 텍스트 메모는 유지됩니다.")) return;
       try {
         localStorage.removeItem(storageKey);
         pendingChanges.clear();
@@ -707,7 +706,7 @@
     const summaryToggle = element("summary");
     const chevron = element("span", "routine-summary-chevron");
     chevron.setAttribute("aria-hidden", "true");
-    summaryToggle.append(element("span", "", "이번 운동 구성 안내"), chevron);
+    summaryToggle.append(element("span", "", "이번 운동 루틴 안내"), chevron);
     summary.append(summaryToggle, element("p", "", routine.routineSummary.replace(/([.!?。！？])[ \t]+/g, "$1\n")));
     root.append(summary);
     return root;
@@ -763,7 +762,7 @@
     });
     const summary = element("section", "routine-component-summary");
     summary.append(
-      element("h4", "", "이번 운동 구성 안내"),
+      element("h4", "", "이번 운동 루틴 안내"),
       element("p", "", routine.routineSummary.replace(/([.!?。！？])[ \t]+/g, "$1\n"))
     );
     root.append(summary);
