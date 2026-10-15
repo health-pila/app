@@ -50,22 +50,14 @@
   padding-top: 28px;
   border-top: 2px solid #c4cedb;
 }
-/* v100: subtle goal-specific card tones; intensity colors stay consistent. */
+/* v101: near-white goal tones with shared border and heading colors. */
 .cardio-program-group[aria-labelledby="cardioGroup-weight"] .cardio-program-card {
-  background: #fff8f1;
-  border-color: #efd5bd;
+  background: #fffcf9;
+  border-color: #e0e6ee;
 }
 .cardio-program-group[aria-labelledby="cardioGroup-fitness"] .cardio-program-card {
-  background: #f1f7fd;
-  border-color: #c8dcee;
-}
-.cardio-program-group[aria-labelledby="cardioGroup-weight"] .cardio-group-heading h3,
-.cardio-program-group[aria-labelledby="cardioGroup-weight"] .cardio-group-heading > svg {
-  color: #a94200;
-}
-.cardio-program-group[aria-labelledby="cardioGroup-fitness"] .cardio-group-heading h3,
-.cardio-program-group[aria-labelledby="cardioGroup-fitness"] .cardio-group-heading > svg {
-  color: #285b89;
+  background: #f9fbfd;
+  border-color: #e0e6ee;
 }
 .cardio-group-heading {
   display: flex;
