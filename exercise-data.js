@@ -835,7 +835,7 @@
       managementNotes: "스미스 스쿼트도 자세 숙련도를 확인해야 함. 기초 단계는 EX001·EX016으로 낮추고 숙련자는 EX013 스쿼트 대체를 검토.",
       checklist: ["바가 목뼈를 직접 누르고 있지는 않나요?","발뒤꿈치가 들리거나 무릎이 안쪽으로 무너지지 않나요?"],
       alternativeExerciseIds: ["EX001","EX016","EX013"],
-      difficulty: 3,
+      difficulty: 4,
       cautionTags: ["무릎","허리","고관절"],
       videoUrl: "",
       defaultGifUrl: "",
