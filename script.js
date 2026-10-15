@@ -10820,6 +10820,8 @@ initializeLogin();
       if (phase === "finished") remaining = duration * 1000;
       deadline = Date.now() + remaining;
       phase = "running";
+      collapse();
+      focusTrigger();
     }
     render();
     scheduleTick();
