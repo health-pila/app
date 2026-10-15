@@ -4340,8 +4340,9 @@ body.camera-open {
   padding: 24px 20px 0;
 }
 
+/* 고정 타이머와 맨 아래 신청 버튼이 겹치지 않도록 여백 확보 */
 #appScreen #routineTabPanel {
-  padding-bottom: 0;
+  padding-bottom: 72px;
 }
 
 .member-routine-hero {

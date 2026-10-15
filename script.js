@@ -10618,8 +10618,6 @@ initializeLogin();
   const widget = document.querySelector("#memberRestTimer");
   const toggle = document.querySelector("#restTimerToggle");
   const toggleLabel = document.querySelector("#restTimerToggleLabel");
-  const quickToggle = document.querySelector("#restTimerQuickToggle");
-  const quickLabel = document.querySelector("#restTimerQuickLabel");
   const panel = document.querySelector("#restTimerPanel");
   const close = document.querySelector("#restTimerClose");
   const display = document.querySelector("#restTimerDisplay");
@@ -10628,8 +10626,7 @@ initializeLogin();
   const reset = document.querySelector("#restTimerReset");
   const presets = Array.from(document.querySelectorAll("[data-rest-seconds]"));
   const nav = document.querySelector(".member-bottom-nav");
-  if (!app || !routinePanel || !widget || !toggle || !panel || !quickToggle) return;
-  let lastTrigger = toggle;
+  if (!app || !routinePanel || !widget || !toggle || !panel) return;
 
   let duration = 60;
   let remaining = duration * 1000;
@@ -10668,8 +10665,6 @@ initializeLogin();
     setText(toggleLabel, phase === "idle" ? "휴식 타이머" :
       phase === "finished" ? "휴식 끝!" :
       phase === "paused" ? time + " · 일시정지" : time + " · 휴식 중");
-    setText(quickLabel, toggleLabel.textContent);
-    quickToggle.hidden = phase === "idle" || !panel.hidden;
     toggle.dataset.phase = phase;
     setText(start, phase === "running" ? "일시정지" :
       phase === "paused" ? "계속" : phase === "finished" ? "다시 시작" : "시작");
@@ -10696,13 +10691,11 @@ initializeLogin();
   function collapse() {
     panel.hidden = true;
     toggle.setAttribute("aria-expanded", "false");
-    quickToggle.setAttribute("aria-expanded", "false");
     render();
   }
 
   function focusTrigger() {
-    const target = lastTrigger.hidden ? toggle : lastTrigger;
-    target.focus({ preventScroll: true });
+    toggle.focus({ preventScroll: true });
   }
 
   function resetTimer() {
@@ -10734,19 +10727,16 @@ initializeLogin();
     scheduleTick();
   }
 
-  function togglePanel(event) {
+  function togglePanel() {
     if (widget.hidden) return;
-    lastTrigger = event.currentTarget;
     updateRemaining();
     panel.hidden = !panel.hidden;
     toggle.setAttribute("aria-expanded", String(!panel.hidden));
-    quickToggle.setAttribute("aria-expanded", String(!panel.hidden));
     render();
     if (!panel.hidden) close.focus({ preventScroll: true });
     scheduleTick();
   }
   toggle.addEventListener("click", togglePanel);
-  quickToggle.addEventListener("click", togglePanel);
 
   close.addEventListener("click", function () {
     collapse();
@@ -10798,7 +10788,7 @@ initializeLogin();
   });
 
   document.addEventListener("click", function (event) {
-    if (!panel.hidden && !widget.contains(event.target) && !toggle.contains(event.target)) collapse();
+    if (!panel.hidden && !widget.contains(event.target)) collapse();
   });
 
   const observer = new MutationObserver(syncVisibility);
