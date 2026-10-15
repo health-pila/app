@@ -47,6 +47,25 @@
 }
 .cardio-program-group + .cardio-program-group {
   margin-top: 28px;
+  padding-top: 28px;
+  border-top: 2px solid #c4cedb;
+}
+/* v100: subtle goal-specific card tones; intensity colors stay consistent. */
+.cardio-program-group[aria-labelledby="cardioGroup-weight"] .cardio-program-card {
+  background: #fff8f1;
+  border-color: #efd5bd;
+}
+.cardio-program-group[aria-labelledby="cardioGroup-fitness"] .cardio-program-card {
+  background: #f1f7fd;
+  border-color: #c8dcee;
+}
+.cardio-program-group[aria-labelledby="cardioGroup-weight"] .cardio-group-heading h3,
+.cardio-program-group[aria-labelledby="cardioGroup-weight"] .cardio-group-heading > svg {
+  color: #a94200;
+}
+.cardio-program-group[aria-labelledby="cardioGroup-fitness"] .cardio-group-heading h3,
+.cardio-program-group[aria-labelledby="cardioGroup-fitness"] .cardio-group-heading > svg {
+  color: #285b89;
 }
 .cardio-group-heading {
   display: flex;
