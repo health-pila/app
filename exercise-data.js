@@ -1,14 +1,21 @@
 // 운동 구성 컴포넌트 DB — 시트에서 검수한 로컬 데이터
-// 출처: 2026-10-14 Google Sheets 원본 '운동 구성 컴포넌트 DB'의 운동DB_MASTER.
+// 출처: 2026-10-15 Google Sheets 원본 '운동 구성 컴포넌트 DB'의 운동DB_MASTER.
 // Google Sheets와 자동 동기화되지 않습니다. 다음 변경 시 다시 반영해야 합니다.
-// 사용여부 Y인 31종만 새 루틴에 사용합니다. 미승인 8종은 enabled: false로 보관합니다.
+// 사용여부 Y인 36종만 새 루틴에 사용합니다. 미승인 3종은 enabled: false로 보관합니다.
 // 운동ID, 설명, 난이도, 이미지/영상 주소는 시트 기준입니다. 관리메모는 회원 화면에 포함하지 않습니다.
 // 횟수, 세트, 휴식시간, 운동 순서는 회원별 루틴에서 따로 관리합니다.
 // 기구 이미지 주소는 공유 링크를 보관하고 표시할 때 변환합니다. GIF는 원본 파일을 앱에 동봉합니다.
+// EX023 GIF 원본: https://drive.google.com/file/d/1a3IDhCbbxaUcNFU605wCUPLYusAgAwl_/view?usp=drive_link
 // EX024 GIF 원본: https://drive.google.com/file/d/1XeuWxMRUlx1yisKDtmPJTqZTZj1-MIEs/view?usp=drive_link
+// EX025 GIF 원본: https://drive.google.com/file/d/1LwzRlw0d597Z4-LS0MrneBuZjemmUJKd/view?usp=drive_link
 // EX026 GIF 원본: https://drive.google.com/file/d/167T2IT4Uihm8bbFL-eO1LduRNT3fFfl-/view?usp=drive_link
 // EX027 GIF 원본: https://drive.google.com/file/d/12WIFl55c9VOFsjeJI9hieotHa7M_sBGn/view?usp=drive_link
 // EX029 GIF 원본: https://drive.google.com/file/d/1ZxXziDCAlOHgCSbre7QZOMh_k04IIcM_/view?usp=drive_link
+// EX030 GIF 원본: https://drive.google.com/file/d/1KsXjfgTym5Q7gbzYsXtFRHlWxkZBlaPk/view?usp=drive_link
+// EX031 GIF 원본: https://drive.google.com/file/d/1Y6fjf1sM8MkOs-kk153XGFJDzn5WnqST/view?usp=drive_link
+// EX032 GIF 원본: https://drive.google.com/file/d/1Dr2J9aS9UE46L_y7PW2nW3B7cW3Nz4Hg/view?usp=drive_link
+// EX033 GIF 원본: https://drive.google.com/file/d/1lbTM0ohDlVukqtQQF48XzfFnHsv66P12/view?usp=drive_link
+// EX036 GIF 원본: https://drive.google.com/file/d/1FjH9GLrSErOsBcNt5a1_3Z119s9-spd7/view?usp=drive_link
 // EX038 GIF 원본: https://drive.google.com/file/d/1sHEQCdgMeZ32IHdENbk6lewDH_CU8bav/view?usp=drive_link
 
 (function () {
@@ -472,7 +479,7 @@
       difficulty: 1,
       cautionTags: ["허리","목"],
       videoUrl: "",
-      defaultGifUrl: "",
+      defaultGifUrl: "./images/exercises/ex023-crunch.gif?v=97",
       enabled: true
     },
     {
@@ -512,7 +519,7 @@
       difficulty: 1,
       cautionTags: ["손목"],
       videoUrl: "",
-      defaultGifUrl: "",
+      defaultGifUrl: "./images/exercises/ex025-cat-cow.gif?v=97",
       enabled: true
     },
     {
@@ -597,7 +604,7 @@
     },
     {
       exerciseId: "EX030",
-      imageUrl: "",
+      imageUrl: "https://drive.google.com/file/d/1rDuuydkwi7MWPpU4TWow3BE54catwz-O/view?usp=drive_link",
       name: "바벨 컬",
       bodyParts: ["이두","팔"],
       exerciseType: "상체_팔꿈치굴곡",
@@ -612,12 +619,12 @@
       difficulty: 4,
       cautionTags: ["손목","허리"],
       videoUrl: "",
-      defaultGifUrl: "",
-      enabled: false
+      defaultGifUrl: "./images/exercises/ex030-barbell-curl.gif?v=97",
+      enabled: true
     },
     {
       exerciseId: "EX031",
-      imageUrl: "",
+      imageUrl: "https://drive.google.com/file/d/1EZRVM1RiukdLLeamb0V0j9cNl--pIyI1/view?usp=drive_link",
       name: "시티드 덤벨 컬",
       bodyParts: ["이두","팔"],
       exerciseType: "상체_팔꿈치굴곡",
@@ -632,12 +639,12 @@
       difficulty: 2,
       cautionTags: ["손목"],
       videoUrl: "",
-      defaultGifUrl: "",
-      enabled: false
+      defaultGifUrl: "./images/exercises/ex031-seated-dumbbell-curl.gif?v=97",
+      enabled: true
     },
     {
       exerciseId: "EX032",
-      imageUrl: "",
+      imageUrl: "https://drive.google.com/file/d/1Y-aOlBElcOnSCb5QxCvNW8j1b_rWzNzw/view?usp=drive_link",
       name: "스탠딩 트라이셉스 덤벨 익스텐션",
       bodyParts: ["삼두","팔"],
       exerciseType: "상체_팔꿈치신전",
@@ -652,12 +659,12 @@
       difficulty: 3,
       cautionTags: ["어깨"],
       videoUrl: "",
-      defaultGifUrl: "",
-      enabled: false
+      defaultGifUrl: "./images/exercises/ex032-standing-dumbbell-triceps-extension.gif?v=97",
+      enabled: true
     },
     {
       exerciseId: "EX033",
-      imageUrl: "",
+      imageUrl: "https://drive.google.com/file/d/1TorNmOW60spum-gOWSiOl4Dq-kwNtRhA/view?usp=drive_link",
       name: "시티드 덤벨 숄더 프레스",
       bodyParts: ["어깨","삼두"],
       exerciseType: "상체_수직밀기",
@@ -672,8 +679,8 @@
       difficulty: 3,
       cautionTags: ["목"],
       videoUrl: "",
-      defaultGifUrl: "",
-      enabled: false
+      defaultGifUrl: "./images/exercises/ex033-seated-dumbbell-shoulder-press.gif?v=97",
+      enabled: true
     },
     {
       exerciseId: "EX034",
@@ -732,8 +739,8 @@
       difficulty: 3,
       cautionTags: ["허리"],
       videoUrl: "",
-      defaultGifUrl: "",
-      enabled: false
+      defaultGifUrl: "./images/exercises/ex036-sit-up.gif?v=97",
+      enabled: true
     },
     {
       exerciseId: "EX037",

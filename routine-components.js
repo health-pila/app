@@ -604,13 +604,19 @@
       } else if (gifUrl) {
         const gif = element("img", "routine-component-gif");
         gif.alt = exercise.name + " 동작 안내";
+        const gifNotice = element("p", "routine-component-media-message", "유튜브 설명영상은 준비 중입니다");
+        gifNotice.hidden = true;
+        gif.addEventListener("load", function () {
+          if (gif.parentNode === mediaArea) gifNotice.hidden = false;
+        }, { once: true });
         gif.addEventListener("error", function () {
           if (gif.parentNode !== mediaArea) return;
           gif.hidden = true;
+          gifNotice.hidden = true;
           mediaArea.append(element("p", "routine-component-media-message", "동작 안내 이미지를 불러오지 못했어요."));
         }, { once: true });
+        mediaArea.append(gif, gifNotice);
         gif.src = gifUrl;
-        mediaArea.append(gif);
       } else {
         mediaArea.append(element("p", "routine-component-media-message", "아직 준비된 영상이 없습니다."));
       }
