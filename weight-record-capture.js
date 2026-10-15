@@ -60,14 +60,14 @@
     const cellWidth = (tableWidth - labelWidth) / 5;
     context.font = `700 26px ${fontFamily}`;
     const nameLines = wrapText(context, record.exerciseName, tableWidth);
-    const tableTop = 100 + nameLines.length * 36;
+    const tableTop = 68 + nameLines.length * 36;
     const rows = fields.map(field => {
       const size = field.key === "comment" ? 16 : 18;
       context.font = `400 ${size}px ${fontFamily}`;
       const cells = record.sets.map(set => wrapText(context, set[field.key], cellWidth - 16));
       return { ...field, size, cells, height: Math.max(60, 24 + Math.max(...cells.map(lines => lines.length)) * 24) };
     });
-    const height = tableTop + 46 + rows.reduce((sum, row) => sum + row.height, 0) + 54;
+    const height = tableTop + 46 + rows.reduce((sum, row) => sum + row.height, 0) + padding;
     // 2배 해상도로 저장해 사진 크기가 바뀌어도 글자가 선명하게 보이도록 합니다.
     canvas.width = width * 2;
     canvas.height = height * 2;
@@ -83,12 +83,6 @@
     context.fillStyle = "#18243b";
     context.font = `700 26px ${fontFamily}`;
     nameLines.forEach((line, index) => context.fillText(line, padding, 54 + index * 36));
-    context.fillStyle = "#64748b";
-    context.font = `400 16px ${fontFamily}`;
-    const dateLabel = new Intl.DateTimeFormat("ko-KR", {
-      year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit"
-    }).format(record.takenAt);
-    context.fillText(dateLabel, padding, tableTop - 32);
 
     function cell(x, y, cellW, cellH, background) {
       context.fillStyle = background;
@@ -125,10 +119,6 @@
       });
       y += row.height;
     });
-    context.textAlign = "left";
-    context.fillStyle = "#64748b";
-    context.font = `400 14px ${fontFamily}`;
-    context.fillText("캡처 시점에 입력된 기록입니다.", padding, y + 18);
     return new Promise((resolve, reject) => {
       canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("기록 이미지를 만들지 못했어요.")), "image/png");
     });
