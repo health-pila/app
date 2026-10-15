@@ -4604,8 +4604,9 @@ body.camera-open {
 }
 
 .member-routine-request-area {
-  padding: 16px 18px 20px;
-  background: #fff;
+  margin: 0 0 12px;
+  padding: 0 4px;
+  background: transparent;
 }
 
 .member-routine-request-area .routine-request-button {
