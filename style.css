@@ -5139,9 +5139,18 @@ body.naver-shortcut-guide-open { overflow: hidden; }
 }
 
 .routine-weight-capture {
+  font-size: 12px;
   border-color: #efc4a2;
   background: #fff3e8;
   color: #a94200;
+}
+
+.routine-weight-save-hint {
+  margin: 0 0 10px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: keep-all;
 }
 
 .routine-weight-toolbar-actions button:disabled {

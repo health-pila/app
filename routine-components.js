@@ -392,6 +392,9 @@
     table.append(head, body);
     scroll.append(table);
     const hint = element("p", "routine-weight-scroll-hint", "5세트까지 기록 가능합니다.");
+    const captureHint = element("p", "routine-weight-save-hint", "현재 기록표가 ‘운동 기록’ 탭에 사진으로 저장돼요.");
+    captureHint.id = panelId + "-save-hint";
+    captureHint.hidden = true;
     const legacy = element("details", "routine-weight-legacy");
     legacy.hidden = true;
     const legacyText = element("p");
@@ -401,8 +404,10 @@
 
     // 실제 회원 루틴에서만 사진 저장. 미리보기의 임시 기록은 업로드하지 않습니다.
     if (!recordStorage && typeof captureRecord === "function") {
-      const capture = element("button", "routine-weight-capture", "기록 캡처하기");
+      const capture = element("button", "routine-weight-capture", "운동 기록에 저장");
       capture.type = "button";
+      captureHint.hidden = false;
+      capture.setAttribute("aria-describedby", captureHint.id);
       capture.setAttribute("aria-label", exerciseName + " 세트별 기록을 운동 기록에 사진으로 저장");
       toolbarActions.append(capture);
       let capturing = false;
@@ -432,7 +437,7 @@
           capture.disabled = false;
           reset.disabled = false;
           inputs.forEach(({ input }) => { input.readOnly = false; });
-          capture.textContent = "기록 캡처하기";
+          capture.textContent = "운동 기록에 저장";
           panel.setAttribute("aria-busy", "false");
         }
       });
@@ -477,7 +482,7 @@
         // 입력칸에 자동 초점을 주지 않아 모바일 자판이 바로 열리지 않습니다.
       });
     });
-    panel.append(toolbar, scroll, hint, legacy, status);
+    panel.append(toolbar, captureHint, scroll, hint, legacy, status);
     return { button, panel };
   }
 
