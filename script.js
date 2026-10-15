@@ -2024,6 +2024,61 @@ communityMenuButtons.forEach((button, index) => {
   });
 });
 
+// 캡처 후 아직 확인하지 않은 사진 수. 다른 기록·커뮤니티 저장 키와 분리합니다.
+const workoutCaptureBadge = (() => {
+  const badge = document.querySelector("#workoutCaptureSavedBadge");
+  let userId = "";
+  let count = 0;
+  let storageAvailable = true;
+  const key = () => "workoutCaptureUnread:v1:" + userId;
+  function readCount() {
+    if (!storageAvailable) return count;
+    try {
+      const saved = Number(localStorage.getItem(key()) || 0);
+      return Number.isSafeInteger(saved) && saved >= 0 ? Math.min(saved, 9999) : 0;
+    } catch (_) { storageAvailable = false; return count; }
+  }
+  function persist() {
+    try { localStorage.setItem(key(), String(count)); } catch (_) { storageAvailable = false; }
+  }
+  function render() {
+    if (!badge) return;
+    badge.hidden = !userId || count === 0;
+    badge.textContent = count > 99 ? "99+" : String(count);
+    badge.setAttribute("aria-label", "새로 저장된 캡처 사진 " + count + "장");
+    badge.title = "새로 저장된 캡처 사진 " + count + "장";
+  }
+  function isViewingRecords() {
+    return !appScreen.hidden && !memberTabPanels.workoutLog.hidden && document.visibilityState === "visible";
+  }
+  function markSeen() {
+    if (!userId || !isViewingRecords()) return;
+    count = readCount();
+    if (count > 0) { count = 0; persist(); }
+    render();
+  }
+  function saved(id) {
+    if (!userId || id !== userId) return;
+    count = Math.min(readCount() + 1, 9999);
+    persist();
+    if (isViewingRecords()) markSeen();
+    else render();
+  }
+  window.addEventListener("storage", event => {
+    if (userId && (event.key === key() || event.key === null)) {
+      count = readCount();
+      render();
+      markSeen();
+    }
+  });
+  document.addEventListener("visibilitychange", markSeen);
+  return Object.freeze({
+    start(id) { userId = String(id); count = 0; storageAvailable = true; count = readCount(); render(); },
+    reset() { userId = ""; count = 0; render(); },
+    saved, markSeen
+  });
+})();
+
 // 선택한 회원 탭 표시
 function showMemberTab(tabName) {
   // 센터 커뮤니티를 벗어나면 재생 중인 영상 정지
@@ -2069,6 +2124,7 @@ if (tabName === "community") {
     behavior: "smooth"
   });
   updateMemberCommunityBadges("checkSoon");
+  if (tabName === "workoutLog") workoutCaptureBadge.markSeen();
 }
 
 // 하단 탭 버튼 클릭 기능
@@ -4269,6 +4325,7 @@ const saveWeightRecordCapture = window.WeightRecordCapture?.createSaver({
   client: supabaseClient,
   isCurrent: userId => !appScreen.hidden && workoutRecordsUserId === userId,
   onSaved: async record => {
+    workoutCaptureBadge.saved(record.userId);
     visibleWorkoutMonth = new Date(record.takenAt.getFullYear(), record.takenAt.getMonth(), 1);
     selectedWorkoutDate = getWorkoutRecordDateKey(record.takenAt);
     shouldSelectLatestWorkoutDate = false;
@@ -8659,6 +8716,7 @@ async function showWorkoutApp(userId) {
   adminScreen.hidden = true;
   appScreen.hidden = false;
 
+  workoutCaptureBadge.start(userId);
   const memberTabBeforeRefresh =
     sessionStorage.getItem("memberTabBeforeRefresh");
 
@@ -9248,6 +9306,7 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId) {
+  workoutCaptureBadge.reset();
   window.MemberCardioPrograms?.reset();
   updateMemberCommunityBadges("reset");
   resetRoutineChangeRequest();
@@ -10305,6 +10364,7 @@ async function handleLogout() {
     }
 
     window.OneDayPT.reset();
+    workoutCaptureBadge.reset();
     window.MemberCardioPrograms?.reset();
     updateAdminRoutineAlerts("reset");
     updateMemberCommunityBadges("reset");
