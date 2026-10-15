@@ -50,15 +50,6 @@
   padding-top: 28px;
   border-top: 2px solid #c4cedb;
 }
-/* v101: near-white goal tones with shared border and heading colors. */
-.cardio-program-group[aria-labelledby="cardioGroup-weight"] .cardio-program-card {
-  background: #fffcf9;
-  border-color: #e0e6ee;
-}
-.cardio-program-group[aria-labelledby="cardioGroup-fitness"] .cardio-program-card {
-  background: #f9fbfd;
-  border-color: #e0e6ee;
-}
 .cardio-group-heading {
   display: flex;
   align-items: center;
