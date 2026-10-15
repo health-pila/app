@@ -5102,6 +5102,7 @@ body.naver-shortcut-guide-open { overflow: hidden; }
 
 .routine-weight-toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -5110,7 +5111,18 @@ body.naver-shortcut-guide-open { overflow: hidden; }
   color: #18243b;
 }
 
-.routine-weight-reset {
+.routine-weight-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.routine-weight-reset,
+.routine-weight-capture {
+  width: auto;
+  margin: 0;
   flex-shrink: 0;
   min-height: 36px;
   padding: 6px 12px;
@@ -5122,6 +5134,17 @@ body.naver-shortcut-guide-open { overflow: hidden; }
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.routine-weight-capture {
+  border-color: #efc4a2;
+  background: #fff3e8;
+  color: #a94200;
+}
+
+.routine-weight-toolbar-actions button:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .routine-weight-table-scroll {
@@ -5195,6 +5218,7 @@ textarea.routine-weight-cell {
 
 .routine-weight-cell:focus,
 .routine-weight-reset:focus-visible,
+.routine-weight-capture:focus-visible,
 .routine-weight-table-scroll:focus-visible {
   outline: 2px solid var(--brand-orange);
   outline-offset: 1px;

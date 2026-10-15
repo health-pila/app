@@ -4264,6 +4264,18 @@ async function saveWorkoutRecord() {
   }
 }
 
+// 중량표 캡처도 기존 사진과 동일한 저장소·기록 목록을 사용합니다.
+const saveWeightRecordCapture = window.WeightRecordCapture?.createSaver({
+  client: supabaseClient,
+  isCurrent: userId => !appScreen.hidden && workoutRecordsUserId === userId,
+  onSaved: async record => {
+    visibleWorkoutMonth = new Date(record.takenAt.getFullYear(), record.takenAt.getMonth(), 1);
+    selectedWorkoutDate = getWorkoutRecordDateKey(record.takenAt);
+    shouldSelectLatestWorkoutDate = false;
+    await loadWorkoutRecords(record.userId);
+  }
+}) || (() => Promise.reject(new Error("캡처 기능을 불러오지 못했어요. 앱을 새로고침한 뒤 다시 시도해주세요.")));
+
 // 카메라 버튼 기능 연결
 openWorkoutCameraButton.addEventListener(
   "click",
@@ -8007,7 +8019,8 @@ function prepareMemberRoutineComponents(data, userId) {
       ? null : window.RoutineComponents.renderRoutine(routine, {
         layout: "tabs",
         oneDayPT: true,
-        userId: userId
+        userId: userId,
+        captureWeightRecord: saveWeightRecordCapture
       })
   };
 }

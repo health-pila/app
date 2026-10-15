@@ -293,7 +293,7 @@
   }
 
   // 회원별·운동별 5세트 기록. 이전 텍스트 메모는 별도 키에 그대로 보존합니다.
-  function createWeightRecordControls(exerciseId, exerciseName, userId, panelId, recordStorage) {
+  function createWeightRecordControls(exerciseId, exerciseName, userId, panelId, recordStorage, captureRecord) {
     const identity = JSON.stringify([userId, exerciseId]);
     const storageKey = "exerciseWeightSets:" + identity;
     const legacyKey = "exerciseWeightNote:" + identity;
@@ -330,7 +330,9 @@
     const reset = element("button", "routine-weight-reset", "초기화");
     reset.type = "button";
     reset.setAttribute("aria-label", exerciseName + " 세트 기록 초기화");
-    toolbar.append(title, reset);
+    const toolbarActions = element("div", "routine-weight-toolbar-actions");
+    toolbarActions.append(reset);
+    toolbar.append(title, toolbarActions);
 
     const scroll = element("div", "routine-weight-table-scroll");
     scroll.tabIndex = 0;
@@ -396,6 +398,45 @@
     legacy.append(element("summary", "", "기존 메모 보기"), legacyText);
     const status = element("p", "routine-weight-status");
     status.setAttribute("role", "status");
+
+    // 실제 회원 루틴에서만 사진 저장. 미리보기의 임시 기록은 업로드하지 않습니다.
+    if (!recordStorage && typeof captureRecord === "function") {
+      const capture = element("button", "routine-weight-capture", "기록 캡처하기");
+      capture.type = "button";
+      capture.setAttribute("aria-label", exerciseName + " 세트별 기록을 운동 기록에 사진으로 저장");
+      toolbarActions.append(capture);
+      let capturing = false;
+      capture.addEventListener("click", async () => {
+        if (capturing) return;
+        const sets = emptySets();
+        // 저장소 대신 현재 입력칸을 읽어 아직 저장하지 못한 입력도 함께 담습니다.
+        inputs.forEach(({ input, index, key }) => { sets[index][key] = input.value; });
+        if (!sets.some(set => fields.some(field => set[field.key].trim()))) {
+          status.textContent = "중량, 횟수 또는 코멘트를 먼저 입력해주세요.";
+          return;
+        }
+        const snapshot = { userId, exerciseId, exerciseName, sets, takenAt: new Date() };
+        capturing = true;
+        capture.disabled = true;
+        reset.disabled = true;
+        inputs.forEach(({ input }) => { input.readOnly = true; });
+        capture.textContent = "저장 중…";
+        panel.setAttribute("aria-busy", "true");
+        status.textContent = "기록표를 사진으로 저장하고 있어요.";
+        try {
+          status.textContent = await captureRecord(snapshot);
+        } catch (error) {
+          status.textContent = error.message || "사진을 저장하지 못했어요. 잠시 후 다시 시도해주세요.";
+        } finally {
+          capturing = false;
+          capture.disabled = false;
+          reset.disabled = false;
+          inputs.forEach(({ input }) => { input.readOnly = false; });
+          capture.textContent = "기록 캡처하기";
+          panel.setAttribute("aria-busy", "false");
+        }
+      });
+    }
 
     function restore() {
       if (pendingChanges.size) return; // 저장에 실패한 입력은 접었다 펼쳐도 유지합니다.
@@ -642,7 +683,8 @@
     card.append(main, actions, details, mediaArea);
     if (options?.userId) {
       const weight = createWeightRecordControls(
-        entry.exerciseId, exercise.name, options.userId, details.id + "-weight", options.weightStorage
+        entry.exerciseId, exercise.name, options.userId, details.id + "-weight", options.weightStorage,
+        options.captureWeightRecord
       );
       actions.append(weight.button);
       card.append(weight.panel);
