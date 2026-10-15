@@ -4502,7 +4502,7 @@ body.camera-open {
 }
 
 :is(#appScreen, #adminRoutineJsonPreview, #guestDemoDialog) .routine-component-number {
-  font-size: 12px;
+  font-size: 16px;
 }
 
 :is(#appScreen, #adminRoutineJsonPreview, #guestDemoDialog) .routine-component-name {
