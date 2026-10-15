@@ -89,7 +89,6 @@
   function renderCart() {
     $("oneDayPtCartCount").textContent = cart.length + " / 5";
     document.querySelectorAll("#appScreen .one-day-pt-add-button").forEach(updateAddButton);
-    $("oneDayPtEmpty").hidden = cart.length > 0;
     $("oneDayPtCartList").replaceChildren();
     cart.forEach(id => {
       const exercise = window.ExerciseDB.getExerciseById(id);
