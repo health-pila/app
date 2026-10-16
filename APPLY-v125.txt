@@ -1,0 +1,29 @@
+센터앱 v125 — 종목변경 안내 문구 수정
+기준 v124
+
+[적용]
+ZIP의 앱 파일 4개를 기존 앱 프로젝트 폴더에 덮어씁니다.
+index.html
+reset-password.html
+service-worker.js
+member-exercise-replacements.js
+
+버전과 캐시 번호를 v125로 맞췄습니다. Supabase SQL 추가 실행은 없습니다.
+
+[변경]
+- 다른 운동 유형 선택 시: 원하는 세트·횟수·휴식시간을 직접 입력해 주세요.
+- 복원 안내: 원래 추천한 …로 복원합니다.
+  실제 횟수·세트·휴식시간은 원본 루틴의 값에 맞게 표시됩니다.
+
+[검증]
+안내 문구 두 곳과 버전 번호만 바뀌었는지 비교했고 JS 문법을 확인했습니다.
+나머지 기능 코드와 DB 설정은 동일합니다.
+
+[배포]
+커밋 메시지 예: v125: 종목변경 안내 문구 수정
+커밋·푸시 후 앱을 새로고침하고 다른 유형의 운동 선택 화면 및 복원 안내를 확인합니다.
+
+[되돌리기]
+이전 v124의 member-exercise-replacements.js를 복원하고,
+index.html/reset-password.html의 ?v= 및 service-worker.js의 APP_VERSION을
+v126 같은 새 번호로 함께 맞춰 재배포합니다. SQL 수정이나 데이터 삭제는 필요 없습니다.

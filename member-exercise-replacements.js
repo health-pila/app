@@ -195,9 +195,9 @@
       form.elements.sets.value = view.entry.sets; form.elements.reps.value = view.entry.reps; form.elements.rest.value = view.entry.restSec;
     }
     $("[data-replace-dose-help]").textContent = view.restore
-      ? `원래 처방인 ${view.source.reps}회 × ${view.source.sets}세트 · 휴식 ${view.source.restSec}초로 복원합니다. 운동 기록과 중량 기록은 유지됩니다.`
+      ? `원래 추천한 ${view.source.reps}회 × ${view.source.sets}세트 · 휴식 ${view.source.restSec}초로 복원합니다. 운동 기록과 중량 기록은 유지됩니다.`
       : sameType ? ""
-        : "운동 유형이 달라 기존 값을 복사하지 않았어요. 세트·횟수·휴식시간을 입력해 주세요. 잘 모르겠다면 직원에게 확인해 주세요.";
+        : "원하는 세트·횟수·휴식시간을 직접 입력해 주세요.";
     $("[data-replace-save]").textContent = view.restore ? "확인하고 원래 운동으로 복원" : "확인하고 저장";
     $("[data-replace-back]").focus({ preventScroll: true });
   }
