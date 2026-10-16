@@ -10694,6 +10694,11 @@ initializeLogin();
   let deadline = null;
   let phase = "idle";
   let ticker = null;
+  // 위치는 메모리에만 유지합니다. 새로고침·앱 복귀 시 기본 위치로 돌아갑니다.
+  let floatingPosition = null;
+  let drag = null;
+  let suppressClick = false;
+  let suppressClickTimer = null;
 
   function setText(node, text) {
     if (node.textContent !== text) node.textContent = text;
@@ -10736,6 +10741,7 @@ initializeLogin();
     presets.forEach(function (button) {
       button.setAttribute("aria-pressed", String(Number(button.dataset.restSeconds) === duration));
     });
+    positionWidget();
   }
 
   function scheduleTick() {
@@ -10767,15 +10773,118 @@ initializeLogin();
     render();
   }
 
-  function positionWidget() {
-    if (!nav || app.hidden) return;
-    const height = nav.getBoundingClientRect().height;
-    if (height > 0) widget.style.setProperty("--rest-timer-bottom", Math.ceil(height + 3) + "px");
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(value, Math.max(min, max)));
   }
+
+  function movementBounds() {
+    const viewport = window.visualViewport;
+    const left = viewport?.offsetLeft || 0;
+    const top = viewport?.offsetTop || 0;
+    const right = left + (viewport?.width || window.innerWidth);
+    const bottom = top + (viewport?.height || window.innerHeight);
+    const appRect = app.getBoundingClientRect();
+    const navRect = nav?.getBoundingClientRect();
+    return {
+      left: Math.max(left, appRect.left) + 8,
+      right: Math.min(right, appRect.right) - 8,
+      top: top + 8,
+      bottom: Math.min(bottom - 8, navRect?.height > 0 ? navRect.top - 3 : bottom - 8)
+    };
+  }
+
+  function positionWidget() {
+    if (widget.hidden || app.hidden) return;
+    const bounds = movementBounds();
+    const button = toggle.getBoundingClientRect();
+    const desired = floatingPosition || {
+      x: bounds.right - button.width - 8,
+      y: bounds.bottom - button.height
+    };
+    const x = clamp(desired.x, bounds.left, bounds.right - button.width);
+    const y = clamp(desired.y, bounds.top, bounds.bottom - button.height);
+    if (floatingPosition) floatingPosition = { x, y };
+    widget.style.left = x + "px";
+    widget.style.top = y + "px";
+    widget.style.right = "auto";
+    widget.style.bottom = "auto";
+
+    if (!panel.hidden) {
+      const width = Math.min(320, bounds.right - bounds.left);
+      panel.style.width = Math.max(1, width) + "px";
+      const above = Math.max(1, y - bounds.top - 10);
+      const below = Math.max(1, bounds.bottom - y - button.height - 10);
+      const naturalHeight = panel.scrollHeight + 2;
+      const openAbove = above >= naturalHeight || above >= below;
+      panel.style.maxHeight = (openAbove ? above : below) + "px";
+      const height = panel.getBoundingClientRect().height;
+      panel.style.left = (clamp(x + button.width - width, bounds.left, bounds.right - width) - x) + "px";
+      panel.style.right = "auto";
+      panel.style.bottom = "auto";
+      panel.style.top = (openAbove ? -height - 10 : button.height + 10) + "px";
+    }
+  }
+
+  function endDrag() {
+    if (!drag) return;
+    const current = drag;
+    drag = null;
+    delete widget.dataset.dragging;
+    if (toggle.hasPointerCapture?.(current.id)) toggle.releasePointerCapture(current.id);
+    if (current.moved) {
+      // pointerup 직후 브라우저가 만드는 click만 막고 다음 탭/키보드 입력은 허용합니다.
+      suppressClick = true;
+      window.clearTimeout(suppressClickTimer);
+      suppressClickTimer = window.setTimeout(function () { suppressClick = false; }, 500);
+    }
+  }
+
+  function resetPosition() {
+    endDrag();
+    floatingPosition = null;
+    suppressClick = false;
+    window.clearTimeout(suppressClickTimer);
+    positionWidget();
+  }
+
+  toggle.addEventListener("pointerdown", function (event) {
+    if (widget.hidden || !event.isPrimary || event.button !== 0 || drag) return;
+    suppressClick = false;
+    window.clearTimeout(suppressClickTimer);
+    const rect = toggle.getBoundingClientRect();
+    drag = { id: event.pointerId, clientX: event.clientX, clientY: event.clientY,
+      x: rect.left, y: rect.top, moved: false };
+    toggle.setPointerCapture(event.pointerId);
+  });
+
+  function moveDrag(event) {
+    if (!drag || event.pointerId !== drag.id) return;
+    const dx = event.clientX - drag.clientX;
+    const dy = event.clientY - drag.clientY;
+    if (!drag.moved && Math.hypot(dx, dy) < 8) return;
+    drag.moved = true;
+    widget.dataset.dragging = "true";
+    floatingPosition = { x: drag.x + dx, y: drag.y + dy };
+    positionWidget();
+    if (event.cancelable) event.preventDefault();
+  }
+  toggle.addEventListener("pointermove", moveDrag, { passive: false });
+  toggle.addEventListener("pointerup", function (event) {
+    if (!drag || event.pointerId !== drag.id) return;
+    moveDrag(event);
+    endDrag();
+  });
+  ["pointercancel", "lostpointercapture"].forEach(function (name) {
+    toggle.addEventListener(name, function (event) {
+      if (drag?.id === event.pointerId) endDrag();
+    });
+  });
 
   function syncVisibility() {
     widget.hidden = app.hidden || routinePanel.hidden || Boolean(assignedPanel?.hidden);
+    if (widget.hidden) endDrag();
     if (app.hidden) {
+      resetPosition();
       duration = 60;
       resetTimer();
       collapse();
@@ -10797,7 +10906,15 @@ initializeLogin();
     if (!panel.hidden) close.focus({ preventScroll: true });
     scheduleTick();
   }
-  toggle.addEventListener("click", togglePanel);
+  toggle.addEventListener("click", function (event) {
+    if (suppressClick && event.detail !== 0) {
+      suppressClick = false;
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    togglePanel();
+  });
 
   close.addEventListener("click", function () {
     collapse();
@@ -10875,8 +10992,15 @@ initializeLogin();
   if (assignedPanel) observer.observe(assignedPanel, { attributes: true, attributeFilter: ["hidden"] });
   if (nav && window.ResizeObserver) new window.ResizeObserver(positionWidget).observe(nav);
   window.addEventListener("resize", positionWidget);
-  window.addEventListener("pagehide", stopTicker);
-  window.addEventListener("pageshow", syncVisibility);
-  document.addEventListener("visibilitychange", syncVisibility);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", positionWidget);
+    window.visualViewport.addEventListener("scroll", positionWidget);
+  }
+  window.addEventListener("pagehide", function () { stopTicker(); resetPosition(); });
+  window.addEventListener("pageshow", function () { resetPosition(); syncVisibility(); });
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState !== "visible") resetPosition();
+    syncVisibility();
+  });
   syncVisibility();
 })();

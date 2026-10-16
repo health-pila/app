@@ -4059,14 +4059,13 @@ body.camera-open {
 .member-rest-timer {
   position: fixed;
   z-index: 510;
-  left: 50%;
+  right: max(16px, calc((100% - 398px) / 2));
   bottom: var(--rest-timer-bottom, calc(79px + env(safe-area-inset-bottom)));
-  transform: translateX(-50%);
   display: grid;
   justify-items: end;
   gap: 10px;
-  width: calc(100% - 32px);
-  max-width: 398px;
+  width: max-content;
+  max-width: calc(100% - 16px);
   pointer-events: none;
 }
 
@@ -4092,7 +4091,14 @@ body.camera-open {
   font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.member-rest-timer[data-dragging="true"] .rest-timer-toggle {
+  cursor: grabbing;
 }
 
 .member-rest-timer[data-phase="running"] .rest-timer-toggle,
@@ -4102,7 +4108,10 @@ body.camera-open {
 }
 
 .rest-timer-panel {
-  width: 100%;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  width: min(320px, calc(100vw - 16px));
   max-width: 320px;
   max-height: calc(100vh - 180px - env(safe-area-inset-bottom));
   max-height: calc(100dvh - 180px - env(safe-area-inset-bottom));
