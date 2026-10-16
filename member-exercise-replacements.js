@@ -8,7 +8,7 @@
   const notice = document.createElement("div");
   notice.className = "exercise-replacement-notice"; notice.hidden = true;
   const noticeText = document.createElement("p"); noticeText.setAttribute("role", "status");
-  const retry = document.createElement("button"); retry.type = "button"; retry.textContent = "다시 불러오기";
+  const retry = document.createElement("button"); retry.type = "button"; retry.textContent = "다시 불러오기"; retry.hidden = true;
   notice.append(noticeText, retry);
   document.getElementById("memberWorkoutTitle").parentElement.insertAdjacentElement("afterend", notice);
   const dialog = document.createElement("dialog");
@@ -62,6 +62,7 @@
   function visible() { return !app.hidden && !assigned.hidden && !routinePanel.hidden; }
   function showNotice(text, error = false) {
     noticeText.textContent = text; notice.hidden = !text;
+    retry.hidden = !error;
     notice.classList.toggle("is-error", error);
   }
   function errorMessage(error) {
@@ -237,7 +238,7 @@
       const saved = active?.rows.get(slotKey(state.day, state.entry.order));
       const applied = active?.ready && active.routineId === context.routineId && active.revision === context.revision &&
         (state.restore ? !saved : saved?.valid && saved.replacement_exercise_id === state.target.exerciseId);
-      if (applied) showNotice(state.restore ? "원래 운동으로 복원했어요." : "운동 변경 내용을 저장했어요.");
+      if (applied) showNotice(state.restore ? "" : "운동 변경 내용을 저장했어요.");
       else if (!active?.warning) showNotice("저장은 완료됐지만 화면 반영을 확인하지 못했어요. 다시 불러와 주세요.", true);
     } catch (error) {
       if (!current(context, token)) return;
