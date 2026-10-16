@@ -8943,7 +8943,7 @@ function renderAdminRoutineRequests(
 
           const memberSearchCard =
             adminMemberSearch.closest(
-              ".admin-card"
+              "#adminMemberManagement"
             );
 
           memberSearchCard?.scrollIntoView({
@@ -9574,6 +9574,13 @@ toggleAdminRoutineModeButton.addEventListener(
   }
 );
 
+// 이름을 생략해도 기존 DB의 이름 필드를 유효한 값으로 저장합니다.
+function getAdminRoutineName() {
+  return adminRoutineName.value.trim() ||
+    (adminRoutineMode === "edit" ? currentAdminRoutine?.routine_name?.trim() : "") ||
+    "맞춤 운동 루틴";
+}
+
 // 회원 선택 변경 시 이전 불러오기 결과 구분
 let adminRoutineLoadRequestId = 0;
 
@@ -9831,7 +9838,7 @@ saveAdminRoutineButton.addEventListener(
     }
 
     const userId = adminMemberSelect.value;
-    const routineName = adminRoutineName.value.trim();
+    const routineName = getAdminRoutineName();
     const description = adminRoutineDescription.value.trim();
 
     const isEditMode =
@@ -9849,13 +9856,6 @@ saveAdminRoutineButton.addEventListener(
     if (!userId) {
       adminSaveMessage.textContent =
         "먼저 회원을 선택해 주세요.";
-      return;
-    }
-
-    if (!routineName) {
-      adminSaveMessage.textContent =
-        "루틴 이름을 입력해 주세요.";
-      adminRoutineName.focus();
       return;
     }
 
@@ -10171,15 +10171,10 @@ async function applyValidatedAdminRoutine() {
   }
 
   const userId = adminMemberSelect.value;
-  const routineName = adminRoutineName.value.trim();
+  const routineName = getAdminRoutineName();
   const isEditMode = adminRoutineMode === "edit" && Boolean(currentAdminRoutine);
   const routineId = isEditMode ? currentAdminRoutine.id : null;
   if (!userId) return;
-  if (!routineName) {
-    adminRoutineJsonMessage.textContent = "위쪽의 루틴 이름을 입력해 주세요.";
-    adminRoutineName.focus({ preventScroll: true });
-    return;
-  }
   const selectedOption = adminMemberSelect.options[adminMemberSelect.selectedIndex];
   const memberName = selectedOption?.dataset.memberName || "선택한 회원";
   const action = isEditMode ? "현재 루틴에 운동 카드를 적용" : "새 운동 카드 루틴을 배정";

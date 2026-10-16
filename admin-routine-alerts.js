@@ -54,8 +54,8 @@
       section.soundButton.disabled = audioBusy;
       section.testButton.disabled = audioBusy;
       section.status.textContent = message || (soundEnabled
-        ? "알림음 켜짐 · 새 루틴 신청과 회원 문의를 알려드려요."
-        : "알림음 꺼짐 · 신청과 문의는 탭에 표시돼요.");
+        ? (audioContext?.state === "running" ? "알림음 켜짐" : "알림음 켜짐 · 소리 활성화 대기")
+        : "알림음 꺼짐");
       if (section.storageFailed) section.status.textContent += " 알림 이력을 저장하지 못해 여러 탭에서 소리가 겹칠 수 있어요.";
       if (section.loadFailed) section.status.textContent += " 문의 알림을 갱신하지 못했어요. 연결 후 다시 확인해 주세요.";
     });
@@ -97,19 +97,51 @@
   logo.addEventListener("load", () => { if (active()) renderBadge(); });
   if (originalIcon) logo.src = originalIcon;
 
-  async function playTone(ticket) {
+  function getAudioContext() {
     const Audio = window.AudioContext || window.webkitAudioContext;
     if (!Audio) throw new Error("Audio is unavailable");
-    if (!audioContext || audioContext.state === "closed") audioContext = new Audio();
-    const context = audioContext;
+    if (!audioContext || audioContext.state === "closed") {
+      audioContext = new Audio();
+      const context = audioContext;
+      context.addEventListener("statechange", () => {
+        if (context === audioContext && active() && !audioBusy) renderControls();
+      });
+    }
+    return audioContext;
+  }
+  async function resumeAudio(context, ticket) {
     if (context.state !== "running") {
       await new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error("Audio resume timed out")), 2000);
         context.resume().then(() => { clearTimeout(timer); resolve(); }, error => { clearTimeout(timer); reject(error); });
       });
     }
-    if (!active(ticket) || context !== audioContext) return;
+    if (!active(ticket) || context !== audioContext) return false;
     if (context.state !== "running") throw new Error("Audio is suspended");
+    return true;
+  }
+  function activateDefaultSound(event) {
+    if (!active() || !soundEnabled || audioBusy) return;
+    if (event && (!event.isTrusted || event.repeat || event.key === "Escape")) return;
+    // 알림음 버튼 자체는 각 핸들러가 처리해 사용자의 켜기·끄기를 존중합니다.
+    if (event && sections.some(section => section.soundButton.contains(event.target) || section.testButton.contains(event.target))) return;
+    const ticket = generation;
+    let context;
+    try { context = getAudioContext(); }
+    catch (_) { renderControls("이 브라우저에서는 알림음을 사용할 수 없어요."); return; }
+    // 재생 제한 중에도 켜짐 설정은 유지하고, 다음 사용자 동작에서 소리 없이 다시 준비합니다.
+    void resumeAudio(context, ticket).then(ready => {
+      if (ready && soundEnabled) renderControls();
+    }).catch(() => {
+      if (active(ticket) && context === audioContext && soundEnabled) renderControls();
+    });
+  }
+  document.addEventListener("click", activateDefaultSound, true);
+  document.addEventListener("keydown", activateDefaultSound, true);
+
+  async function playTone(ticket) {
+    const context = getAudioContext();
+    if (!await resumeAudio(context, ticket)) return;
     const toneStart = Math.max(context.currentTime, nextToneAt);
     nextToneAt = toneStart + 0.38;
     [660, 880].forEach((frequency, index) => {
@@ -134,17 +166,17 @@
   async function testSound(enable) {
     if (!active() || audioBusy) return;
     const ticket = generation;
+    if (enable) soundEnabled = true;
     audioBusy = true; renderControls("알림음을 테스트하고 있어요.");
     try {
       await playTone(ticket);
       if (!active(ticket)) return;
-      if (enable) soundEnabled = true;
-      renderControls(enable ? "알림음을 켰어요. 새 루틴 신청과 회원 문의를 알려드릴게요."
-        : "테스트 소리를 재생했어요. " + (soundEnabled ? "신청·문의 알림음이 켜져 있어요." : "자동 알림은 ‘알림음 켜기’를 눌러주세요."));
+      renderControls(enable ? "알림음 켜짐"
+        : "소리 테스트 완료 · 알림음 " + (soundEnabled ? "켜짐" : "꺼짐"));
     } catch (_) {
       if (active(ticket)) {
-        soundEnabled = false; closeAudio();
-        renderControls("소리를 재생하지 못했어요. 탭 음소거와 PC 볼륨을 확인하고 다시 켜주세요.");
+        closeAudio();
+        renderControls("소리를 재생하지 못했어요. 탭 음소거와 PC 볼륨을 확인한 뒤 다시 테스트해 주세요.");
       }
     } finally {
       if (active(ticket)) { audioBusy = false; sections.forEach(section => { section.soundButton.disabled = false; section.testButton.disabled = false; }); }
@@ -161,9 +193,10 @@
 
   function start(id) {
     if (userId === id && active()) return;
-    reset(); userId = id;
+    reset(); userId = id; soundEnabled = true;
     sections.forEach(section => { section.seen = readSeen(section); });
     renderBadge(); renderControls();
+    activateDefaultSound();
   }
   function reset() {
     generation += 1; userId = ""; soundEnabled = false; audioBusy = false;
@@ -193,8 +226,7 @@
       if (shouldRing) {
         void playTone(ticket).catch(() => {
           if (!active(ticket)) return;
-          soundEnabled = false; closeAudio();
-          renderControls("알림음을 재생하지 못했어요. ‘알림음 켜기’를 다시 눌러주세요.");
+          if (soundEnabled) renderControls("알림음 켜짐 · 화면을 한 번 누른 뒤 소리 테스트를 해주세요.");
         });
         renderControls(`새 ${section.label} ${fresh.length}건이 들어왔어요.`);
       }

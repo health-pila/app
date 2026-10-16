@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=119">
-  <link rel="stylesheet" href="cardio-programs.css?v=119">
+  <link rel="stylesheet" href="style.css?v=120">
+  <link rel="stylesheet" href="cardio-programs.css?v=120">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ec6a1a">
 
@@ -121,7 +121,7 @@
   </section>
   <main id="appScreen" class="app" hidden>
     <div class="member-app-topbar">
-      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=119" alt="헬스와 필라테스 화곡점">
+      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=120" alt="헬스와 필라테스 화곡점">
       <div class="member-topbar-actions">
         <button id="refreshMemberAppButton" class="member-refresh-button" type="button" aria-label="앱 새로고침"
           title="새로고침">
@@ -443,7 +443,7 @@
 
   <main id="adminScreen" class="app admin-screen" hidden>
     <div class="member-app-topbar admin-app-topbar">
-      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=119" alt="헬스와 필라테스 화곡점">
+      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=120" alt="헬스와 필라테스 화곡점">
       <div class="member-topbar-actions">
         <button id="refreshAdminAppButton" class="member-refresh-button" type="button" aria-label="관리자 화면 새로고침"
           title="새로고침">
@@ -479,8 +479,159 @@
     <header class="admin-app-hero">
       <p class="admin-app-eyebrow">관리자</p>
       <h1>센터 운영 관리</h1>
-      <p class="admin-app-intro">회원의 운동 구성과 센터 소식을 관리해요.</p>
     </header>
+
+    <section id="adminOneDayPtManagement" class="admin-card" aria-labelledby="adminOneDayPtTitle">
+      <h2 id="adminOneDayPtTitle" class="admin-section-title">1DAY PT 신청</h2>
+      <p class="admin-section-description">선택한 운동을 확인하고 회원에게 연락해 일정을 예약해 주세요. 결제는 현장에서 진행합니다.</p>
+      <div class="one-day-pt-admin-toolbar">
+        <label for="adminOneDayPtFilter">신청 상태</label>
+        <select id="adminOneDayPtFilter">
+          <option value="active">접수 · 예약 조율 중</option>
+          <option value="completed">진행 완료</option>
+          <option value="cancelled">취소</option>
+          <option value="all">전체</option>
+        </select>
+        <button id="refreshAdminOneDayPt" type="button">새로고침</button>
+      </div>
+      <p id="adminOneDayPtMessage" class="admin-message" role="status"></p>
+      <div id="adminOneDayPtList" class="one-day-pt-request-list"></div>
+      <button id="moreAdminOneDayPt" class="one-day-pt-secondary" type="button" hidden>신청 더 보기</button>
+    </section>
+
+    <section id="adminRoutineWorkspace" class="admin-card" aria-label="루틴 신청과 회원 관리">
+      <!-- 새 루틴 신청 알림 -->
+      <section id="adminRoutineRequestManagement" class="admin-routine-workspace-section">
+        <h2 class="admin-section-title">
+          새 운동 구성 신청
+        </h2>
+
+        <div class="admin-routine-alerts" aria-label="새 신청 알림 설정">
+          <div class="admin-routine-alerts-heading">
+            <strong>새 신청 알림</strong>
+            <span id="adminRoutineAlertCount" class="admin-routine-alert-count" role="status">대기 0건</span>
+          </div>
+          <div class="admin-routine-alert-actions">
+            <button id="adminRoutineSoundToggle" type="button" aria-pressed="true">알림음 끄기</button>
+            <button id="adminRoutineSoundTest" type="button">소리 테스트</button>
+          </div>
+          <p id="adminRoutineAlertStatus" class="admin-routine-alert-status" role="status">알림음 켜짐</p>
+        </div>
+
+        <p id="adminRoutineRequestListMessage" class="admin-message" aria-live="polite">
+          루틴 신청 내역을 불러오고 있습니다.
+        </p>
+
+        <div id="adminRoutineRequestList" class="admin-routine-request-list"></div>
+      </section>
+
+      <section id="adminMemberManagement" class="admin-routine-workspace-section" aria-labelledby="adminMemberManagementTitle">
+        <h2 id="adminMemberManagementTitle" class="admin-section-title">회원 선택</h2>
+        <label for="adminMemberSearch">회원 검색</label>
+
+        <input id="adminMemberSearch" type="search" placeholder="이름, 전화번호 뒷자리, 이메일 검색" autocomplete="off">
+
+        <label for="adminMemberSelect">회원 선택</label>
+
+        <select id="adminMemberSelect">
+          <option value="">회원 목록을 불러오는 중...</option>
+        </select>
+
+        <p id="adminMemberInfo" class="admin-message">
+          루틴을 관리할 회원을 선택해 주세요.
+        </p>
+      </section>
+
+      <section id="adminRoutineEditor" class="admin-routine-workspace-section" hidden>
+        <h2 id="adminRoutineEditorTitle" class="admin-section-title">
+          회원 운동 구성 관리
+        </h2>
+
+        <p id="adminRoutineModeMessage" class="admin-section-description">
+          회원의 최신 루틴을 불러오고 있습니다.
+        </p>
+
+        <button id="toggleAdminRoutineModeButton" type="button" hidden>
+          새 루틴 배정하기
+        </button>
+
+        <label for="adminRoutineName">루틴 이름 (선택)</label>
+        <input id="adminRoutineName" type="text" placeholder="비워두면 자동으로 이름이 들어갑니다">
+
+        <div class="admin-routine-format-buttons" role="group" aria-label="루틴 입력 방식">
+          <button id="adminRoutineJsonFormatButton" class="admin-routine-format-button" type="button" aria-pressed="true"
+            aria-controls="adminRoutineJsonPanel" aria-describedby="adminRoutineFormatHelp" disabled>
+            운동 카드(JSON)
+          </button>
+          <button id="adminRoutineImageFormatButton" class="admin-routine-format-button" type="button"
+            aria-pressed="false" aria-controls="adminRoutineImagePanel" aria-describedby="adminRoutineFormatHelp"
+            disabled>
+            기존 이미지
+          </button>
+        </div>
+        <p id="adminRoutineFormatHelp" class="admin-field-help admin-routine-format-help" aria-live="polite">
+          사용할 루틴 입력 방식을 선택해 주세요.
+        </p>
+
+        <div id="adminRoutineImagePanel" class="admin-routine-image-panel" role="region"
+          aria-labelledby="adminRoutineImageFormatButton" hidden>
+          <label for="adminRoutineImage">
+            루틴 이미지 (최대 5장)
+          </label>
+
+          <input id="adminRoutineImage" type="file" accept="image/png, image/jpeg, image/webp" multiple
+            aria-describedby="adminRoutineImageHelp">
+
+          <p id="adminRoutineImageHelp" class="admin-field-help">
+            이미지는 최대 5장까지 추가할 수 있습니다.
+            이미지마다 캡션을 입력하고 순서를 바꿀 수 있습니다.
+          </p>
+
+          <div id="adminRoutinePreview" class="admin-routine-image-list" hidden></div>
+          <label for="adminRoutineDescription">루틴 설명과 링크</label>
+
+          <textarea id="adminRoutineDescription" rows="9" placeholder="회원에게 보여줄 설명을 입력하세요.
+        
+          링크는 https://... 형식으로 붙여넣으면 자동으로 클릭할 수 있습니다."></textarea>
+          <button id="saveAdminRoutineButton" type="button">
+            회원 루틴 저장
+          </button>
+        </div>
+
+        <!-- 운동 구성 JSON 불러오기 -->
+        <div id="adminRoutineJsonPanel" class="admin-routine-json-panel" role="region"
+          aria-labelledby="adminRoutineJsonFormatButton">
+          <h3>운동 카드 불러오기</h3>
+
+          <p class="admin-field-help">
+            루틴 JSON을 붙여넣고 미리보기를 확인해 주세요.
+            미리보기만으로는 회원에게 적용되지 않습니다.
+          </p>
+
+          <label for="adminRoutineJsonInput">
+            회원별 루틴 JSON
+          </label>
+
+          <textarea id="adminRoutineJsonInput" rows="10" placeholder="생성한 루틴 JSON 전체를 붙여넣어 주세요." spellcheck="false"
+            autocapitalize="off" autocomplete="off"></textarea>
+
+          <button id="previewAdminRoutineJsonButton" type="button" disabled>
+            JSON 검사 및 미리보기
+          </button>
+
+          <p id="adminRoutineJsonMessage" class="admin-message" aria-live="polite"></p>
+
+          <div id="adminRoutineJsonPreview" class="admin-routine-json-preview" hidden></div>
+
+          <button id="applyAdminRoutineJsonButton" class="admin-routine-json-apply-button" type="button" disabled>
+            검사한 루틴을 회원에게 적용
+          </button>
+
+        </div>
+        <p id="adminSaveMessage" class="admin-message" aria-live="polite"></p>
+      </section>
+
+    </section>
 
     <!-- 회원 1:1 문의 관리 -->
     <section id="adminInquiryManagement" class="admin-card">
@@ -498,11 +649,10 @@
           <span id="adminInquiryAlertCount" class="admin-routine-alert-count" role="status">답변 대기 0건</span>
         </div>
         <div class="admin-routine-alert-actions">
-          <button id="adminInquirySoundToggle" type="button" aria-pressed="false">알림음 켜기</button>
+          <button id="adminInquirySoundToggle" type="button" aria-pressed="true">알림음 끄기</button>
           <button id="adminInquirySoundTest" type="button">소리 테스트</button>
         </div>
-        <p id="adminInquiryAlertStatus" class="admin-routine-alert-status" role="status">알림음 꺼짐 · 신청과 문의는 탭에 표시돼요.</p>
-        <p class="admin-routine-alert-help">알림음을 한 번 켜면 루틴 신청과 회원 문의를 함께 알려드려요. 새로고침 후에는 다시 켜주세요.</p>
+        <p id="adminInquiryAlertStatus" class="admin-routine-alert-status" role="status">알림음 켜짐</p>
       </div>
 
       <div class="admin-inquiry-setting">
@@ -529,9 +679,6 @@
           회원 문의 목록
         </h3>
 
-        <p>
-          답변 대기 문의가 먼저 표시됩니다.
-        </p>
       </div>
 
       <div id="adminInquiryFilters" class="admin-inquiry-filters" role="group" aria-label="회원 문의 상태 선택">
@@ -561,160 +708,6 @@
         이전 문의 더 보기
       </button>
 
-    </section>
-
-    <section id="adminOneDayPtManagement" class="admin-card" aria-labelledby="adminOneDayPtTitle">
-      <h2 id="adminOneDayPtTitle" class="admin-section-title">1DAY PT 신청</h2>
-      <p class="admin-section-description">선택한 운동을 확인하고 회원에게 연락해 일정을 예약해 주세요. 결제는 현장에서 진행합니다.</p>
-      <div class="one-day-pt-admin-toolbar">
-        <label for="adminOneDayPtFilter">신청 상태</label>
-        <select id="adminOneDayPtFilter">
-          <option value="active">접수 · 예약 조율 중</option>
-          <option value="completed">진행 완료</option>
-          <option value="cancelled">취소</option>
-          <option value="all">전체</option>
-        </select>
-        <button id="refreshAdminOneDayPt" type="button">새로고침</button>
-      </div>
-      <p id="adminOneDayPtMessage" class="admin-message" role="status"></p>
-      <div id="adminOneDayPtList" class="one-day-pt-request-list"></div>
-      <button id="moreAdminOneDayPt" class="one-day-pt-secondary" type="button" hidden>신청 더 보기</button>
-    </section>
-
-    <!-- 새 루틴 신청 알림 -->
-    <section id="adminRoutineRequestManagement" class="admin-card">
-      <h2 class="admin-section-title">
-        새 운동 구성 신청
-      </h2>
-
-      <p class="admin-section-description">
-        새로운 운동 구성을 신청한 회원을 확인할 수 있습니다.
-      </p>
-
-      <div class="admin-routine-alerts" aria-label="새 신청 알림 설정">
-        <div class="admin-routine-alerts-heading">
-          <strong>새 신청 알림</strong>
-          <span id="adminRoutineAlertCount" class="admin-routine-alert-count" role="status">대기 0건</span>
-        </div>
-        <div class="admin-routine-alert-actions">
-          <button id="adminRoutineSoundToggle" type="button" aria-pressed="false">알림음 켜기</button>
-          <button id="adminRoutineSoundTest" type="button">소리 테스트</button>
-        </div>
-        <p id="adminRoutineAlertStatus" class="admin-routine-alert-status" role="status">알림음 꺼짐 · 신청과 문의는 탭에 표시돼요.</p>
-        <p class="admin-routine-alert-help">알림음을 한 번 켜면 루틴 신청과 회원 문의를 함께 알려드려요. 관리자 탭을 열어두고, 새로고침 후에는 다시 켜주세요.</p>
-      </div>
-
-      <p id="adminRoutineRequestListMessage" class="admin-message" aria-live="polite">
-        루틴 신청 내역을 불러오고 있습니다.
-      </p>
-
-      <div id="adminRoutineRequestList" class="admin-routine-request-list"></div>
-    </section>
-
-    <section id="adminMemberManagement" class="admin-card" aria-labelledby="adminMemberManagementTitle">
-      <h2 id="adminMemberManagementTitle" class="admin-section-title">회원 선택</h2>
-      <label for="adminMemberSearch">회원 검색</label>
-
-      <input id="adminMemberSearch" type="search" placeholder="이름, 전화번호 뒷자리, 이메일 검색" autocomplete="off">
-
-      <label for="adminMemberSelect">회원 선택</label>
-
-      <select id="adminMemberSelect">
-        <option value="">회원 목록을 불러오는 중...</option>
-      </select>
-
-      <p id="adminMemberInfo" class="admin-message">
-        루틴을 관리할 회원을 선택해 주세요.
-      </p>
-    </section>
-
-    <section id="adminRoutineEditor" class="admin-card" hidden>
-      <h2 id="adminRoutineEditorTitle" class="admin-section-title">
-        회원 운동 구성 관리
-      </h2>
-
-      <p id="adminRoutineModeMessage" class="admin-section-description">
-        회원의 최신 루틴을 불러오고 있습니다.
-      </p>
-
-      <button id="toggleAdminRoutineModeButton" type="button" hidden>
-        새 루틴 배정하기
-      </button>
-
-      <label for="adminRoutineName">루틴 이름</label>
-      <input id="adminRoutineName" type="text" placeholder="예: 2026년 9월 운동 루틴">
-
-      <div class="admin-routine-format-buttons" role="group" aria-label="루틴 입력 방식">
-        <button id="adminRoutineJsonFormatButton" class="admin-routine-format-button" type="button" aria-pressed="true"
-          aria-controls="adminRoutineJsonPanel" aria-describedby="adminRoutineFormatHelp" disabled>
-          운동 카드(JSON)
-        </button>
-        <button id="adminRoutineImageFormatButton" class="admin-routine-format-button" type="button"
-          aria-pressed="false" aria-controls="adminRoutineImagePanel" aria-describedby="adminRoutineFormatHelp"
-          disabled>
-          기존 이미지
-        </button>
-      </div>
-      <p id="adminRoutineFormatHelp" class="admin-field-help admin-routine-format-help" aria-live="polite">
-        사용할 루틴 입력 방식을 선택해 주세요.
-      </p>
-
-      <div id="adminRoutineImagePanel" class="admin-routine-image-panel" role="region"
-        aria-labelledby="adminRoutineImageFormatButton" hidden>
-        <label for="adminRoutineImage">
-          루틴 이미지 (최대 5장)
-        </label>
-
-        <input id="adminRoutineImage" type="file" accept="image/png, image/jpeg, image/webp" multiple
-          aria-describedby="adminRoutineImageHelp">
-
-        <p id="adminRoutineImageHelp" class="admin-field-help">
-          이미지는 최대 5장까지 추가할 수 있습니다.
-          이미지마다 캡션을 입력하고 순서를 바꿀 수 있습니다.
-        </p>
-
-        <div id="adminRoutinePreview" class="admin-routine-image-list" hidden></div>
-        <label for="adminRoutineDescription">루틴 설명과 링크</label>
-
-        <textarea id="adminRoutineDescription" rows="9" placeholder="회원에게 보여줄 설명을 입력하세요.
-        
-        링크는 https://... 형식으로 붙여넣으면 자동으로 클릭할 수 있습니다."></textarea>
-        <button id="saveAdminRoutineButton" type="button">
-          회원 루틴 저장
-        </button>
-      </div>
-
-      <!-- 운동 구성 JSON 불러오기 -->
-      <div id="adminRoutineJsonPanel" class="admin-routine-json-panel" role="region"
-        aria-labelledby="adminRoutineJsonFormatButton">
-        <h3>운동 카드 불러오기</h3>
-
-        <p class="admin-field-help">
-          루틴 JSON을 붙여넣고 미리보기를 확인해 주세요.
-          미리보기만으로는 회원에게 적용되지 않습니다.
-        </p>
-
-        <label for="adminRoutineJsonInput">
-          회원별 루틴 JSON
-        </label>
-
-        <textarea id="adminRoutineJsonInput" rows="10" placeholder="생성한 루틴 JSON 전체를 붙여넣어 주세요." spellcheck="false"
-          autocapitalize="off" autocomplete="off"></textarea>
-
-        <button id="previewAdminRoutineJsonButton" type="button" disabled>
-          JSON 검사 및 미리보기
-        </button>
-
-        <p id="adminRoutineJsonMessage" class="admin-message" aria-live="polite"></p>
-
-        <div id="adminRoutineJsonPreview" class="admin-routine-json-preview" hidden></div>
-
-        <button id="applyAdminRoutineJsonButton" class="admin-routine-json-apply-button" type="button" disabled>
-          검사한 루틴을 회원에게 적용
-        </button>
-
-      </div>
-      <p id="adminSaveMessage" class="admin-message" aria-live="polite"></p>
     </section>
 
     <!-- 센터 커뮤니티 소식 작성 -->
@@ -970,7 +963,7 @@
         <h3 tabindex="-1"><span>1</span> ‘세부정보 더보기’를 눌러 주세요</h3>
         <p class="samsung-install-caption">글자와 아래쪽 화살표 부분을 누를 수 있어요.</p>
         <figure class="samsung-install-photo samsung-install-photo-first">
-          <img src="images/install-samsung-blocked.png?v=119" width="461" height="889"
+          <img src="images/install-samsung-blocked.png?v=120" width="461" height="889"
             alt="설치 차단 안내 예시. 확인 버튼 바로 위의 ‘세부정보 더보기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
       </section>
@@ -978,7 +971,7 @@
         <h3 tabindex="-1"><span>2</span> ‘무시하고 설치하기’를 선택해 주세요</h3>
         <p class="samsung-install-caption">세부정보를 펼치면 이 문구가 나타나요.</p>
         <figure class="samsung-install-photo samsung-install-photo-second">
-          <img src="images/install-samsung-details.png?v=119" width="463" height="897"
+          <img src="images/install-samsung-details.png?v=120" width="463" height="897"
             alt="세부정보를 펼친 설치 차단 안내 예시. 확인 버튼 바로 위의 ‘무시하고 설치하기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
         <p class="samsung-install-app-check">설치할 앱 이름이 <strong>헬스와필라테스</strong>인지 확인해 주세요.</p>
@@ -1011,15 +1004,15 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="exercise-data.js?v=119"></script>
-  <script src="weight-record-capture.js?v=119"></script>
-  <script src="routine-components.js?v=119"></script>
-  <script src="one-day-pt.js?v=119"></script>
-  <script src="admin-routine-alerts.js?v=119"></script>
-  <script src="member-community-badges.js?v=119"></script>
-  <script src="cardio-programs.js?v=119"></script>
-  <script src="script.js?v=119"></script>
-  <script src="guest-demo.js?v=119"></script>
+  <script src="exercise-data.js?v=120"></script>
+  <script src="weight-record-capture.js?v=120"></script>
+  <script src="routine-components.js?v=120"></script>
+  <script src="one-day-pt.js?v=120"></script>
+  <script src="admin-routine-alerts.js?v=120"></script>
+  <script src="member-community-badges.js?v=120"></script>
+  <script src="cardio-programs.js?v=120"></script>
+  <script src="script.js?v=120"></script>
+  <script src="guest-demo.js?v=120"></script>
 </body>
 
 
