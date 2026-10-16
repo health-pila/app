@@ -22,17 +22,17 @@
   padding: 10px 4px;
   border: 0;
   border-radius: 9px;
-  background: transparent;
-  color: #697586;
+  background: #eef1f5;
+  color: #4b5769;
   font: inherit;
-  font-size: 16px;
+  font-size: 19.2px;
   font-weight: 700;
   line-height: 1.5;
   cursor: pointer;
 }
 .member-routine-menu-button.is-active {
-  background: #fff2e7;
-  color: #ce570a;
+  background: #ffe0c5;
+  color: #a94200;
 }
 .member-routine-menu-button:focus-visible,
 .cardio-program-summary:focus-visible {
@@ -40,7 +40,7 @@
   outline-offset: -3px;
 }
 #memberAssignedRoutinePanel > .member-assigned-routine {
-  margin: 0 20px 16px;
+  margin: 0 20px 8px;
 }
 .member-cardio-panel {
   padding: 0 18px 24px;

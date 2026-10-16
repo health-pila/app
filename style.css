@@ -4966,7 +4966,13 @@ body.camera-open {
 }
 
 /* v64: 1DAY PT 장바구니 및 접수 */
-.one-day-pt-entry { margin: 0 0 16px; padding: 0 4px; }
+.one-day-pt-entry {
+  margin: 0 14px 16px;
+  padding: 12px;
+  border: 2px solid #fff;
+  border-radius: 18px;
+  background: #fff;
+}
 .one-day-pt-cart-toggle { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #f4c9a9; border-radius: 14px; background: #fff4ea; color: #a94200; font: inherit; font-size: 14px; font-weight: 700; text-align: left; }
 .one-day-pt-cart-toggle svg { width: 22px; height: 22px; flex: 0 0 22px; }
 .one-day-pt-count { margin-left: auto; white-space: nowrap; font-size: 13px; }
