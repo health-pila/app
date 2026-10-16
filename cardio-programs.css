@@ -25,14 +25,15 @@
   background: #eef1f5;
   color: #4b5769;
   font: inherit;
-  font-size: 19.2px;
+  font-size: 17.28px;
   font-weight: 700;
   line-height: 1.5;
   cursor: pointer;
 }
 .member-routine-menu-button.is-active {
-  background: #ffe0c5;
-  color: #a94200;
+  background: #a94200;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(169, 66, 0, 0.24);
 }
 .member-routine-menu-button:focus-visible,
 .cardio-program-summary:focus-visible {
