@@ -238,7 +238,7 @@
       const saved = active?.rows.get(slotKey(state.day, state.entry.order));
       const applied = active?.ready && active.routineId === context.routineId && active.revision === context.revision &&
         (state.restore ? !saved : saved?.valid && saved.replacement_exercise_id === state.target.exerciseId);
-      if (applied) showNotice(state.restore ? "" : "운동 변경 내용을 저장했어요.");
+      if (applied) showNotice("");
       else if (!active?.warning) showNotice("저장은 완료됐지만 화면 반영을 확인하지 못했어요. 다시 불러와 주세요.", true);
     } catch (error) {
       if (!current(context, token)) return;
