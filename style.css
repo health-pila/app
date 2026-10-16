@@ -4060,7 +4060,7 @@ body.camera-open {
   position: fixed;
   z-index: 510;
   left: 50%;
-  bottom: var(--rest-timer-bottom, calc(82px + env(safe-area-inset-bottom)));
+  bottom: var(--rest-timer-bottom, calc(79px + env(safe-area-inset-bottom)));
   transform: translateX(-50%);
   display: grid;
   justify-items: end;
@@ -4987,7 +4987,7 @@ body.camera-open {
   border-radius: 18px;
   background: #fff;
 }
-.one-day-pt-cart-toggle { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 43.2px; padding: 9.6px 14px; border: 1px solid #f4c9a9; border-radius: 14px; background: #fff4ea; color: #a94200; font: inherit; font-size: 14px; font-weight: 700; text-align: left; }
+.one-day-pt-cart-toggle { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 43.2px; padding: 9.6px 14px; border: 1px solid #dce2eb; border-radius: 14px; background: #fff4ea; color: #a94200; font: inherit; font-size: 14px; font-weight: 700; text-align: left; }
 .one-day-pt-cart-toggle svg { width: 22px; height: 22px; flex: 0 0 22px; }
 .one-day-pt-count { margin-left: auto; white-space: nowrap; font-size: 13px; }
 .one-day-pt-entry > p {
@@ -5345,7 +5345,7 @@ textarea.routine-weight-cell {
   min-height: 48px;
   margin: 0;
   padding: 12px 16px;
-  border: 1px solid #f2c49d;
+  border: 1px solid #dce2eb;
   border-radius: 12px;
   color: #a74b12;
   background: #fff4e9;

@@ -10770,7 +10770,7 @@ initializeLogin();
   function positionWidget() {
     if (!nav || app.hidden) return;
     const height = nav.getBoundingClientRect().height;
-    if (height > 0) widget.style.setProperty("--rest-timer-bottom", Math.ceil(height + 6) + "px");
+    if (height > 0) widget.style.setProperty("--rest-timer-bottom", Math.ceil(height + 3) + "px");
   }
 
   function syncVisibility() {
