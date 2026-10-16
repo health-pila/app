@@ -4611,7 +4611,8 @@ body.camera-open {
 
 :is(#appScreen, #adminRoutineJsonPreview, #guestDemoDialog) .routine-component-summary p {
   padding-bottom: 16px;
-  font-size: 13px;
+  color: #475467;
+  font-size: 14px;
   line-height: 1.8;
 }
 

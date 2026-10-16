@@ -8047,11 +8047,14 @@ memberRoutineComponents.setAttribute("aria-label", "배정된 운동 구성");
 memberRoutineComponents.hidden = true;
 routineCarousel.insertAdjacentElement("afterend", memberRoutineComponents);
 let memberRoutineComponentsKey = null;
+let memberRoutineAssignmentKey = null;
 const memberRoutineSummary = document.querySelector("#memberRoutineSummary");
 const memberWorkoutTitle = document.querySelector("#memberWorkoutTitle");
 const memberRoutinePlaceholder = document.querySelector("#memberRoutinePlaceholder");
 
 function resetMemberRoutineComponents() {
+  window.MemberExerciseReplacements?.deactivate();
+  memberRoutineAssignmentKey = null;
   memberRoutineComponents.replaceChildren();
   memberRoutineComponents.hidden = true;
   memberRoutineComponentsKey = null;
@@ -8062,38 +8065,45 @@ function resetMemberRoutineComponents() {
   memberRoutinePlaceholder.hidden = false;
 }
 
-function prepareMemberRoutineComponents(data, userId) {
+async function prepareMemberRoutineComponents(data, userId) {
   if (data.routine_json == null) return { key: null, node: null };
   if (!window.RoutineComponents) {
     throw new Error("운동 카드 파일을 불러오지 못했습니다. 앱을 새로고침해 주세요.");
   }
-  const routine = window.RoutineComponents.parseRoutineJson(
-    JSON.stringify(data.routine_json)
-  );
-  const key = JSON.stringify([userId, String(data.id), routine]);
+  const customization = await window.MemberExerciseReplacements?.prepare(data, userId);
+  const routine = customization?.effective || window.RoutineComponents.parseRoutineJson(JSON.stringify(data.routine_json));
+  const key = JSON.stringify([userId, String(data.id), routine, customization?.key || ""]);
   return {
-    key,
-    node: key === memberRoutineComponentsKey
-      ? null : window.RoutineComponents.renderRoutine(routine, {
-        layout: "tabs",
-        oneDayPT: true,
-        userId: userId,
-        captureWeightRecord: saveWeightRecordCapture
-      })
+    key, customization,
+    assignmentKey: JSON.stringify([String(data.id), customization?.revision || data.routine_json]),
+    node: key === memberRoutineComponentsKey ? null : window.RoutineComponents.renderRoutine(routine, {
+      layout: "tabs", oneDayPT: true, userId,
+      captureWeightRecord: saveWeightRecordCapture,
+      exerciseReplacementContext: customization
+    })
   };
 }
 
 function showMemberRoutineComponents(prepared) {
   if (prepared.key === null) {
+    window.MemberExerciseReplacements?.deactivate();
     if (memberRoutineComponentsKey !== null) resetMemberRoutineComponents();
     return;
   }
-  // 내용이 같으면 선택한 패턴, 상세설명, 영상과 안내 펼침 상태를 유지합니다.
+  window.MemberExerciseReplacements?.activate(prepared.customization);
+  // 같은 배정 안에서 운동을 교체할 때 보고 있던 패턴과 안내 펼침 상태를 유지합니다.
   if (prepared.key !== memberRoutineComponentsKey) {
+    const keepPattern = prepared.assignmentKey === memberRoutineAssignmentKey;
+    const selectedDay = keepPattern && memberRoutineComponents.querySelector('.routine-pattern-tab[aria-selected="true"]')?.dataset.patternDay;
+    const summaryOpen = keepPattern && memberRoutineSummary.querySelector("details")?.open;
+    window.RoutineComponents?.closeMediaWithin(memberRoutineComponents);
     const summary = prepared.node.querySelector(".routine-component-summary");
+    summary.open = Boolean(summaryOpen);
     memberRoutineSummary.replaceChildren(summary);
     memberRoutineComponents.replaceChildren(prepared.node);
     memberRoutineComponentsKey = prepared.key;
+    memberRoutineAssignmentKey = prepared.assignmentKey;
+    if (selectedDay) memberRoutineComponents.querySelector(`[data-pattern-day="${selectedDay}"]`)?.click();
   }
   memberRoutineComponents.hidden = false;
   memberRoutineSummary.hidden = false;
@@ -8555,6 +8565,7 @@ async function loadMemberRoutine(
       .order("assigned_at", {
         ascending: false
       })
+      .order("id", { ascending: false })
       .limit(1)
       .maybeSingle();
 
@@ -8588,7 +8599,8 @@ async function loadMemberRoutine(
       return;
     }
 
-    const preparedComponents = prepareMemberRoutineComponents(data, userId);
+    const preparedComponents = await prepareMemberRoutineComponents(data, userId);
+    if (!isCurrentRequest()) return;
     const hasRoutineComponents = preparedComponents.key !== null;
     let imageItems = [];
 
@@ -8716,6 +8728,7 @@ async function showWorkoutApp(userId) {
   adminScreen.hidden = true;
   appScreen.hidden = false;
   window.StretchingVideos?.startMember(supabaseClient, userId);
+  window.MemberExerciseReplacements?.startMember(supabaseClient, userId, () => loadMemberRoutine(userId, true));
 
   workoutCaptureBadge.start(userId);
   const memberTabBeforeRefresh =
@@ -9308,6 +9321,7 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId) {
+  window.MemberExerciseReplacements?.reset();
   workoutCaptureBadge.reset();
   window.MemberCardioPrograms?.reset();
   updateMemberCommunityBadges("reset");
@@ -10365,6 +10379,7 @@ async function handleLogout() {
     workoutCaptureBadge.reset();
     window.MemberCardioPrograms?.reset();
     window.StretchingVideos?.reset();
+    window.MemberExerciseReplacements?.reset();
     updateAdminRoutineAlerts("reset");
     updateMemberCommunityBadges("reset");
     resetRoutineChangeRequest();

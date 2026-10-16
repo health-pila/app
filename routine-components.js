@@ -492,6 +492,8 @@
     if (!exercise) throw new Error("운동DB에 없는 운동ID입니다: " + entry.exerciseId);
 
     const card = element("article", "routine-component-card");
+    card.dataset.exerciseId = entry.exerciseId;
+    if (options?.patternDay) card.dataset.patternDay = String(options.patternDay);
     const number = element("span", "routine-component-number", String(entry.order).padStart(2, "0"));
     const main = element("div", "routine-component-main");
     const imageArea = element("button", "routine-component-image-area routine-component-image-button");
@@ -694,6 +696,9 @@
       actions.append(weight.button);
       card.append(weight.panel);
     }
+    if (options?.exerciseReplacementContext && window.MemberExerciseReplacements) {
+      card.append(window.MemberExerciseReplacements.controls(options.exerciseReplacementContext, options.patternDay, entry));
+    }
     return card;
   }
 
@@ -744,7 +749,7 @@
       panel.setAttribute("aria-labelledby", tab.id);
       panel.append(element("p", "routine-pattern-caption", label + " · 운동 " + day.exercises.length + "개"));
       day.exercises.forEach(function (exercise) {
-        panel.append(createExerciseCard(exercise, options));
+        panel.append(createExerciseCard(exercise, { ...options, patternDay: day.day }));
       });
       entries.push({ tab, panel });
       tabs.append(tab);
@@ -820,7 +825,7 @@
           arrow.setAttribute("aria-hidden", "true");
           content.append(arrow);
         }
-        content.append(createExerciseCard(entry, options));
+        content.append(createExerciseCard(entry, { ...options, patternDay: day.day }));
       });
       root.append(dayArea);
     });
