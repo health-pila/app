@@ -8580,7 +8580,7 @@ async function loadMemberRoutine(
 
       assignedRoutineName.textContent =
         "배정된 루틴이 없습니다.";
-      memberRoutinePlaceholder.textContent = "아직 배정된 운동 구성이 없어요. 아래에서 새 운동 구성을 신청해 주세요.";
+      memberRoutinePlaceholder.textContent = "아직 배정된 운동 루틴이 없어요.\n새 운동 루틴을 신청해 주세요.";
 
       updateRoutineRequestStatus(userId, null);
 
