@@ -10684,6 +10684,7 @@ initializeLogin();
   const status = document.querySelector("#restTimerStatus");
   const start = document.querySelector("#restTimerStart");
   const reset = document.querySelector("#restTimerReset");
+  const addTen = document.querySelector("#restTimerAddTen");
   const presets = Array.from(document.querySelectorAll("[data-rest-seconds]"));
   const nav = document.querySelector(".member-bottom-nav");
   if (!app || !routinePanel || !widget || !toggle || !panel) return;
@@ -10769,7 +10770,7 @@ initializeLogin();
   function positionWidget() {
     if (!nav || app.hidden) return;
     const height = nav.getBoundingClientRect().height;
-    if (height > 0) widget.style.setProperty("--rest-timer-bottom", Math.ceil(height + 12) + "px");
+    if (height > 0) widget.style.setProperty("--rest-timer-bottom", Math.ceil(height + 6) + "px");
   }
 
   function syncVisibility() {
@@ -10829,6 +10830,21 @@ initializeLogin();
 
   reset.addEventListener("click", function () {
     if (!widget.hidden) resetTimer();
+  });
+
+  addTen.addEventListener("click", function () {
+    if (widget.hidden) return;
+    updateRemaining();
+    duration += 10;
+    // 대기·종료 상태에서는 새 설정 시간으로 준비하고, 진행·정지 중에는 남은 시간만 늘립니다.
+    if (phase === "idle" || phase === "finished") {
+      resetTimer();
+    } else {
+      remaining += 10000;
+      if (phase === "running") deadline += 10000;
+      render();
+      scheduleTick();
+    }
   });
 
   presets.forEach(function (button) {

@@ -9,9 +9,9 @@
 .member-routine-menu {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
+  gap: 6px;
   margin: 0 14px 20px;
-  padding: 4px;
+  padding: 6px;
   border: 1px solid #e0e6ee;
   border-radius: 13px;
   background: #fff;
@@ -19,7 +19,7 @@
 .member-routine-menu-button {
   min-width: 0;
   min-height: 44px;
-  padding: 10px 4px;
+  padding: 15px 6px;
   border: 0;
   border-radius: 9px;
   background: #eef1f5;
@@ -31,9 +31,10 @@
   cursor: pointer;
 }
 .member-routine-menu-button.is-active {
-  background: #a94200;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(169, 66, 0, 0.24);
+  background: #ffe0c5;
+  color: #a94200;
+  box-shadow: inset 2px 3px 6px rgba(115, 57, 20, 0.24),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.8);
 }
 .member-routine-menu-button:focus-visible,
 .cardio-program-summary:focus-visible {
