@@ -12,6 +12,7 @@
   let adminRows = [], adminSequence = 0, adminLoading = false, adminSaving = false;
   let adminLimit = 20, adminHasMore = false;
   let channel = null, refreshTimer = null, feedbackTimer = null;
+  let adminAlertSequence = 0, alertPollTimer = null;
 
   function node(tag, className, text) {
     const el = document.createElement(tag);
@@ -211,6 +212,36 @@
     $("refreshAdminOneDayPt").disabled = adminLoading || adminSaving;
     $("adminOneDayPtFilter").disabled = adminSaving;
   }
+  function isCurrentAdmin(ticket = generation) {
+    return current(ticket, "admin") && !$("adminScreen").hidden;
+  }
+  async function loadAdminAlerts() {
+    if (!isCurrentAdmin()) return;
+    const ticket = generation, seq = ++adminAlertSequence;
+    try {
+      // 목록 필터·더 보기와 별도로 최근 신청을 모든 상태에서 확인합니다.
+      const { data, error } = await client.from("one_day_pt_requests")
+        .select("id,status,created_at").order("created_at", { ascending: false }).limit(1000);
+      if (!isCurrentAdmin(ticket) || seq !== adminAlertSequence) return;
+      if (error) throw error;
+      await window.AdminRoutineAlerts?.syncOneDayPt?.(data || []);
+    } catch (error) {
+      if (!isCurrentAdmin(ticket) || seq !== adminAlertSequence) return;
+      // 알림 확인 실패가 신청 목록·상태 저장을 막지 않도록 분리합니다.
+      try { window.AdminRoutineAlerts?.oneDayPtError?.(); } catch (_) { }
+      console.warn("1DAY PT 신청 알림 확인 실패:", error);
+    }
+  }
+  function scheduleAdminAlertPoll(ticket = generation) {
+    clearTimeout(alertPollTimer);
+    if (!isCurrentAdmin(ticket)) return;
+    alertPollTimer = setTimeout(async () => {
+      alertPollTimer = null;
+      if (!isCurrentAdmin(ticket)) return;
+      await loadAdminAlerts();
+      if (isCurrentAdmin(ticket)) scheduleAdminAlertPoll(ticket);
+    }, 30000);
+  }
   async function loadAdmin() {
     if (role !== "admin" || adminSaving) return;
     const ticket = generation, seq = ++adminSequence;
@@ -261,14 +292,15 @@
       resultMessage = error?.code === "23505" ? "이 회원에게 다른 진행 중인 신청이 있어 이 상태로 변경할 수 없습니다." : "저장 결과를 확인하지 못했습니다. 현재 상태를 확인한 뒤 다시 시도해 주세요.";
     } finally {
       if (current(ticket, "admin")) {
-        adminSaving = false; await loadAdmin();
+        adminSaving = false; void loadAdminAlerts(); await loadAdmin();
         if (current(ticket, "admin")) $("adminOneDayPtMessage").textContent += " " + resultMessage;
       }
     }
   }
   function reset() {
-    generation++; memberSequence++; adminSequence++;
-    clearTimeout(refreshTimer); clearTimeout(feedbackTimer);
+    generation++; memberSequence++; adminSequence++; adminAlertSequence++;
+    clearTimeout(refreshTimer); clearTimeout(feedbackTimer); clearTimeout(alertPollTimer);
+    alertPollTimer = null;
     if (channel && client) Promise.resolve(client.removeChannel(channel)).catch(() => { });
     channel = null; role = ""; userId = "";
     cart = []; requestId = ""; memberRows = []; memberReady = false; memberLoading = false; submitting = false;
@@ -285,10 +317,14 @@
     const options = { event: "*", schema: "public", table: "one_day_pt_requests" };
     if (role === "member") options.filter = "user_id=eq." + userId;
     channel = client.channel("one-day-pt-" + userId + "-" + ticket).on("postgres_changes", options, () => {
+      if (ticket !== generation) return;
       clearTimeout(refreshTimer);
       refreshTimer = setTimeout(() => {
-        if (ticket !== generation || document.hidden) return;
-        if (role === "admin") loadAdmin(); else if (role === "member") loadMember();
+        if (ticket !== generation) return;
+        if (isCurrentAdmin(ticket)) {
+          void loadAdminAlerts();
+          if (!document.hidden) void loadAdmin();
+        } else if (role === "member" && !document.hidden) void loadMember();
       }, 300);
     }).subscribe();
   }
@@ -297,7 +333,11 @@
   }
   async function showAdmin(db, id) {
     reset(); client = db; userId = id || "admin"; role = "admin";
-    $("adminOneDayPtFilter").value = "active"; subscribe(); await loadAdmin();
+    $("adminOneDayPtFilter").value = "active";
+    const ticket = generation;
+    subscribe();
+    await Promise.all([loadAdmin(), loadAdminAlerts()]);
+    if (isCurrentAdmin(ticket)) scheduleAdminAlertPoll(ticket);
   }
   $("openOneDayPtCart").addEventListener("click", () => {
     if (role !== "member") return;
@@ -306,12 +346,16 @@
   $("closeOneDayPtCart").addEventListener("click", () => dialog.close());
   $("submitOneDayPt").addEventListener("click", submit);
   $("refreshMemberOneDayPt").addEventListener("click", loadMember);
-  $("refreshAdminOneDayPt").addEventListener("click", loadAdmin);
+  $("refreshAdminOneDayPt").addEventListener("click", () => {
+    void loadAdmin(); void loadAdminAlerts();
+  });
   $("adminOneDayPtFilter").addEventListener("change", () => { adminLimit = 20; loadAdmin(); });
   $("moreAdminOneDayPt").addEventListener("click", () => { adminLimit += 20; loadAdmin(); });
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) return;
-    if (role === "admin") loadAdmin(); else if (role === "member" && dialog.open) loadMember();
+    if (isCurrentAdmin()) {
+      void loadAdmin(); void loadAdminAlerts(); scheduleAdminAlertPoll();
+    } else if (role === "member" && dialog.open) void loadMember();
   });
   window.OneDayPT = Object.freeze({ showMember, showAdmin, reset, createAddButton });
 })();
