@@ -1,6 +1,9 @@
 .exercise-replacement-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 10px; }
-.exercise-replacement-controls button, .exercise-replacement-dialog button, .exercise-replacement-notice button { width: auto; min-height: 38px; margin: 0; padding: 7px 11px; border: 1px solid #dce2eb; border-radius: 8px; color: #526078; background: #fff; font: inherit; font-size: 12px; font-weight: 600; line-height: 1.5; cursor: pointer; }
-.exercise-replacement-controls button:disabled, .exercise-replacement-dialog button:disabled { opacity: .5; cursor: default; }
+.exercise-replacement-change, .exercise-replacement-controls button, .exercise-replacement-dialog button, .exercise-replacement-notice button { width: auto; min-height: 38px; margin: 0; padding: 7px 11px; border: 1px solid #dce2eb; border-radius: 8px; color: #526078; background: #fff; font: inherit; font-size: 12px; font-weight: 600; line-height: 1.5; cursor: pointer; }
+.routine-component-title-with-change { align-items: flex-start; }
+.routine-component-title-with-change .routine-component-name { flex: 1; }
+.routine-component-title-with-change .exercise-replacement-change { flex: 0 0 auto; min-height: 32px; margin-left: auto; padding: 5px 8px; white-space: nowrap; }
+.exercise-replacement-change:disabled, .exercise-replacement-controls button:disabled, .exercise-replacement-dialog button:disabled { opacity: .5; cursor: default; }
 .exercise-replacement-badge { color: #a94200; background: #fff0e3; border-radius: 6px; padding: 5px 7px; font-size: 11px; line-height: 1.5; }
 .exercise-replacement-original { flex-basis: 100%; color: #697586; font-size: 11px; line-height: 1.5; }
 .exercise-replacement-notice { margin: 0 0 12px; padding: 11px; border: 1px solid #e1e6ee; border-radius: 10px; background: #f8fafc; }
@@ -22,12 +25,10 @@
 .exercise-replacement-all { margin-top: 18px; border-top: 1px solid #e4e8ef; padding-top: 14px; }
 .exercise-replacement-all summary { min-height: 40px; color: #a94200; font-size: 14px; font-weight: 700; cursor: pointer; }
 .exercise-replacement-dialog label { display: block; margin: 10px 0 5px; color: #526078; font-size: 12px; line-height: 1.6; }
-.exercise-replacement-dialog input:not([type="checkbox"]), .exercise-replacement-dialog select { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; margin-top: 4px; padding: 10px; border: 1px solid #dce2eb; border-radius: 9px; background: #f8fafc; color: #17233e; font: inherit; font-size: 16px; }
+.exercise-replacement-dialog input, .exercise-replacement-dialog select { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; margin-top: 4px; padding: 10px; border: 1px solid #dce2eb; border-radius: 9px; background: #f8fafc; color: #17233e; font: inherit; font-size: 16px; }
 .exercise-replacement-help, .exercise-replacement-status { margin: 8px 0; color: #697586; font-size: 12px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
 .exercise-replacement-status { color: #a13c25; }
-.exercise-replacement-status:empty { display: none; }
+.exercise-replacement-help:empty, .exercise-replacement-status:empty { display: none; }
 .exercise-replacement-dose-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.exercise-replacement-dialog .exercise-replacement-checked { display: flex; align-items: flex-start; gap: 8px; padding: 10px 0; font-size: 13px; }
-.exercise-replacement-checked input { flex: 0 0 18px; width: 18px; height: 18px; margin: 2px 0 0; accent-color: #ec6a1a; }
-.exercise-replacement-dialog .exercise-replacement-save { width: 100%; min-height: 46px; color: #fff; background: #ec6a1a; border-color: #ec6a1a; font-size: 14px; }
-.exercise-replacement-dialog button:focus-visible, .exercise-replacement-dialog summary:focus-visible, .exercise-replacement-controls button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
+.exercise-replacement-dialog .exercise-replacement-save { width: 100%; min-height: 46px; margin-top: 12px; color: #fff; background: #ec6a1a; border-color: #ec6a1a; font-size: 14px; }
+.exercise-replacement-dialog button:focus-visible, .exercise-replacement-dialog summary:focus-visible, .exercise-replacement-change:focus-visible, .exercise-replacement-controls button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }

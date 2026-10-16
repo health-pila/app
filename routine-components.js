@@ -697,7 +697,13 @@
       card.append(weight.panel);
     }
     if (options?.exerciseReplacementContext && window.MemberExerciseReplacements) {
-      card.append(window.MemberExerciseReplacements.controls(options.exerciseReplacementContext, options.patternDay, entry));
+      const replacementControls = window.MemberExerciseReplacements.controls(options.exerciseReplacementContext, options.patternDay, entry);
+      const changeButton = replacementControls.querySelector(".exercise-replacement-change");
+      if (changeButton) {
+        title.classList.add("routine-component-title-with-change");
+        title.append(changeButton);
+      }
+      if (replacementControls.childElementCount) card.append(replacementControls);
     }
     return card;
   }

@@ -14,9 +14,9 @@
   const dialog = document.createElement("dialog");
   dialog.id = "exerciseReplacementDialog"; dialog.className = "exercise-replacement-dialog";
   dialog.setAttribute("aria-labelledby", "exerciseReplacementTitle");
-  dialog.innerHTML = `<div class="exercise-replacement-heading"><h2 id="exerciseReplacementTitle">운동 바꾸기</h2><button type="button" data-replace-close>닫기</button></div>
+  dialog.innerHTML = `<div class="exercise-replacement-heading"><h2 id="exerciseReplacementTitle">종목변경</h2><button type="button" data-replace-close>닫기</button></div>
     <div class="exercise-replacement-content">
-      <p class="exercise-replacement-safety">운동 경험과 몸 상태에 맞는 종목을 선택해 주세요. 통증이 있거나 운동 방법이 익숙하지 않다면 직원에게 문의해 주세요.</p>
+      <p class="exercise-replacement-safety">운동 경험과 몸 상태에 맞는 종목을 선택해 주세요.</p>
       <p class="exercise-replacement-current"></p>
       <div data-replace-choices><h3>추천 대체 운동</h3><div data-replace-recommended class="exercise-replacement-list"></div>
         <details class="exercise-replacement-all"><summary>전체 운동에서 선택</summary>
@@ -27,14 +27,13 @@
       </div>
       <form data-replace-confirm hidden>
         <button type="button" data-replace-back>← 다른 운동 선택</button>
-        <h3 data-replace-target></h3><p data-replace-meta class="exercise-replacement-help"></p><p data-replace-cautions class="exercise-replacement-help"></p>
+        <h3 data-replace-target></h3><p data-replace-meta class="exercise-replacement-help"></p>
         <p data-replace-dose-help class="exercise-replacement-help"></p>
         <div class="exercise-replacement-dose-fields">
           <label>세트<input name="sets" type="number" min="1" max="20" step="1" required inputmode="numeric"></label>
           <label>세트당 횟수<input name="reps" type="number" min="1" max="1000" step="1" required inputmode="numeric"></label>
           <label>휴식(초)<input name="rest" type="number" min="0" max="3600" step="1" required inputmode="numeric"></label>
         </div>
-        <label class="exercise-replacement-checked"><input name="confirmed" type="checkbox" required> 운동 종목과 세트·횟수·휴식시간을 확인했어요.</label>
         <button type="submit" data-replace-save class="exercise-replacement-save">확인하고 저장</button>
       </form>
       <p data-replace-status class="exercise-replacement-status" role="status"></p>
@@ -45,7 +44,7 @@
   const choices = $("[data-replace-choices]"), recommended = $("[data-replace-recommended]");
   const allList = $("[data-replace-all-list]"), search = $("#replacementSearch"), bodyPart = $("#replacementBodyPart");
   const form = $("[data-replace-confirm]"), fields = $(".exercise-replacement-dose-fields");
-  const confirmation = form.elements.confirmed, closeButton = $("[data-replace-close]");
+  const closeButton = $("[data-replace-close]");
   const status = $("[data-replace-status]"), checkButton = $("[data-replace-check]");
   let client = null, userId = "", generation = 0, active = null, view = null, busy = false, reload = null;
   let returnFocus = null, previousOverflow = null, returnScroll = null, historyToken = "", historyPending = false;
@@ -113,7 +112,7 @@
   function controls(context, day, entry) {
     const root = element("div", "exercise-replacement-controls");
     const row = context.rows.get(slotKey(day, entry.order));
-    const change = element("button", "exercise-replacement-change", "운동 바꾸기");
+    const change = element("button", "exercise-replacement-change", "종목변경");
     change.type = "button"; change.disabled = !context.ready;
     change.setAttribute("aria-haspopup", "dialog"); change.setAttribute("aria-controls", dialog.id);
     change.addEventListener("click", () => open(context, day, entry, change));
@@ -189,7 +188,6 @@
     choices.hidden = true; form.hidden = false; form.reset(); status.textContent = ""; checkButton.hidden = true;
     $("[data-replace-target]").textContent = `${window.ExerciseDB.getExerciseById(view.entry.exerciseId).name} → ${exercise.name}`;
     $("[data-replace-meta]").textContent = `${exercise.bodyParts.join(" · ")} · 난이도 ${exercise.difficulty}/5`;
-    $("[data-replace-cautions]").textContent = exercise.cautionTags?.length ? `주의 부위: ${exercise.cautionTags.join(" · ")} · 익숙하지 않은 운동은 직원에게 방법을 확인해 주세요.` : "";
     const sameType = window.ExerciseDB.getExerciseById(view.entry.exerciseId).exerciseType === exercise.exerciseType;
     fields.hidden = view.restore;
     fields.querySelectorAll("input").forEach(input => { input.required = !view.restore; input.disabled = view.restore; });
@@ -198,7 +196,7 @@
     }
     $("[data-replace-dose-help]").textContent = view.restore
       ? `원래 처방인 ${view.source.reps}회 × ${view.source.sets}세트 · 휴식 ${view.source.restSec}초로 복원합니다. 운동 기록과 중량 기록은 유지됩니다.`
-      : sameType ? "같은 운동 유형이라 현재 값을 불러왔어요. 선택한 운동에도 맞는지 확인하고 조절해 주세요."
+      : sameType ? ""
         : "운동 유형이 달라 기존 값을 복사하지 않았어요. 세트·횟수·휴식시간을 입력해 주세요. 잘 모르겠다면 직원에게 확인해 주세요.";
     $("[data-replace-save]").textContent = view.restore ? "확인하고 원래 운동으로 복원" : "확인하고 저장";
     $("[data-replace-back]").focus({ preventScroll: true });
@@ -210,7 +208,7 @@
   }
   async function save(event) {
     event.preventDefault();
-    if (!view || busy || !confirmation.checked || !current(view.context)) return;
+    if (!view || busy || !current(view.context)) return;
     const state = view, context = state.context, token = generation;
     const row = context.rows.get(slotKey(state.day, state.entry.order));
     const sets = state.restore ? null : Number(form.elements.sets.value);
