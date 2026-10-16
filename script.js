@@ -2123,6 +2123,7 @@ if (tabName === "community") {
     top: 0,
     behavior: "smooth"
   });
+  window.StretchingVideos?.syncVisibility();
   updateMemberCommunityBadges("checkSoon");
   if (tabName === "workoutLog") workoutCaptureBadge.markSeen();
 }
@@ -8703,7 +8704,6 @@ async function loadMemberRoutine(
 
 // 일반 회원 화면 표시
 async function showWorkoutApp(userId) {
-  window.MemberCardioPrograms?.start(userId);
   updateAdminRoutineAlerts("reset");
   updateMemberCommunityBadges("start", userId, supabaseClient);
   openMemberInquiryId = null;
@@ -8715,6 +8715,7 @@ async function showWorkoutApp(userId) {
   loginScreen.hidden = true;
   adminScreen.hidden = true;
   appScreen.hidden = false;
+  window.StretchingVideos?.startMember(supabaseClient, userId);
 
   workoutCaptureBadge.start(userId);
   const memberTabBeforeRefresh =
@@ -8726,6 +8727,7 @@ async function showWorkoutApp(userId) {
       : "routine"
   );
 
+  window.MemberCardioPrograms?.start(userId);
   sessionStorage.removeItem(
     "memberTabBeforeRefresh"
   );
@@ -9324,6 +9326,7 @@ async function showAdminApp(userId) {
 
   await Promise.all([
     window.OneDayPT.showAdmin(supabaseClient, userId),
+    window.StretchingVideos?.startAdmin(supabaseClient, userId),
     loadAdminRoutineRequests(),
     loadAdminMembers(),
     loadAdminCommunityPosts(),
@@ -10361,6 +10364,7 @@ async function handleLogout() {
     window.OneDayPT.reset();
     workoutCaptureBadge.reset();
     window.MemberCardioPrograms?.reset();
+    window.StretchingVideos?.reset();
     updateAdminRoutineAlerts("reset");
     updateMemberCommunityBadges("reset");
     resetRoutineChangeRequest();

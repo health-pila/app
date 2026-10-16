@@ -8,7 +8,7 @@
 }
 .member-routine-menu {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   margin: 0 14px 20px;
   padding: 6px;
@@ -19,13 +19,13 @@
 .member-routine-menu-button {
   min-width: 0;
   min-height: 44px;
-  padding: 15px 6px;
+  padding: 13px 3px;
   border: 0;
   border-radius: 9px;
   background: #eef1f5;
   color: #4b5769;
   font: inherit;
-  font-size: 17.28px;
+  font-size: 15px;
   transform: scale(0.945, 0.9);
   font-weight: 700;
   line-height: 1.5;

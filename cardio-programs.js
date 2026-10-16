@@ -168,10 +168,11 @@ const CARDIO_PROGRAM_GROUPS = [
   const app = document.getElementById("appScreen");
   const assigned = document.getElementById("memberAssignedRoutinePanel");
   const cardio = document.getElementById("memberCardioPanel");
+  const stretching = document.getElementById("memberStretchingPanel");
   const heading = document.getElementById("memberRoutinePageHeading");
   const intro = document.getElementById("memberCardioIntro");
   const buttons = Array.from(document.querySelectorAll("[data-routine-menu]"));
-  if (!app || !assigned || !cardio || !heading || buttons.length !== 2) return;
+  if (!app || !assigned || !cardio || !stretching || !heading || buttons.length !== 3) return;
   const restoreKey = "memberRoutineMenuBeforeRefresh";
   let currentUserId = "";
   let selected = "assigned";
@@ -263,12 +264,14 @@ const CARDIO_PROGRAM_GROUPS = [
   });
 
   function select(menu) {
-    if (menu !== "assigned" && menu !== "cardio") return;
-    if (menu === "cardio") window.RoutineComponents?.closeMediaWithin(assigned);
+    if (!["assigned", "cardio", "stretching"].includes(menu)) return;
+    if (menu !== "assigned") window.RoutineComponents?.closeMediaWithin(assigned);
     selected = menu;
     assigned.hidden = menu !== "assigned";
     cardio.hidden = menu !== "cardio";
-    heading.textContent = menu === "cardio" ? "나에게 맞는 유산소" : "나에게 맞춘 운동 루틴";
+    stretching.hidden = menu !== "stretching";
+    window.StretchingVideos?.setMemberVisible(menu === "stretching");
+    heading.textContent = menu === "stretching" ? "스트레칭" : menu === "cardio" ? "나에게 맞는 유산소" : "나에게 맞춘 운동 루틴";
     heading.classList.toggle("is-cardio-heading", menu === "cardio");
     if (intro) intro.hidden = menu !== "cardio";
     buttons.forEach(button => {
@@ -282,7 +285,8 @@ const CARDIO_PROGRAM_GROUPS = [
     button.addEventListener("click", () => select(button.dataset.routineMenu));
     button.addEventListener("keydown", event => {
       let next;
-      if (event.key === "ArrowRight" || event.key === "ArrowLeft") next = 1 - index;
+      if (event.key === "ArrowRight") next = (index + 1) % buttons.length;
+      else if (event.key === "ArrowLeft") next = (index + buttons.length - 1) % buttons.length;
       else if (event.key === "Home") next = 0;
       else if (event.key === "End") next = buttons.length - 1;
       else return;
