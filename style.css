@@ -4606,6 +4606,10 @@ body.camera-open {
   border-color: var(--brand-orange);
 }
 
+:is(#appScreen, #adminRoutineJsonPreview, #guestDemoDialog) .routine-component-actions .routine-weight-button[aria-expanded="true"] {
+  border-color: #dce2eb;
+}
+
 .member-routine-summary {
   margin: 0 14px 16px;
 }
@@ -5069,7 +5073,7 @@ body.camera-open {
   color: #236244;
   font-weight: 700;
 }
-#appScreen .one-day-pt-add-button.is-added { background: #fff1f4; border-color: #dce2eb; color: #a33c5a; opacity: 1; }
+#appScreen .one-day-pt-add-button.is-added { background: #fff4ea; border-color: #dce2eb; color: #a94200; opacity: 1; }
 .one-day-pt-dialog { box-sizing: border-box; width: min(480px, calc(100vw - 24px)); max-height: min(85dvh, 820px); margin: auto; padding: 22px 18px; border: 0; border-radius: 22px; color: #18243b; background: #fff; box-shadow: 0 20px 70px #0004; overflow-y: auto; overscroll-behavior: contain; font-family: inherit; }
 .one-day-pt-dialog::backdrop { background: #18243b99; }
 .one-day-pt-dialog-header, .one-day-pt-history-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -5215,7 +5219,7 @@ body.naver-shortcut-guide-open { overflow: hidden; }
   flex-shrink: 0;
   min-height: 36px;
   padding: 6px 12px;
-  border: 1px solid #e3b9a7;
+  border: 1px solid #dce2eb;
   border-radius: 8px;
   background: #fff;
   color: #a44422;
@@ -5227,7 +5231,6 @@ body.naver-shortcut-guide-open { overflow: hidden; }
 
 .routine-weight-capture {
   font-size: 14px;
-  border-color: #efc4a2;
   background: #fff;
   color: var(--brand-orange);
 }
