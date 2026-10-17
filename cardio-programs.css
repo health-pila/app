@@ -43,7 +43,8 @@
     inset -1px -1px 2px rgba(255, 255, 255, 0.8);
 }
 .member-routine-menu-button:focus-visible,
-.cardio-program-summary:focus-visible {
+.cardio-program-summary:focus-visible,
+.cardio-common-guidance-summary:focus-visible {
   outline: 2px solid var(--brand-orange);
   outline-offset: -3px;
 }
@@ -229,7 +230,7 @@
 #memberCardioMenuButton { font-size: 17px; }
 .cardio-common-guidance {
   margin: 0 0 24px;
-  padding: 14px 16px;
+  padding: 0;
   border: 1px solid #e0e6ee;
   border-radius: 12px;
   background: #fff;
@@ -240,11 +241,37 @@
   overflow-wrap: anywhere;
 }
 .cardio-common-guidance h3 {
-  margin: 0 0 8px;
+  margin: 0;
   color: var(--brand-navy);
   font-size: 15px;
   line-height: 1.6;
 }
+.cardio-common-guidance-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  list-style: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cardio-common-guidance-summary::-webkit-details-marker { display: none; }
+.cardio-common-guidance-action {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+  color: #ce570a;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.cardio-common-guidance-action svg { width: 16px; height: 16px; }
+.cardio-common-guidance[open] .cardio-open-label { display: none; }
+.cardio-common-guidance[open] .cardio-close-label { display: inline; }
+.cardio-common-guidance[open] .cardio-common-guidance-action svg { transform: rotate(180deg); }
+.cardio-common-guidance-content { padding: 0 16px 14px; }
 .cardio-common-guidance p { margin: 0; }
 .cardio-common-guidance p + p { margin-top: 8px; }
 @media (max-width: 360px) {

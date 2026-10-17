@@ -203,16 +203,25 @@ const CARDIO_PROGRAM_GROUPS = [
     return node;
   }
 
-  // Keep shared speed and safety guidance visible before any card is opened.
-  const commonGuidance = element("aside", "cardio-common-guidance");
+  // 공통 안내는 기본으로 접어두고 아래 운동 카드와 같은 방식으로 펼칩니다.
+  const commonGuidance = element("details", "cardio-common-guidance");
+  const commonSummary = element("summary", "cardio-common-guidance-summary");
   const commonTitle = element("h3", "", "운동 전 확인해주세요");
   commonTitle.id = "cardioCommonGuidanceTitle";
   commonGuidance.setAttribute("aria-labelledby", commonTitle.id);
-  commonGuidance.append(
-    commonTitle,
+  const commonAction = element("span", "cardio-common-guidance-action");
+  commonAction.append(
+    element("span", "cardio-open-label", "펼쳐보기"),
+    element("span", "cardio-close-label", "접기"),
+    icon("chevron")
+  );
+  commonSummary.append(commonTitle, commonAction);
+  const commonContent = element("div", "cardio-common-guidance-content");
+  commonContent.append(
     element("p", "", intensityPriority),
     element("p", "", safetyGuidance)
   );
+  commonGuidance.append(commonSummary, commonContent);
   cardio.append(commonGuidance);
 
   CARDIO_PROGRAM_GROUPS.forEach(group => {
