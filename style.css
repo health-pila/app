@@ -1042,9 +1042,11 @@ body {
   margin-bottom: 16px;
 }
 
-#workoutLogTabPanel .header h4 {
+#workoutLogTabPanel .header h4,
+#communityTabPanel .header .label {
   margin: 0;
   color: var(--brand-orange);
+  font-size: 1em;
 }
 
 #workoutLogTabPanel .header h2 {
@@ -1526,7 +1528,7 @@ body {
 
 /* 센터 커뮤니티 */
 #communityTabPanel .header {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 /* 센터 소식 목록 */
