@@ -33,22 +33,8 @@
 }
 /* 버튼의 기존 축소율은 유지하고 글자에만 역보정해 안내문과 같은 17px로 표시합니다. */
 .member-routine-menu-label {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+  display: inline-block;
   transform: scale(1.0582010582, 1.1111111111);
-}
-.member-routine-menu-icon {
-  display: block;
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 .member-routine-menu-button.is-active {
   background: #ffe0c5;
