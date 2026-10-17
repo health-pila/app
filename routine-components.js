@@ -507,7 +507,22 @@
     imageArea.setAttribute("aria-label", exercise.name + " 기구 이미지 확대");
     imageArea.setAttribute("aria-haspopup", "dialog");
     imageArea.title = "눌러서 크게 보기";
-    const zoomMark = element("span", "routine-component-image-zoom-mark", "⤢");
+    const zoomMark = element("span", "routine-component-image-zoom-mark");
+    // 기기별 글꼴 지원과 관계없이 확대 화살표를 표시합니다.
+    const zoomIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    zoomIcon.setAttribute("viewBox", "0 0 24 24");
+    zoomIcon.setAttribute("width", "18");
+    zoomIcon.setAttribute("height", "18");
+    zoomIcon.setAttribute("fill", "none");
+    zoomIcon.setAttribute("stroke", "currentColor");
+    zoomIcon.setAttribute("stroke-width", "2");
+    zoomIcon.setAttribute("stroke-linecap", "round");
+    zoomIcon.setAttribute("stroke-linejoin", "round");
+    zoomIcon.setAttribute("focusable", "false");
+    const zoomArrows = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    zoomArrows.setAttribute("d", "M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7");
+    zoomIcon.append(zoomArrows);
+    zoomMark.append(zoomIcon);
     zoomMark.setAttribute("aria-hidden", "true");
     zoomMark.hidden = true;
     const image = element("img");
