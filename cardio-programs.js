@@ -210,11 +210,8 @@ const CARDIO_PROGRAM_GROUPS = [
   commonTitle.id = "cardioCommonGuidanceTitle";
   commonGuidance.setAttribute("aria-labelledby", commonTitle.id);
   const commonAction = element("span", "cardio-common-guidance-action");
-  commonAction.append(
-    element("span", "cardio-open-label", "펼쳐보기"),
-    element("span", "cardio-close-label", "접기"),
-    icon("chevron")
-  );
+  commonAction.setAttribute("aria-hidden", "true");
+  commonAction.append(icon("chevron"));
   commonSummary.append(commonTitle, commonAction);
   const commonContent = element("div", "cardio-common-guidance-content");
   commonContent.append(
@@ -230,7 +227,7 @@ const CARDIO_PROGRAM_GROUPS = [
     const title = element("h3", "", group.title);
     title.id = `cardioGroup-${group.id}`;
     section.setAttribute("aria-labelledby", title.id);
-    groupTitle.append(icon(group.icon), title, element("small", "", `${group.programs.length}가지 프로그램`));
+    groupTitle.append(icon(group.icon), title);
     section.append(groupTitle);
     group.programs.forEach(program => {
       const details = element("details", "cardio-program-card");

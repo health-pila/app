@@ -1,6 +1,7 @@
 /* 스트레칭 목록·영상 창·관리자 전용. 기존 루틴/커뮤니티 스타일과 분리합니다. */
 .member-stretching-panel { padding: 0 16px 28px; }
 .stretching-list-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.member-stretching-panel .stretching-list-heading { justify-content: flex-end; }
 .stretching-list-heading p { margin: 0; color: #697586; font-size: 13px; line-height: 1.6; word-break: keep-all; }
 .stretching-list-heading h3 { margin: 0; color: #17233e; font-size: 16px; }
 .stretching-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }

@@ -4542,6 +4542,9 @@ body.camera-open {
   line-height: 1.5;
 }
 
+/* 회원 루틴은 선택한 패턴 버튼으로 구분하므로 반복 안내는 표시하지 않습니다. */
+#memberRoutineComponents .routine-pattern-caption { display: none; }
+
 :is(#appScreen, #adminRoutineJsonPreview, #guestDemoDialog) .routine-component-card {
   padding: 18.2px 2px;
   border: 0;
