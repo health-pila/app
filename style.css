@@ -5226,16 +5226,16 @@ body.naver-shortcut-guide-open { overflow: hidden; }
 }
 
 .routine-weight-capture {
-  font-size: 12px;
+  font-size: 14px;
   border-color: #efc4a2;
-  background: #fff3e8;
-  color: #a94200;
+  background: #fff;
+  color: var(--brand-orange);
 }
 
 .routine-weight-save-hint {
   margin: 0 0 10px;
-  color: #64748b;
-  font-size: 12px;
+  color: var(--brand-orange);
+  font-size: 13px;
   line-height: 1.5;
   word-break: keep-all;
 }

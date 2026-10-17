@@ -397,7 +397,7 @@
     table.append(head, body);
     scroll.append(table);
     const hint = element("p", "routine-weight-scroll-hint", "5세트까지 기록 가능합니다.");
-    const captureHint = element("p", "routine-weight-save-hint", "현재 기록표가 ‘운동 기록’ 탭에 사진으로 저장돼요.");
+    const captureHint = element("p", "routine-weight-save-hint", "저장 버튼을 누르면 현재 기록이 '운동 기록' 탭에 사진으로 저장돼요.");
     captureHint.id = panelId + "-save-hint";
     captureHint.hidden = true;
     const legacy = element("details", "routine-weight-legacy");
