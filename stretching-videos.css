@@ -39,7 +39,7 @@
 .stretching-admin-info span { font-size: 12px; color: #697586; }
 .stretching-secondary.stretching-delete { color: #b43529; }
 @media (max-width: 360px) {
-  .member-routine-menu-button { font-size: 14px; }
+  .member-routine-menu-button { font-size: 17px; }
   .stretching-card-caption { padding-right: 10px; padding-left: 10px; }
   .stretching-card-caption strong { font-size: 14px; }
 }

@@ -25,11 +25,16 @@
   background: #eef1f5;
   color: #4b5769;
   font: inherit;
-  font-size: 15px;
+  font-size: 17px;
   transform: scale(0.945, 0.9);
   font-weight: 700;
   line-height: 1.5;
   cursor: pointer;
+}
+/* 버튼의 기존 축소율은 유지하고 글자에만 역보정해 안내문과 같은 17px로 표시합니다. */
+.member-routine-menu-label {
+  display: inline-block;
+  transform: scale(1.0582010582, 1.1111111111);
 }
 .member-routine-menu-button.is-active {
   background: #ffe0c5;
