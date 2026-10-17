@@ -8719,6 +8719,7 @@ async function loadMemberRoutine(
 
 // 일반 회원 화면 표시
 async function showWorkoutApp(userId) {
+  window.ExerciseContentSync?.start(supabaseClient);
   updateAdminRoutineAlerts("reset");
   updateMemberCommunityBadges("start", userId, supabaseClient);
   openMemberInquiryId = null;
@@ -9324,6 +9325,7 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId) {
+  window.ExerciseContentSync?.start(supabaseClient);
   window.MemberExerciseReplacements?.reset();
   workoutCaptureBadge.reset();
   window.MemberCardioPrograms?.reset();
@@ -10383,6 +10385,7 @@ async function handleLogout() {
     window.MemberCardioPrograms?.reset();
     window.StretchingVideos?.reset();
     window.MemberExerciseReplacements?.reset();
+    window.ExerciseContentSync?.stop();
     updateAdminRoutineAlerts("reset");
     updateMemberCommunityBadges("reset");
     resetRoutineChangeRequest();

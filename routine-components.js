@@ -129,6 +129,11 @@
   }
 
   let detailsSequence = 0;
+  const contentRefreshers = new WeakMap();
+  window.addEventListener('exercisecontentchange', function () {
+    // 안내만 갱신합니다. 패턴/중량 입력/종목변경/재생 중인 영상 DOM은 보존합니다.
+    document.querySelectorAll('.routine-component-card').forEach(card => contentRefreshers.get(card)?.());
+  });
   const openMedia = new Set();
   let mediaObserver = null;
 
@@ -488,7 +493,7 @@
 
 
   function createExerciseCard(entry, options) {
-    const exercise = window.ExerciseDB.getExerciseById(entry.exerciseId);
+    let exercise = window.ExerciseDB.getExerciseById(entry.exerciseId);
     if (!exercise) throw new Error("운동DB에 없는 운동ID입니다: " + entry.exerciseId);
 
     const card = element("article", "routine-component-card");
@@ -520,6 +525,11 @@
       zoomMark.hidden = false;
     });
     image.addEventListener("error", function () {
+      const bundled = window.ExerciseDB.getExerciseImageUrl(entry.exerciseId, true);
+      if (!options?.imageUrls?.[entry.exerciseId] && bundled && image.src !== bundled) {
+        image.src = bundled;
+        return;
+      }
       image.hidden = true;
       imageArea.disabled = true;
       zoomMark.hidden = true;
@@ -561,6 +571,8 @@
     const alternativeText = alternatives.length
       ? alternatives.map(function (item) { return item.name; }).join(" · ")
       : "등록된 대체 운동이 없습니다.";
+    function refreshDetails() {
+    details.replaceChildren();
     [
       ["중요 포인트", exercise.keyPoints || "등록된 설명이 없습니다.", "routine-component-key-points"],
       ["기대 효과", exercise.benefits || "등록된 설명이 없습니다."],
@@ -575,7 +587,8 @@
       checklist.setAttribute("role", "list");
       exercise.checklist.forEach(function (item) {
         const row = element("li", "");
-        const marker = element("span", "routine-component-checkmark", "✓");
+        // 시트에 이미 작성된 체크 기호는 그대로 표시하고 장식 기호를 중복하지 않습니다.
+        const marker = element("span", "routine-component-checkmark", /^\s*(?:✅|✓|✔|☑)/u.test(item) ? "" : "✓");
         marker.setAttribute("aria-hidden", "true");
         row.append(marker, element("span", "", item));
         checklist.append(row);
@@ -585,6 +598,8 @@
       details.append(element("p", "", "등록된 체크리스트가 없습니다."));
     }
     details.append(element("h5", "", "대체 운동"), element("p", "", alternativeText));
+    }
+    refreshDetails();
     detailsButton.addEventListener("click", function () {
       preservePagePosition(function () {
         const willOpen = details.hidden;
@@ -651,6 +666,7 @@
         }
       } else if (gifUrl) {
         const gif = element("img", "routine-component-gif");
+        let gifFallbackUsed = false;
         gif.alt = exercise.name + " 동작 안내";
         const gifNotice = element("p", "routine-component-media-message", "유튜브 설명영상은 준비 중입니다");
         gifNotice.hidden = true;
@@ -659,10 +675,16 @@
         }, { once: true });
         gif.addEventListener("error", function () {
           if (gif.parentNode !== mediaArea) return;
+          const bundledGif = window.ExerciseDB.getBundledExerciseById(entry.exerciseId)?.defaultGifUrl;
+          if (!gifFallbackUsed && bundledGif && new URL(bundledGif,document.baseURI).href !== gif.src) {
+            gifFallbackUsed = true;
+            gif.src = bundledGif;
+            return;
+          }
           gif.hidden = true;
           gifNotice.hidden = true;
           mediaArea.append(element("p", "routine-component-media-message", "동작 안내 이미지를 불러오지 못했어요."));
-        }, { once: true });
+        });
         mediaArea.append(gif, gifNotice);
         gif.src = gifUrl;
       } else {
@@ -705,6 +727,26 @@
       }
       if (replacementControls.childElementCount) card.append(replacementControls);
     }
+    contentRefreshers.set(card,function () {
+      exercise = window.ExerciseDB.getExerciseById(entry.exerciseId);
+      refreshDetails();
+      const nextImage = options?.imageUrls?.[entry.exerciseId] || window.ExerciseDB.getExerciseImageUrl(entry.exerciseId);
+      if (nextImage && image.getAttribute('src') !== nextImage) {
+        image.hidden = true;
+        imageArea.disabled = true;
+        zoomMark.hidden = true;
+        placeholder.hidden = false;
+        placeholder.textContent = '사진 불러오는 중';
+        image.src = nextImage;
+      } else if (!nextImage) {
+        image.removeAttribute('src');
+        image.hidden = true;
+        imageArea.disabled = true;
+        zoomMark.hidden = true;
+        placeholder.hidden = false;
+        placeholder.textContent = '사진 준비 중';
+      }
+    });
     return card;
   }
 

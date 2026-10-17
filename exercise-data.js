@@ -1,6 +1,6 @@
 // 운동 구성 컴포넌트 DB — 시트에서 검수한 로컬 데이터
 // 출처: 2026-10-15 Google Sheets 원본 '운동 구성 컴포넌트 DB'의 운동DB_MASTER.
-// Google Sheets와 자동 동기화되지 않습니다. 다음 변경 시 다시 반영해야 합니다.
+// 이 파일은 기본 운동 정의입니다. 안내 콘텐츠 8개 필드만 별도 검증된 Supabase 데이터로 덮어 표시합니다.
 // 사용여부 Y인 39종을 새 루틴에 사용합니다.
 // 운동ID, 설명, 난이도, 이미지/영상 주소는 시트 기준입니다. 관리메모는 managementNotes에 참고용으로 보관하며 회원 화면에는 표시하지 않습니다.
 // 횟수, 세트, 휴식시간, 운동 순서는 회원별 루틴에서 따로 관리합니다.
@@ -860,18 +860,62 @@
     })
   );
 
+  const contentFields = ['imageUrl','benefits','instructions','videoUrl','defaultGifUrl','keyPoints','breathing','checklist'];
+  const contentMediaPrefix = 'https://cithfqbzszgiqjifhrqy.supabase.co/storage/v1/object/public/exercise-content-media/';
+  let contentOverlay = new Map();
+  let contentVersion = null;
+  function getBundledExerciseById(id) { return typeof id === 'string' ? exercisesById.get(id.trim()) || null : null; }
+  function applyContentSnapshot(snapshot) {
+    if (!snapshot || snapshot.schema !== 1 || !Number.isSafeInteger(snapshot.version) || snapshot.version < 1 ||
+        !snapshot.contents || Array.isArray(snapshot.contents) || typeof snapshot.contents !== 'object' ||
+        Object.keys(snapshot.contents).length !== records.length) throw new Error('운동 안내 콘텐츠 형식 오류');
+    const next = new Map();
+    records.forEach(function (base) {
+      const row = snapshot.contents[base.exerciseId];
+      if (!row || typeof row !== 'object' || Array.isArray(row) || Object.keys(row).length !== 8 ||
+          contentFields.some(f => !Object.hasOwn(row,f))) throw new Error('운동 안내 필드 오류');
+      contentFields.forEach(function (f) {
+        const value = row[f];
+        if (f === 'checklist') {
+          if (!Array.isArray(value) || value.length > 50 || value.some(v => typeof v !== 'string' || !v.trim() || v.length > 1000)) throw new Error('체크리스트 오류');
+        } else if (typeof value !== 'string' || value.length > 12000 || /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(value)) throw new Error('안내 문자열 오류');
+        if (['imageUrl','defaultGifUrl'].includes(f) && value && value !== base[f]) {
+          if (!value.startsWith(contentMediaPrefix) || !new RegExp('^[a-f0-9]{64}\\.' + (f === 'defaultGifUrl' ? 'gif' : '(jpg|png|webp|gif)') + '$').test(value.slice(contentMediaPrefix.length))) throw new Error('콘텐츠 이미지 주소 오류');
+        }
+        if (f === 'videoUrl' && value && value !== base.videoUrl) {
+          let url; try { url = new URL(value); } catch (e) { throw new Error('운동 영상 주소 오류'); }
+          const host = url.hostname.replace(/^www\./,'').replace(/^m\./,'');
+          const p = url.pathname.split('/').filter(Boolean);
+          const id = host === 'youtu.be' ? p[0] : ['youtube.com','youtube-nocookie.com'].includes(host) ?
+            (['embed','shorts','live'].includes(p[0]) ? p[1] : p[0] === 'watch' ? url.searchParams.get('v') : '') : '';
+          if (url.protocol !== 'https:' || url.username || url.password || url.port || url.hash || value.length > 2048 || !/^[A-Za-z0-9_-]{11}$/.test(id || '')) throw new Error('운동 영상 주소 오류');
+        }
+      });
+      next.set(base.exerciseId,Object.freeze({...base,...row,checklist:Object.freeze(row.checklist.slice())}));
+    });
+    // 모든 운동을 검증하기 전에는 현재 정상 데이터를 건드리지 않습니다.
+    const changed = records.some(base => {
+      const previous = contentOverlay.get(base.exerciseId) || base;
+      return contentFields.some(f => JSON.stringify(previous[f]) !== JSON.stringify(next.get(base.exerciseId)[f]));
+    });
+    contentOverlay = next;
+    contentVersion = snapshot.version;
+    if (changed) window.dispatchEvent(new CustomEvent('exercisecontentchange'));
+    return changed;
+  }
+
   // 운동명 대신 운동ID로 조회합니다. 없는 운동은 null을 반환합니다.
   function getExerciseById(exerciseId) {
     if (typeof exerciseId !== "string") {
       return null;
     }
 
-    return exercisesById.get(exerciseId.trim()) || null;
+    return contentOverlay.get(exerciseId.trim()) || exercisesById.get(exerciseId.trim()) || null;
   }
 
   // 새 루틴에 사용할 후보 목록: 사용여부가 Y인 운동만 반환합니다.
   function getActiveExercises() {
-    return records.filter(function (exercise) {
+    return records.map(exercise => getExerciseById(exercise.exerciseId)).filter(function (exercise) {
       return exercise.enabled;
     });
   }
@@ -892,8 +936,8 @@
   }
 
   // 저장 위치에 따른 이미지 주소 처리는 화면 코드와 분리합니다.
-  function getExerciseImageUrl(exerciseId) {
-    const exercise = getExerciseById(exerciseId);
+  function getExerciseImageUrl(exerciseId, bundled = false) {
+    const exercise = bundled ? getBundledExerciseById(exerciseId) : getExerciseById(exerciseId);
     if (!exercise || !exercise.imageUrl) return "";
 
     try {
@@ -925,6 +969,9 @@
     getExerciseById,
     getActiveExercises,
     getAlternativeExercises,
-    getExerciseImageUrl
+    getExerciseImageUrl,
+    getBundledExerciseById,
+    applyContentSnapshot,
+    getContentVersion: () => contentVersion
   });
 })();
