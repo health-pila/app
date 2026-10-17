@@ -762,17 +762,44 @@ body {
   text-decoration: none;
 }
 
-.routine-request-status-message {
-  margin: -14px 0 26px;
-  color: var(--brand-orange);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.4;
-  text-align: center;
+.routine-request-receipt {
+  min-width: 0;
+  margin: 0 14px 16px;
+  padding: 14px 16px;
+  border: 1px solid #ffd8b8;
+  border-radius: 16px;
+  color: #475467;
+  background: #fff7f0;
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
-.routine-request-status-message[hidden] {
+.routine-request-receipt[hidden] {
   display: none;
+}
+
+.routine-request-receipt p {
+  margin: 0;
+}
+
+.routine-request-receipt p + p {
+  margin-top: 8px;
+}
+
+.routine-request-receipt .routine-request-receipt-title {
+  color: var(--brand-orange);
+  font-size: 16px;
+}
+
+.routine-request-receipt .routine-request-receipt-time {
+  color: #9c4400;
+}
+
+.routine-request-receipt .routine-request-receipt-note {
+  color: #667085;
+  font-size: 12px;
 }
 
 .routine-description {
@@ -4650,10 +4677,6 @@ body.camera-open {
 
 .member-routine-request-area .routine-request-button {
   margin-bottom: 0;
-}
-
-.member-routine-request-area .routine-request-status-message {
-  margin: 10px 0 0;
 }
 
 #appScreen .member-bottom-nav {

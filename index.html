@@ -13,10 +13,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=131">
-  <link rel="stylesheet" href="cardio-programs.css?v=131">
-  <link rel="stylesheet" href="stretching-videos.css?v=131">
-  <link rel="stylesheet" href="member-exercise-replacements.css?v=131">
+  <link rel="stylesheet" href="style.css?v=132">
+  <link rel="stylesheet" href="cardio-programs.css?v=132">
+  <link rel="stylesheet" href="stretching-videos.css?v=132">
+  <link rel="stylesheet" href="member-exercise-replacements.css?v=132">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ec6a1a">
 
@@ -123,7 +123,7 @@
   </section>
   <main id="appScreen" class="app" hidden>
     <div class="member-app-topbar">
-      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=131" alt="헬스와 필라테스 화곡점">
+      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=132" alt="헬스와 필라테스 화곡점">
       <div class="member-topbar-actions">
         <button id="refreshMemberAppButton" class="member-refresh-button" type="button" aria-label="앱 새로고침"
           title="새로고침">
@@ -196,6 +196,13 @@
           <p>※ 1DAY PT란?<br>배우고 싶은 운동을 골라 1회씩만 신청하는 PT 강습</p>
         </div>
 
+        <section id="routineRequestStatusMessage" class="routine-request-receipt" role="status" aria-live="polite" hidden>
+          <p class="routine-request-receipt-title"><strong>✅ 운동 루틴 신청이 접수됐어요!</strong></p>
+          <p>회원님께 맞는 운동 구성을 준비하고 있어요.</p>
+          <p class="routine-request-receipt-time"><strong>보통 신청 후 1~3시간 내 앱에서 확인하실 수 있습니다.</strong></p>
+          <p class="routine-request-receipt-note">운영시간 외 또는 휴관일에 신청하신 경우 다음 운영일에 확인될 수 있어요.</p>
+        </section>
+
         <p class="member-assigned-routine"><span>배정된 구성 · </span><strong id="assignedRoutineName">불러오는 중...</strong></p>
 
         <section class="member-workout-surface" aria-labelledby="memberWorkoutTitle">
@@ -211,8 +218,6 @@
           <a id="routineRequestButton" class="routine-request-button"
             href="https://docs.google.com/forms/d/e/1FAIpQLScIH9uLzjwhGlH-RWbn9a7hmEy74MzQNLgN4Tnn4V01KcqKzg/viewform?usp=header"
             target="_self" rel="noopener noreferrer">✍️ 새 운동 루틴 신청하기</a>
-          <p id="routineRequestStatusMessage" class="routine-request-status-message" aria-live="polite" hidden>새로운 루틴을
-            구성하는 중입니다.</p>
         </div>
 
         <section id="memberRoutineSummary" class="member-routine-summary" aria-label="이번 운동 루틴 안내" hidden></section>
@@ -456,7 +461,7 @@
 
   <main id="adminScreen" class="app admin-screen" hidden>
     <div class="member-app-topbar admin-app-topbar">
-      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=131" alt="헬스와 필라테스 화곡점">
+      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=132" alt="헬스와 필라테스 화곡점">
       <div class="member-topbar-actions">
         <button id="refreshAdminAppButton" class="member-refresh-button" type="button" aria-label="관리자 화면 새로고침"
           title="새로고침">
@@ -1006,7 +1011,7 @@
         <h3 tabindex="-1"><span>1</span> ‘세부정보 더보기’를 눌러 주세요</h3>
         <p class="samsung-install-caption">글자와 아래쪽 화살표 부분을 누를 수 있어요.</p>
         <figure class="samsung-install-photo samsung-install-photo-first">
-          <img src="images/install-samsung-blocked.png?v=131" width="461" height="889"
+          <img src="images/install-samsung-blocked.png?v=132" width="461" height="889"
             alt="설치 차단 안내 예시. 확인 버튼 바로 위의 ‘세부정보 더보기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
       </section>
@@ -1014,7 +1019,7 @@
         <h3 tabindex="-1"><span>2</span> ‘무시하고 설치하기’를 선택해 주세요</h3>
         <p class="samsung-install-caption">세부정보를 펼치면 이 문구가 나타나요.</p>
         <figure class="samsung-install-photo samsung-install-photo-second">
-          <img src="images/install-samsung-details.png?v=131" width="463" height="897"
+          <img src="images/install-samsung-details.png?v=132" width="463" height="897"
             alt="세부정보를 펼친 설치 차단 안내 예시. 확인 버튼 바로 위의 ‘무시하고 설치하기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
         <p class="samsung-install-app-check">설치할 앱 이름이 <strong>헬스와필라테스</strong>인지 확인해 주세요.</p>
@@ -1057,18 +1062,18 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="exercise-data.js?v=131"></script>
-<script src="exercise-content-sync.js?v=131"></script>
-  <script src="weight-record-capture.js?v=131"></script>
-  <script src="routine-components.js?v=131"></script>
-  <script src="member-exercise-replacements.js?v=131"></script>
-  <script src="one-day-pt.js?v=131"></script>
-  <script src="admin-routine-alerts.js?v=131"></script>
-  <script src="member-community-badges.js?v=131"></script>
-  <script src="stretching-videos.js?v=131"></script>
-  <script src="cardio-programs.js?v=131"></script>
-  <script src="script.js?v=131"></script>
-  <script src="guest-demo.js?v=131"></script>
+  <script src="exercise-data.js?v=132"></script>
+<script src="exercise-content-sync.js?v=132"></script>
+  <script src="weight-record-capture.js?v=132"></script>
+  <script src="routine-components.js?v=132"></script>
+  <script src="member-exercise-replacements.js?v=132"></script>
+  <script src="one-day-pt.js?v=132"></script>
+  <script src="admin-routine-alerts.js?v=132"></script>
+  <script src="member-community-badges.js?v=132"></script>
+  <script src="stretching-videos.js?v=132"></script>
+  <script src="cardio-programs.js?v=132"></script>
+  <script src="script.js?v=132"></script>
+  <script src="guest-demo.js?v=132"></script>
 </body>
 
 

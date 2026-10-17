@@ -7925,8 +7925,9 @@ routineRequestButton.addEventListener("click", function (event) {
   if (state.activeId === null) return;
   event.preventDefault();
   if (state.activeId === undefined) {
-    routineRequestStatusMessage.textContent = "운동 구성 정보를 확인 중이에요. 잠시 후 다시 눌러 주세요. 계속되면 상단 새로고침 버튼으로 다시 확인해 주세요.";
-    routineRequestStatusMessage.hidden = false;
+    routineRequestDialogMessage.textContent = "운동 구성 정보를 확인 중이에요. 잠시 후 다시 눌러 주세요. 계속되면 상단 새로고침 버튼으로 다시 확인해 주세요.";
+    syncRoutineChangeRequest();
+    if (!routineRequestDialog.open) routineRequestDialog.showModal();
     return;
   }
   if (!state.saving) {
@@ -7959,14 +7960,10 @@ submitRoutineChange.addEventListener("click", async function () {
     if (!data || !["pending", "completed"].includes(data.status)) throw new Error("INVALID_RESPONSE");
     routineRequestDialog.close();
     if (data.status === "completed") {
-      routineRequestStatusMessage.textContent = "이전 변경 신청은 이미 처리되었어요. 최신 운동 구성을 확인해 주세요.";
-      routineRequestStatusMessage.hidden = false;
+      routineRequestStatusMessage.hidden = true;
       await loadMemberRoutine(state.userId, true);
     } else {
       state.pending = true;
-      routineRequestStatusMessage.textContent = data.request_kind === "change"
-        ? "운동 구성 변경 신청이 접수되었습니다. 기존 신청 내용을 참고해 새로운 운동 구성을 준비해 드릴게요."
-        : "이미 접수된 운동 구성 신청이 있어요. 새로운 운동 구성을 준비 중입니다.";
       routineRequestStatusMessage.hidden = false;
       await updateRoutineRequestStatus(state.userId);
     }
@@ -8009,9 +8006,6 @@ async function updateRoutineRequestStatus(userId) {
 
     if (requestId !== routineRequestStatusLoadId || appScreen.hidden) return;
     if (error) throw error;
-    routineRequestStatusMessage.textContent = data?.request_kind === "change"
-      ? "운동 구성 변경 신청이 접수되었습니다. 기존 신청 내용을 참고해 새로운 운동 구성을 준비해 드릴게요."
-      : "새로운 운동 구성을 준비 중입니다.";
     routineRequestStatusMessage.hidden = !data;
     if (routineChangeState.userId === userId) {
       routineChangeState.pending = Boolean(data);
