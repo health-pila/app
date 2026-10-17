@@ -24,6 +24,17 @@
           <label for="replacementBodyPart">운동 부위</label><select id="replacementBodyPart"><option value="">전체 부위</option></select>
           <p data-replace-count class="exercise-replacement-help" role="status"></p><div data-replace-all-list class="exercise-replacement-list"></div>
         </details>
+        <details class="exercise-replacement-personal"><summary>내가 추가한 운동</summary>
+          <p data-personal-status class="exercise-replacement-help" role="status"></p>
+          <button type="button" data-personal-refresh hidden>목록 다시 불러오기</button>
+          <div data-personal-list class="exercise-replacement-list"></div>
+        </details>
+        <details class="exercise-replacement-personal" data-personal-entry><summary>직접 운동 입력하기</summary>
+          <label for="personalExerciseName">운동명</label>
+          <input id="personalExerciseName" type="text" maxlength="60" placeholder="예: 와이드 스쿼트" autocomplete="off">
+          <p class="exercise-replacement-help">개인 운동 목록에 저장돼요. 세트·횟수·휴식시간은 다음 화면에서 직접 입력해 주세요.</p>
+          <button type="button" data-personal-choose>이 운동으로 변경하기</button>
+        </details>
       </div>
       <form data-replace-confirm hidden>
         <button type="button" data-replace-back>← 다른 운동 선택</button>
@@ -48,6 +59,8 @@
   const status = $("[data-replace-status]"), checkButton = $("[data-replace-check]");
   let client = null, userId = "", generation = 0, active = null, view = null, busy = false, reload = null;
   let returnFocus = null, previousOverflow = null, returnScroll = null, historyToken = "", historyPending = false;
+  const personalList = $("[data-personal-list]"), personalName = $("#personalExerciseName");
+  const resolveExercise = id => window.MemberCustomExercises?.getExerciseById(id) || window.ExerciseDB.getExerciseById(id);
   const historyKey = "memberExerciseReplacement";
   const slotKey = (day, order) => `${day}:${order}`;
   const clone = value => JSON.parse(JSON.stringify(value));
@@ -71,11 +84,13 @@
     if (message.includes("REPLACEMENT_CONFLICT")) return "다른 기기에서 이 운동을 변경했어요. 저장 상태를 다시 확인한 뒤 선택해 주세요.";
     if (["PGRST202", "PGRST205", "42P01", "42883"].includes(error?.code)) return "운동 교체 저장소 설정이 필요해요. 현재는 원본 루틴을 표시합니다.";
     if (error?.code === "42501" || message.includes("LOGIN_REQUIRED")) return "로그인 상태와 본인의 루틴인지 확인한 뒤 다시 시도해 주세요.";
+    if (message.includes("INVALID_CUSTOM_EXERCISE_NAME")) return "운동명을 1 ~ 60자로 입력해 주세요. 줄바꿈과 보이지 않는 문자는 사용할 수 없어요.";
     if (error?.code === "22023") return "운동과 세트·횟수·휴식시간을 확인해 주세요.";
     return "개인 변경 내용을 확인하지 못했어요. 연결을 확인하고 다시 불러와 주세요.";
   }
   async function prepare(data, id) {
     const token = generation;
+    await window.MemberCustomExercises?.ready();
     const base = window.RoutineComponents.parseRoutineJson(JSON.stringify(data.routine_json));
     const context = { userId: String(id), routineId: String(data.id), source: base, effective: clone(base), revision: "", rows: new Map(), ready: false, warning: "" };
     try {
@@ -91,7 +106,7 @@
         const day = context.effective.days.find(day => day.day === row.pattern_day);
         const entry = day?.exercises.find(entry => entry.order === row.exercise_order);
         if (!entry || entry.exerciseId !== row.original_exercise_id) return;
-        const exercise = window.ExerciseDB.getExerciseById(row.replacement_exercise_id);
+        const exercise = resolveExercise(row.replacement_exercise_id);
         const valid = exercise?.enabled && row.replacement_exercise_id !== entry.exerciseId && row.change_token &&
           Number.isInteger(row.sets) && row.sets >= 1 && row.sets <= 20 &&
           Number.isInteger(row.reps) && row.reps >= 1 && row.reps <= 1000 &&
@@ -119,7 +134,7 @@
     change.addEventListener("click", () => open(context, day, entry, change));
     root.append(change);
     if (row) {
-      const original = window.ExerciseDB.getExerciseById(row.original_exercise_id);
+      const original = resolveExercise(row.original_exercise_id);
       root.prepend(element("span", "exercise-replacement-badge", row.valid ? "직접 변경한 운동" : "변경 설정 확인 필요"));
       const restore = element("button", "exercise-replacement-restore", "원래 운동으로 복원"); restore.type = "button";
       restore.disabled = !context.ready;
@@ -138,7 +153,7 @@
     if (restore && returnScroll) window.scrollTo({ ...returnScroll, behavior: "instant" });
     if (restore && returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
     returnFocus = null; returnScroll = null; view = null;
-    recommended.replaceChildren(); allList.replaceChildren(); form.reset();
+    recommended.replaceChildren(); allList.replaceChildren(); personalList.replaceChildren(); personalName.value = ""; form.reset();
   }
   function close({ restore = true, navigate = true } = {}) {
     const own = historyToken && history.state?.[historyKey] === historyToken;
@@ -153,8 +168,32 @@
   }
   function item(exercise) {
     const button = element("button", "exercise-replacement-option"); button.type = "button";
-    button.append(element("strong", "", exercise.name), element("span", "", `${exercise.bodyParts.join(" · ")} · 난이도 ${exercise.difficulty}/5`));
+    button.append(element("strong", "", exercise.name), element("span", "", exercise.personal ? "직접 입력한 운동" : `${exercise.bodyParts.join(" · ")} · 난이도 ${exercise.difficulty}/5`));
     button.addEventListener("click", () => choose(exercise)); return button;
+  }
+  function renderPersonal() {
+    if (!view) return;
+    const rows = (window.MemberCustomExercises?.getExercises() || []).filter(exercise => exercise.exerciseId !== view.entry.exerciseId);
+    personalList.replaceChildren(...rows.map(item));
+    const failed = !window.MemberCustomExercises || window.MemberCustomExercises.getError();
+    $("[data-personal-status]").textContent = failed ? "개인 운동 목록을 불러오지 못했어요. 다시 불러와 주세요."
+      : rows.length ? `${rows.length}개 개인 운동` : "아직 추가한 운동이 없어요. 아래에서 직접 입력할 수 있어요.";
+    $("[data-personal-refresh]").hidden = !failed;
+  }
+  async function refreshPersonal(state) {
+    if (!state || !window.MemberCustomExercises) return;
+    const token = generation;
+    await window.MemberCustomExercises.refresh();
+    if (view === state && current(state.context, token)) renderPersonal();
+  }
+  function choosePersonal() {
+    if (!view || busy) return;
+    try {
+      const name = window.MemberCustomExercises.normalizeName(personalName.value);
+      const key = window.MemberCustomExercises.nameKey(name);
+      const existing = window.MemberCustomExercises.getExercises().find(exercise => window.MemberCustomExercises.nameKey(exercise.name) === key);
+      choose(existing || { exerciseId: null, name, personal: true, enabled: true, bodyParts: [], difficulty: null, exerciseType: null });
+    } catch (error) { status.textContent = error.message || "운동명을 확인해 주세요."; personalName.focus(); }
   }
   function renderAll() {
     if (!view) return;
@@ -171,13 +210,17 @@
     view = { context, day, entry, source, target: null, restore: false };
     returnFocus = trigger; returnScroll = { left: window.scrollX, top: window.scrollY }; previousOverflow = document.body.style.overflow;
     status.textContent = ""; checkButton.hidden = true; form.hidden = true; choices.hidden = false;
-    $(".exercise-replacement-current").textContent = `패턴 ${day} · ${entry.order}번 ${window.ExerciseDB.getExerciseById(entry.exerciseId)?.name || entry.exerciseId}`;
-    const alternatives = [...new Map(window.ExerciseDB.getAlternativeExercises(entry.exerciseId)
+    $(".exercise-replacement-current").textContent = `패턴 ${day} · ${entry.order}번 ${resolveExercise(entry.exerciseId)?.name || entry.exerciseId}`;
+    const alternativeId = resolveExercise(entry.exerciseId)?.personal ? source.exerciseId : entry.exerciseId;
+    const alternatives = [...new Map(window.ExerciseDB.getAlternativeExercises(alternativeId)
       .filter(exercise => exercise.exerciseId !== entry.exerciseId).map(exercise => [exercise.exerciseId, exercise])).values()];
     recommended.replaceChildren(...(alternatives.length ? alternatives.map(item) : [element("p", "exercise-replacement-help", "등록된 추천 대체 운동이 없어요. 전체 운동에서 선택할 수 있어요.")]));
     search.value = ""; bodyPart.replaceChildren(new Option("전체 부위", ""));
     [...new Set(window.ExerciseDB.getActiveExercises().flatMap(exercise => exercise.bodyParts))].sort().forEach(part => bodyPart.append(new Option(part, part)));
-    $(".exercise-replacement-all").open = false; renderAll();
+    $(".exercise-replacement-all").open = false;
+    dialog.querySelectorAll(".exercise-replacement-personal").forEach(node => { node.open = false; });
+    personalName.value = ""; renderPersonal(); renderAll();
+    void refreshPersonal(view);
     try { dialog.showModal(); } catch (_) { cleanup(true); return false; }
     document.body.style.overflow = "hidden"; $(".exercise-replacement-content").scrollTop = 0; closeButton.focus({ preventScroll: true });
     try { historyToken = `${Date.now()}-${Math.random().toString(36).slice(2)}`; history.pushState({ ...history.state, [historyKey]: historyToken }, "", location.href); } catch (_) { historyToken = ""; }
@@ -187,9 +230,10 @@
     if (!view || !exercise || !exercise.enabled || busy) return;
     view.target = exercise; view.restore = restore || exercise.exerciseId === view.source.exerciseId;
     choices.hidden = true; form.hidden = false; form.reset(); status.textContent = ""; checkButton.hidden = true;
-    $("[data-replace-target]").textContent = `${window.ExerciseDB.getExerciseById(view.entry.exerciseId).name} → ${exercise.name}`;
-    $("[data-replace-meta]").textContent = `${exercise.bodyParts.join(" · ")} · 난이도 ${exercise.difficulty}/5`;
-    const sameType = window.ExerciseDB.getExerciseById(view.entry.exerciseId).exerciseType === exercise.exerciseType;
+    $("[data-replace-target]").textContent = `${resolveExercise(view.entry.exerciseId).name} → ${exercise.name}`;
+    $("[data-replace-meta]").textContent = exercise.personal ? "직접 입력한 운동" : `${exercise.bodyParts.join(" · ")} · 난이도 ${exercise.difficulty}/5`;
+    const currentExercise = resolveExercise(view.entry.exerciseId);
+    const sameType = !currentExercise.personal && !exercise.personal && currentExercise.exerciseType === exercise.exerciseType;
     fields.hidden = view.restore;
     fields.querySelectorAll("input").forEach(input => { input.required = !view.restore; input.disabled = view.restore; });
     if (!view.restore && sameType) {
@@ -224,13 +268,19 @@
       const { data: auth, error: authError } = await client.auth.getUser();
       if (!current(context, token)) return;
       if (authError || auth?.user?.id !== userId) throw { code: "42501" };
-      const { data: result, error } = await client.rpc("set_member_exercise_replacement", {
-        p_routine_id: context.routineId, p_revision: context.revision, p_day: state.day, p_order: state.entry.order,
-        p_original_id: state.source.exerciseId, p_replacement_id: state.restore ? null : state.target.exerciseId,
-        p_sets: sets, p_reps: reps, p_rest_sec: rest, p_expected_token: row?.change_token || null, p_restore: state.restore
-      });
+      const args = { p_routine_id: context.routineId, p_revision: context.revision, p_day: state.day, p_order: state.entry.order,
+        p_original_id: state.source.exerciseId, p_sets: sets, p_reps: reps, p_rest_sec: rest, p_expected_token: row?.change_token || null };
+      const isNewPersonal = !state.restore && state.target.personal && !state.target.exerciseId;
+      if (isNewPersonal) args.p_name = state.target.name;
+      else { args.p_replacement_id = state.restore ? null : state.target.exerciseId; args.p_restore = state.restore; }
+      const { data: result, error } = await client.rpc(isNewPersonal ? "set_member_custom_exercise_replacement" : "set_member_exercise_replacement", args);
       if (!current(context, token)) return;
       if (error) throw error;
+      if (isNewPersonal) {
+        const personalId = "MY:" + result?.custom_exercise?.id;
+        if (result?.replacement?.replacement_exercise_id !== personalId) throw new Error("INVALID_RESPONSE");
+        state.target = window.MemberCustomExercises.accept(result.custom_exercise);
+      }
       if (state.restore ? result?.restored !== true : result?.replacement?.replacement_exercise_id !== state.target.exerciseId) throw new Error("INVALID_RESPONSE");
       close();
       await reload?.();
@@ -261,6 +311,9 @@
   search.addEventListener("input", renderAll); bodyPart.addEventListener("change", renderAll);
   $("[data-replace-back]").addEventListener("click", () => { form.hidden = true; choices.hidden = false; status.textContent = ""; });
   closeButton.addEventListener("click", () => close());
+  $("[data-personal-choose]").addEventListener("click", choosePersonal);
+  $("[data-personal-refresh]").addEventListener("click", () => void refreshPersonal(view));
+  personalName.addEventListener("keydown", event => { if (event.key === "Enter" && !event.isComposing) { event.preventDefault(); choosePersonal(); } });
   form.addEventListener("submit", save);
   dialog.addEventListener("cancel", event => { event.preventDefault(); close(); });
   dialog.addEventListener("close", () => { if (!dialog.open && previousOverflow !== null) close(); });

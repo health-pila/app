@@ -493,20 +493,23 @@
 
 
   function createExerciseCard(entry, options) {
-    let exercise = window.ExerciseDB.getExerciseById(entry.exerciseId);
+    let exercise = window.MemberCustomExercises?.getExerciseById(entry.exerciseId) || window.ExerciseDB.getExerciseById(entry.exerciseId);
+    const personal = exercise?.personal === true;
     if (!exercise) throw new Error("운동DB에 없는 운동ID입니다: " + entry.exerciseId);
 
     const card = element("article", "routine-component-card");
     card.dataset.exerciseId = entry.exerciseId;
+    card.classList.toggle("is-personal-exercise", personal);
     if (options?.patternDay) card.dataset.patternDay = String(options.patternDay);
     const number = element("span", "routine-component-number", String(entry.order).padStart(2, "0"));
     const main = element("div", "routine-component-main");
-    const imageArea = element("button", "routine-component-image-area routine-component-image-button");
+    const imageArea = element(personal ? "div" : "button", personal ? "routine-component-image-area routine-personal-image" : "routine-component-image-area routine-component-image-button");
     imageArea.type = "button";
     imageArea.disabled = true;
     imageArea.setAttribute("aria-label", exercise.name + " 기구 이미지 확대");
     imageArea.setAttribute("aria-haspopup", "dialog");
     imageArea.title = "눌러서 크게 보기";
+    if (personal) { imageArea.removeAttribute("title"); imageArea.removeAttribute("aria-haspopup"); imageArea.setAttribute("aria-label", "직접 입력한 운동"); }
     const zoomMark = element("span", "routine-component-image-zoom-mark");
     // 기기별 글꼴 지원과 관계없이 확대 화살표를 표시합니다.
     const zoomIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -551,11 +554,11 @@
       placeholder.hidden = false;
       placeholder.textContent = "사진을 불러오지 못했어요";
     });
-    const imageUrl = options?.imageUrls?.[entry.exerciseId] || window.ExerciseDB.getExerciseImageUrl(entry.exerciseId);
+    const imageUrl = personal ? "" : options?.imageUrls?.[entry.exerciseId] || window.ExerciseDB.getExerciseImageUrl(entry.exerciseId);
     if (imageUrl) {
       image.src = imageUrl;
     } else {
-      placeholder.textContent = "사진 준비 중";
+      placeholder.textContent = personal ? "직접 입력한 운동" : "사진 준비 중";
     }
     imageArea.append(image, placeholder, zoomMark);
     imageArea.addEventListener("click", function () {
@@ -718,7 +721,7 @@
         else media.close();
       });
     });
-    actions.append(detailsButton, videoButton);
+    if (!personal) actions.append(detailsButton, videoButton);
 
     if (options?.oneDayPT && window.OneDayPT) {
       actions.append(window.OneDayPT.createAddButton(entry.exerciseId));
@@ -742,7 +745,7 @@
       }
       if (replacementControls.childElementCount) card.append(replacementControls);
     }
-    contentRefreshers.set(card,function () {
+    if (!personal) contentRefreshers.set(card,function () {
       exercise = window.ExerciseDB.getExerciseById(entry.exerciseId);
       refreshDetails();
       const nextImage = options?.imageUrls?.[entry.exerciseId] || window.ExerciseDB.getExerciseImageUrl(entry.exerciseId);

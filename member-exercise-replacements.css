@@ -32,3 +32,12 @@
 .exercise-replacement-dose-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .exercise-replacement-dialog .exercise-replacement-save { width: 100%; min-height: 46px; margin-top: 12px; color: #fff; background: #ec6a1a; border-color: #ec6a1a; font-size: 14px; }
 .exercise-replacement-dialog button:focus-visible, .exercise-replacement-dialog summary:focus-visible, .exercise-replacement-change:focus-visible, .exercise-replacement-controls button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
+
+/* 개인 운동은 공식 카드의 안내/영상 자리를 남기지 않고 두 버튼을 나란히 표시합니다. */
+.exercise-replacement-personal { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e4e8ef; }
+.exercise-replacement-personal summary { min-height: 40px; color: #a94200; font-size: 14px; font-weight: 700; cursor: pointer; }
+.exercise-replacement-personal [data-personal-choose] { width: 100%; margin-top: 8px; background: #fff4ea; color: #a94200; }
+.routine-component-card.is-personal-exercise .routine-component-body-parts { display: none; }
+.routine-component-card.is-personal-exercise .routine-component-actions > button { grid-column: auto; grid-row: auto; }
+.routine-personal-image { border: 1px solid #dce2eb; box-sizing: border-box; }
+.routine-personal-image .routine-component-image-placeholder { color: #526078; font-size: 12px; line-height: 1.6; word-break: keep-all; }

@@ -8725,6 +8725,7 @@ async function showWorkoutApp(userId) {
   loginScreen.hidden = true;
   adminScreen.hidden = true;
   appScreen.hidden = false;
+  window.MemberCustomExercises?.start(supabaseClient, userId);
   window.StretchingVideos?.startMember(supabaseClient, userId);
   window.MemberExerciseReplacements?.startMember(supabaseClient, userId, () => loadMemberRoutine(userId, true));
 

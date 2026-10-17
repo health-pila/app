@@ -20,6 +20,7 @@
     if (text != null) el.textContent = text;
     return el;
   }
+  const resolveExercise = id => window.MemberCustomExercises?.getExerciseById(id) || window.ExerciseDB.getExerciseById(id);
   function active(row) { return row.status === "pending" || row.status === "contacted"; }
   function current(ticket, expectedRole) { return ticket === generation && role === expectedRole; }
   function storageKey() { return "oneDayPtCart:" + userId; }
@@ -30,7 +31,7 @@
   function restoreCart() {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey()));
-      cart = Array.isArray(saved?.ids) ? [...new Set(saved.ids)].filter(id => typeof id === "string" && window.ExerciseDB.getExerciseById(id)).slice(0, MAX_ITEMS) : [];
+      cart = Array.isArray(saved?.ids) ? [...new Set(saved.ids)].filter(id => typeof id === "string" && (resolveExercise(id) || window.MemberCustomExercises?.isPersonalId(id))).slice(0, MAX_ITEMS) : [];
       requestId = typeof saved?.requestId === "string" && /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(saved.requestId) ? saved.requestId : "";
     } catch (_) { cart = []; requestId = ""; }
   }
@@ -47,7 +48,7 @@
       : "+ 이 운동을\nPT 희망 종목에 담기";
     button.classList.toggle("is-added", added);
     button.setAttribute("aria-pressed", String(added));
-    button.disabled = role !== "member" || submitting;
+    button.disabled = role !== "member" || submitting || !resolveExercise(button.dataset.exerciseId);
   }
   function createAddButton(exerciseId) {
     const button = node("button", "one-day-pt-add-button");
@@ -58,7 +59,7 @@
     button.addEventListener("click", () => {
       if (role !== "member" || submitting) return;
 
-      const exercise = window.ExerciseDB.getExerciseById(exerciseId);
+      const exercise = resolveExercise(exerciseId);
       if (!exercise) return;
 
       const added = cart.includes(exerciseId);
@@ -92,7 +93,7 @@
     document.querySelectorAll("#appScreen .one-day-pt-add-button").forEach(updateAddButton);
     $("oneDayPtCartList").replaceChildren();
     cart.forEach(id => {
-      const exercise = window.ExerciseDB.getExerciseById(id);
+      const exercise = resolveExercise(id);
       if (!exercise) return;
       const item = node("li", "one-day-pt-cart-item");
       item.append(node("span", "", exercise.name));
@@ -108,7 +109,7 @@
       });
       item.append(remove); $("oneDayPtCartList").append(item);
     });
-    $("submitOneDayPt").disabled = role !== "member" || !cart.length || submitting || memberLoading || !memberReady || memberRows.some(active);
+    $("submitOneDayPt").disabled = role !== "member" || !cart.length || cart.some(id => !resolveExercise(id)) || submitting || memberLoading || !memberReady || memberRows.some(active);
     $("submitOneDayPt").textContent = submitting ? "신청을 접수하고 있어요…" : "이 구성으로 1DAY PT 신청하기";
     $("refreshMemberOneDayPt").disabled = memberLoading || submitting;
   }
@@ -162,7 +163,7 @@
   }
   async function submit() {
     if ($("submitOneDayPt").disabled || role !== "member") return;
-    const exercises = cart.map(id => ({ exerciseId: id, name: window.ExerciseDB.getExerciseById(id).name }));
+    const exercises = cart.map(id => ({ exerciseId: id, name: resolveExercise(id).name }));
     if (!window.confirm("선택한 " + exercises.length + "개 운동으로 1DAY PT를 신청할까요?\n센터가 별도로 연락해 일정을 예약하며, 결제는 현장에서 진행합니다.")) return;
     const ticket = generation;
     submitting = true; requestId = requestId || crypto.randomUUID(); saveCart(); renderCart();
@@ -329,7 +330,11 @@
     }).subscribe();
   }
   async function showMember(db, id) {
-    reset(); client = db; userId = id; role = "member"; restoreCart(); renderCart(); subscribe(); await loadMember();
+    reset(); client = db; userId = id; role = "member";
+    const ticket = generation;
+    await window.MemberCustomExercises?.ready();
+    if (!current(ticket, "member")) return;
+    restoreCart(); renderCart(); subscribe(); await loadMember();
   }
   async function showAdmin(db, id) {
     reset(); client = db; userId = id || "admin"; role = "admin";
@@ -356,6 +361,9 @@
     if (isCurrentAdmin()) {
       void loadAdmin(); void loadAdminAlerts(); scheduleAdminAlertPoll();
     } else if (role === "member" && dialog.open) void loadMember();
+  });
+  window.addEventListener("memberpersonalexerciseschange", () => {
+    if (role === "member" && window.MemberCustomExercises?.getUserId() === userId) renderCart();
   });
   window.OneDayPT = Object.freeze({ showMember, showAdmin, reset, createAddButton });
 })();

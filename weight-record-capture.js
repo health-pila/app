@@ -10,7 +10,7 @@
 
   function normalize(snapshot) {
     if (!snapshot || typeof snapshot.userId !== "string" || !snapshot.userId ||
-        !/^EX\d+$/.test(snapshot.exerciseId) || typeof snapshot.exerciseName !== "string" ||
+        !(typeof snapshot.exerciseId === "string" && (/^EX\d+$/.test(snapshot.exerciseId) || /^MY:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(snapshot.exerciseId))) || typeof snapshot.exerciseName !== "string" ||
         !snapshot.exerciseName.trim() || !Array.isArray(snapshot.sets) || snapshot.sets.length !== 5) {
       throw new Error("캡처할 운동 기록을 확인할 수 없어요.");
     }
