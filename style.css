@@ -746,7 +746,11 @@ body {
 
 /* 루틴 신청 버튼 */
 .routine-request-button {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  min-height: 46px;
   margin: 0 0 26px;
   padding: 14px 16px;
   color: var(--brand-white);
@@ -1035,7 +1039,12 @@ body {
 
 /* 운동 기록 탭 */
 #workoutLogTabPanel .header {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+}
+
+#workoutLogTabPanel .header h4 {
+  margin: 0;
+  color: var(--brand-orange);
 }
 
 #workoutLogTabPanel .header h2 {
@@ -1178,23 +1187,23 @@ body {
 
 /* 달력 세로 높이 줄이기 */
 .workout-calendar-card {
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding-top: 10.8px;
+  padding-bottom: 10.8px;
 }
 
 .workout-calendar-header {
-  grid-template-columns: 34px 1fr 34px;
-  margin-bottom: 10px;
+  grid-template-columns: 30.6px 1fr 30.6px;
+  margin-bottom: 9px;
 }
 
 .calendar-month-button {
-  width: 34px;
-  height: 34px;
+  width: 30.6px;
+  height: 30.6px;
   font-size: 24px;
 }
 
 .workout-calendar-weekdays {
-  margin-bottom: 4px;
+  margin-bottom: 3.6px;
 }
 
 .workout-calendar-days {
@@ -1204,12 +1213,12 @@ body {
 .workout-calendar-day {
   justify-self: center;
   width: 34px;
-  height: 34px;
+  height: 30.6px;
   aspect-ratio: auto;
 }
 
 .workout-calendar-empty {
-  height: 34px;
+  height: 30.6px;
   aspect-ratio: auto;
 }
 
@@ -1244,9 +1253,10 @@ body {
   justify-content: center;
   gap: 8px;
   width: 100%;
-  min-height: 56px;
+  height: 46px;
+  min-height: 46px;
   margin-bottom: 22px;
-  padding: 14px 16px;
+  padding: 10px 16px;
   color: var(--brand-white);
   background-color: var(--brand-orange);
   border: 1px solid var(--brand-orange);
@@ -3590,6 +3600,10 @@ body.camera-open {
   font-size: 14px;
 }
 
+.routine-component-details h5.routine-component-key-points {
+  color: var(--brand-orange);
+}
+
 .routine-component-details p,
 .routine-component-checklist {
   margin: 0;
@@ -4234,21 +4248,20 @@ body.camera-open {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: calc(64px + env(safe-area-inset-top));
+  min-height: calc(52px + env(safe-area-inset-top));
   margin: 0;
-  padding: calc(10px + env(safe-area-inset-top)) 18px 10px;
+  padding: calc(3.5px + env(safe-area-inset-top)) 18px 3.5px;
   background: #fff;
   border-bottom: 1px solid #e4e8ef;
 }
 
 :is(#appScreen, #adminScreen) .member-app-topbar .screen-logo-top {
   flex-shrink: 0;
-  /* White backing and logo are rendered together in an opaque PNG.
-     Negative margins preserve the original logo footprint and header spacing. */
-  width: 144px;
-  height: 48px;
+  /* 헤더 높이에 맞춰 흰 배경을 포함한 로고도 20% 축소합니다. */
+  width: 115.2px;
+  height: 38.4px;
   max-width: calc(100% - 96px);
-  margin: -4px -6px;
+  margin: -3.2px -4.8px;
   border-radius: 6px;
   object-fit: contain;
 }
@@ -5072,7 +5085,8 @@ body.camera-open {
 .routine-request-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .routine-request-dialog-heading h2 { margin: 0; font-size: 20px; color: #c24c00; }
 .routine-request-dialog-heading button { width: auto; min-height: 40px; padding: 8px 12px; border: 1px solid #d9dfe7; border-radius: 10px; background: #fff; color: #334155; font: inherit; font-size: 13px; flex-shrink: 0; }
-#routineRequestDialogHelp, .routine-request-dialog-message { font-size: 14.3px; line-height: 1.7; color: #526176; overflow-wrap: anywhere; }
+.routine-request-dialog-message { font-size: 14.3px; line-height: 1.7; color: #526176; overflow-wrap: anywhere; }
+#routineRequestDialogHelp { margin: 12px 0 0; color: var(--brand-orange); font-size: 16.5px; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; }
 .routine-request-choice { box-sizing: border-box; display: block; width: 100%; margin: 12px 0 0; padding: 16px 14px; border: 1px solid #d9dfe7; border-radius: 14px; background: #f8fafc; color: #18243b; font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
 .routine-request-choice strong { display: block; font-size: 16.5px; line-height: 1.6; }
 .routine-request-choice span { display: block; margin-top: 5px; font-size: 13.2px; line-height: 1.6; color: #526176; }

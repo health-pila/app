@@ -562,12 +562,12 @@
       ? alternatives.map(function (item) { return item.name; }).join(" · ")
       : "등록된 대체 운동이 없습니다.";
     [
+      ["중요 포인트", exercise.keyPoints || "등록된 설명이 없습니다.", "routine-component-key-points"],
       ["기대 효과", exercise.benefits || "등록된 설명이 없습니다."],
       ["자세 설명", exercise.instructions || "등록된 설명이 없습니다."],
-      ["중요 포인트", exercise.keyPoints || "등록된 설명이 없습니다."],
       ["호흡 방법", exercise.breathing || "등록된 설명이 없습니다."]
     ].forEach(function (section) {
-      details.append(element("h5", "", section[0]), element("p", "", section[1]));
+      details.append(element("h5", section[2] || "", section[0]), element("p", "", section[1]));
     });
     details.append(element("h5", "", "잘하고 있는지 체크리스트"));
     if (Array.isArray(exercise.checklist) && exercise.checklist.length) {

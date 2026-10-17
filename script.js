@@ -8051,8 +8051,10 @@ let memberRoutineAssignmentKey = null;
 const memberRoutineSummary = document.querySelector("#memberRoutineSummary");
 const memberWorkoutTitle = document.querySelector("#memberWorkoutTitle");
 const memberRoutinePlaceholder = document.querySelector("#memberRoutinePlaceholder");
+const memberOneDayPtEntry = document.querySelector("#memberOneDayPtEntry");
 
 function resetMemberRoutineComponents() {
+  memberOneDayPtEntry.hidden = true;
   window.MemberExerciseReplacements?.deactivate();
   memberRoutineAssignmentKey = null;
   memberRoutineComponents.replaceChildren();
@@ -8690,6 +8692,7 @@ async function loadMemberRoutine(
 
     memberRoutineDisplayedUserId = userId;
     memberRoutineDisplayedId = data.id;
+    memberOneDayPtEntry.hidden = false;
 
     updateRoutineRequestStatus(
       userId,
