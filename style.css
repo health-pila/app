@@ -4717,17 +4717,17 @@ body.camera-open {
 
 #appScreen .member-tab-button {
   min-height: 48px;
-  padding: 2px 3px;
+  padding: 0 3px;
   gap: 1px;
   border-radius: 14px;
 }
 
-/* 중분류 이미지의 실제 표시 크기(약 68 × 54px)의 절반입니다. */
+/* v147 대비 이미지는 20% 키우고 버튼 여백을 줄여 하단 탭 높이를 유지합니다. */
 #appScreen .member-nav-image {
   display: block;
-  flex: 0 0 27px;
-  width: 34px;
-  height: 27px;
+  flex: 0 0 32.4px;
+  width: 40.8px;
+  height: 32.4px;
   object-fit: contain;
   pointer-events: none;
   user-select: none;
