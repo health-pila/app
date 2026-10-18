@@ -8021,7 +8021,7 @@ async function updateRoutineRequestStatus(userId) {
       "이미 접수된 운동 구성 신청이 있어요. 새 신청서를 작성하면 변경된 내용을 추가로 알려줄 수 있어요."
     ].includes(routineRequestDialogMessage.textContent)) routineRequestDialogMessage.textContent = "";
     syncRoutineChangeRequest();
-    if (data) syncMemberRoutineTutorial(state);
+    if (data) await syncMemberRoutineTutorial(state);
 
     // 활성 배정이 없을 때만 과거 신청·배정 이력을 조회합니다.
     // 조회가 끝나기 전이나 실패한 경우에는 미신청으로 간주하지 않습니다.
@@ -8031,7 +8031,7 @@ async function updateRoutineRequestStatus(userId) {
       if (!current()) return false;
       state.tutorialEligible = !history.hasRequested && !history.hasAssigned;
       syncRoutineChangeRequest();
-      syncMemberRoutineTutorial(state);
+      await syncMemberRoutineTutorial(state);
     }
     return true;
   } catch (error) {
@@ -8064,6 +8064,7 @@ memberRoutineComponents.setAttribute("aria-label", "배정된 운동 구성");
 memberRoutineComponents.hidden = true;
 routineCarousel.insertAdjacentElement("afterend", memberRoutineComponents);
 let memberRoutineComponentsKey = null;
+let memberTutorialLoadId = 0;
 let memberRoutineAssignmentKey = null;
 const memberRoutineSummary = document.querySelector("#memberRoutineSummary");
 const memberWorkoutTitle = document.querySelector("#memberWorkoutTitle");
@@ -8081,6 +8082,7 @@ function clearMemberTutorialDecoration() {
 }
 
 function resetMemberRoutineComponents() {
+  memberTutorialLoadId++;
   clearMemberTutorialDecoration();
   memberOneDayPtEntry.hidden = true;
   window.MemberExerciseReplacements?.deactivate();
@@ -8104,20 +8106,26 @@ function showUnassignedMemberRoutine() {
   memberRoutinePlaceholder.textContent = "아직 배정된 운동 루틴이 없어요.\n새 운동 루틴을 신청해 주세요.";
 }
 
-function syncMemberRoutineTutorial(state) {
+async function syncMemberRoutineTutorial(state) {
   if (state !== routineChangeState || appScreen.hidden || state.activeId !== null) return;
   if (state.pending === true || state.tutorialEligible === false) {
     showUnassignedMemberRoutine();
     return;
   }
   if (state.pending !== false || state.tutorialEligible !== true) return;
-  const key = "tutorial:" + state.userId;
+  const ticket = ++memberTutorialLoadId;
+  const customization = await window.MemberRoutineTutorial.prepare(state.userId);
+  if (ticket !== memberTutorialLoadId || state !== routineChangeState || appScreen.hidden ||
+    state.activeId !== null || state.pending !== false || state.tutorialEligible !== true || !customization) return;
+  if (customization.unavailable) { showUnassignedMemberRoutine(); return; }
+  const key = "tutorial:" + customization.key;
   if (memberRoutineComponentsKey !== key) {
-    const root = window.MemberRoutineTutorial.render({ userId: state.userId, captureWeightRecord: saveWeightRecordCapture });
+    const root = window.MemberRoutineTutorial.render({ userId: state.userId, captureWeightRecord: saveWeightRecordCapture, customization });
     resetMemberRoutineComponents();
     memberRoutineComponents.replaceChildren(root);
     memberRoutineComponentsKey = key;
   }
+  window.MemberExerciseReplacements?.activate(customization);
   memberRoutineComponents.classList.add("is-tutorial");
   memberRoutineComponents.dataset.tutorial = "true";
   memberRoutineComponents.setAttribute("aria-label", "공통 튜토리얼 운동");

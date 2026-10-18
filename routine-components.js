@@ -499,9 +499,10 @@
 
     const card = element("article", "routine-component-card");
     card.dataset.exerciseId = entry.exerciseId;
+    if (options?.addedRow) card.dataset.addedCardId = options.addedRow.id;
     card.classList.toggle("is-personal-exercise", personal);
     if (options?.patternDay) card.dataset.patternDay = String(options.patternDay);
-    const number = element("span", "routine-component-number", String(entry.order).padStart(2, "0"));
+    const number = element("span", "routine-component-number", String(options?.displayOrder || entry.order).padStart(2, "0"));
     const main = element("div", "routine-component-main");
     const imageArea = element(personal ? "div" : "button", personal ? "routine-component-image-area routine-personal-image" : "routine-component-image-area routine-component-image-button");
     imageArea.type = "button";
@@ -746,7 +747,7 @@
       card.append(weight.panel);
     }
     if (options?.exerciseReplacementContext && window.MemberExerciseReplacements) {
-      const replacementControls = window.MemberExerciseReplacements.controls(options.exerciseReplacementContext, options.patternDay, entry);
+      const replacementControls = window.MemberExerciseReplacements.controls(options.exerciseReplacementContext, options.patternDay, entry, options.addedRow);
       const changeButton = replacementControls.querySelector(".exercise-replacement-change");
       if (changeButton) {
         title.classList.add("routine-component-title-with-change");
@@ -826,6 +827,15 @@
       day.exercises.forEach(function (exercise) {
         panel.append(createExerciseCard(exercise, { ...options, patternDay: day.day }));
       });
+      const customization = options?.exerciseReplacementContext;
+      if (customization && window.MemberExerciseReplacements) {
+        (customization.additions || []).filter(row => row.pattern_day === day.day).forEach(function (row, addedIndex) {
+          const displayOrder = Math.max(...day.exercises.map(exercise => exercise.order)) + addedIndex + 1;
+          const entry = { exerciseId: row.exercise_id, order: displayOrder, sets: row.sets, reps: row.reps, restSec: row.rest_sec };
+          panel.append(createExerciseCard(entry, { ...options, patternDay: day.day, addedRow: row, displayOrder }));
+        });
+        panel.append(window.MemberExerciseReplacements.addControl(customization, day.day));
+      }
       entries.push({ tab, panel });
       tabs.append(tab);
       tab.addEventListener("click", function () {

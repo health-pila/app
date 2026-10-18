@@ -41,3 +41,10 @@
 .routine-component-card.is-personal-exercise .routine-component-actions > button { grid-column: auto; grid-row: auto; }
 .routine-personal-image { border: 1px solid #dce2eb; box-sizing: border-box; }
 .routine-personal-image .routine-component-image-placeholder { color: #526078; font-size: 12px; line-height: 1.6; word-break: keep-all; }
+
+/* 추가 카드는 원본 운동과 같은 카드를 쓰며 패턴 끝에만 붙입니다. */
+.member-pattern-add { display: block; width: 100%; min-height: 40px; margin: 16px 0 4px; padding: 9px 12px; border: 1px solid #dce2eb; border-radius: 10px; background: #fff; color: #526078; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.member-pattern-add:disabled { opacity: .5; cursor: default; }
+.member-pattern-add:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
+.exercise-replacement-controls .member-pattern-remove { margin-left: auto; color: #697586; }
+#memberRoutineComponents.is-tutorial .is-personal-exercise .routine-component-actions { grid-template-columns: minmax(0, 1fr); }

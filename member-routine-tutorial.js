@@ -19,11 +19,11 @@
     return { hasRequested: Boolean(results[0].data), hasAssigned: Boolean(results[1].data) };
   }
 
-  function render({ userId, captureWeightRecord }) {
-    const parsed = window.RoutineComponents.parseRoutineJson(JSON.stringify(routine));
+  function render({ userId, captureWeightRecord, customization }) {
+    const parsed = customization?.effective || window.RoutineComponents.parseRoutineJson(JSON.stringify(routine));
     const root = window.RoutineComponents.renderRoutine(parsed, {
-      layout: "tabs", userId, captureWeightRecord
-      // oneDayPT와 exerciseReplacementContext는 전달하지 않습니다.
+      layout: "tabs", userId, captureWeightRecord, exerciseReplacementContext: customization
+      // 튜토리얼에는 oneDayPT 권한을 전달하지 않습니다.
     });
     root.classList.add("member-routine-tutorial");
     // 가입 전 미리보기와 동일하게 기존 카드 렌더러에서 단일 패턴만 사용합니다.
@@ -36,9 +36,10 @@
     panel.removeAttribute("tabindex");
     panel.setAttribute("aria-label", "튜토리얼 운동");
     // 표시용 띄어쓰기만 적용합니다. 공식 DB·운동 ID·기록 연결은 EX016 그대로입니다.
-    root.querySelector('[data-exercise-id="EX016"] .routine-component-name').textContent = "시티드 레그 프레스";
+    const legPress = root.querySelector('[data-exercise-id="EX016"] .routine-component-name');
+    if (legPress) legPress.textContent = "시티드 레그 프레스";
     return root;
   }
 
-  window.MemberRoutineTutorial = Object.freeze({ readHistory, render });
+  window.MemberRoutineTutorial = Object.freeze({ readHistory, render, prepare: id => window.MemberExerciseReplacements.prepareTutorial(routine, id) });
 })();

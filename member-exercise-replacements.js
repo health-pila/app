@@ -62,6 +62,8 @@
   const personalList = $("[data-personal-list]"), personalName = $("#personalExerciseName");
   const resolveExercise = id => window.MemberCustomExercises?.getExerciseById(id) || window.ExerciseDB.getExerciseById(id);
   const historyKey = "memberExerciseReplacement";
+  const extrasCache = new Map();
+  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
   const slotKey = (day, order) => `${day}:${order}`;
   const clone = value => JSON.parse(JSON.stringify(value));
   function element(tag, className, text) {
@@ -81,6 +83,9 @@
   function errorMessage(error) {
     const message = String(error?.message || "");
     if (message.includes("ROUTINE_CHANGED")) return "새 운동 루틴이 배정됐어요. 다시 불러온 뒤 변경해 주세요.";
+    if (message.includes("TUTORIAL_UNAVAILABLE")) return "신청·배정 상태가 변경됐어요. 상단 새로고침 버튼으로 확인해 주세요.";
+    if (message.includes("ADDITION_UNAVAILABLE")) return "이 추가 운동을 확인하지 못했어요. 다시 불러와 주세요.";
+    if (message.includes("ADDITION_CONFLICT")) return "다른 기기에서 이 추가 운동을 변경했어요. 저장 상태를 다시 확인해 주세요.";
     if (message.includes("REPLACEMENT_CONFLICT")) return "다른 기기에서 이 운동을 변경했어요. 저장 상태를 다시 확인한 뒤 선택해 주세요.";
     if (["PGRST202", "PGRST205", "42P01", "42883"].includes(error?.code)) return "운동 교체 저장소 설정이 필요해요. 현재는 원본 루틴을 표시합니다.";
     if (error?.code === "42501" || message.includes("LOGIN_REQUIRED")) return "로그인 상태와 본인의 루틴인지 확인한 뒤 다시 시도해 주세요.";
@@ -122,17 +127,139 @@
       context.source = base; context.effective = clone(base);
       context.ready = false; context.rows.clear(); context.revision = "";
     }
-    context.key = JSON.stringify([context.userId, context.routineId, context.revision, context.source, [...context.rows.values()], context.ready]);
+    context.sourceKind = "assigned";
+    if (context.ready) await prepareExtras(context, token);
+    if (token !== generation || String(id) !== userId) return null;
+    context.key = contextKey(context);
     return context;
   }
-  function controls(context, day, entry) {
+  function contextKey(context) {
+    return JSON.stringify([context.userId, context.sourceKind, context.routineId, context.revision,
+      context.source, [...context.rows.values()], context.additions || [], context.ready,
+      Boolean(context.extrasReady), context.warning]);
+  }
+  function sourceArgs(context) {
+    return { p_source_kind: context.sourceKind, p_source_id: context.routineId, p_source_revision: context.revision };
+  }
+  function validDose(row) {
+    return Number.isInteger(row.sets) && row.sets >= 1 && row.sets <= 20 &&
+      Number.isInteger(row.reps) && row.reps >= 1 && row.reps <= 1000 &&
+      Number.isInteger(row.rest_sec) && row.rest_sec >= 0 && row.rest_sec <= 3600;
+  }
+  async function prepareExtras(context, token) {
+    const cacheKey = JSON.stringify([context.userId, context.sourceKind, context.routineId, context.revision]);
+    context.additions = []; context.extrasReady = false;
+    let timer;
+    try {
+      const { data: result, error } = await Promise.race([
+        client.rpc("get_member_pattern_extras", sourceArgs(context)),
+        new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("PATTERN_EXTRAS_TIMEOUT")), 10000); })
+      ]);
+      if (error) throw error;
+      if (token !== generation || context.userId !== userId) return;
+      if (result?.source_kind !== context.sourceKind || result.source_id !== context.routineId ||
+        result.source_revision !== context.revision || !Array.isArray(result.additions) ||
+        !Array.isArray(result.tutorial_replacements)) throw new Error("INVALID_EXTRAS_RESPONSE");
+      const source = window.RoutineComponents.parseRoutineJson(JSON.stringify(result.source_json));
+      if (JSON.stringify(source) !== JSON.stringify(context.source)) throw new Error("ROUTINE_CHANGED");
+      const ids = new Set();
+      result.additions.forEach(row => {
+        const exercise = resolveExercise(row.exercise_id);
+        if (row.user_id !== userId || row.source_kind !== context.sourceKind || row.source_id !== context.routineId ||
+          row.source_revision !== context.revision || !uuidPattern.test(row.id) || ids.has(row.id) ||
+          !uuidPattern.test(row.change_token) || row.deleted_at != null || !validDose(row) || !exercise?.enabled ||
+          !Number.isSafeInteger(Number(row.created_seq)) || Number(row.created_seq) <= 0 ||
+          !context.source.days.some(day => day.day === row.pattern_day)) throw new Error("INVALID_ADDED_CARD");
+        ids.add(row.id);
+      });
+      if (context.sourceKind === "tutorial") {
+        const slots = new Set();
+        result.tutorial_replacements.forEach(row => {
+          const original = context.source.days.find(day => day.day === row.pattern_day)?.exercises.find(e => e.order === row.exercise_order);
+          const slot = slotKey(row.pattern_day, row.exercise_order);
+          if (row.user_id !== userId || row.tutorial_version !== context.revision || !original ||
+            original.exerciseId !== row.original_exercise_id || slots.has(slot) || !uuidPattern.test(row.change_token) ||
+            !validDose(row) || !resolveExercise(row.replacement_exercise_id)?.enabled ||
+            row.replacement_exercise_id === original.exerciseId) throw new Error("INVALID_TUTORIAL_REPLACEMENT");
+          slots.add(slot);
+        });
+      } else if (result.tutorial_replacements.length) throw new Error("INVALID_EXTRAS_RESPONSE");
+      extrasCache.set(cacheKey, clone(result)); context.extrasReady = true;
+    } catch (error) {
+      if (token !== generation || context.userId !== userId) return;
+      if (String(error?.message).includes("TUTORIAL_UNAVAILABLE")) {
+        context.unavailable = true; extrasCache.delete(cacheKey);
+      }
+      context.warning = [context.warning, errorMessage(error)].filter(Boolean).join(" ");
+    } finally { clearTimeout(timer); }
+    const saved = extrasCache.get(cacheKey);
+    if (!saved || context.unavailable) return;
+    context.additions = clone(saved.additions).sort((a, b) => Number(a.created_seq) - Number(b.created_seq));
+    if (context.sourceKind === "tutorial") {
+      saved.tutorial_replacements.forEach(row => {
+        const entry = context.effective.days.find(day => day.day === row.pattern_day).exercises.find(e => e.order === row.exercise_order);
+        context.rows.set(slotKey(row.pattern_day, row.exercise_order), { ...row, valid: true });
+        Object.assign(entry, { exerciseId: row.replacement_exercise_id, sets: row.sets, reps: row.reps, restSec: row.rest_sec });
+      });
+    }
+  }
+  async function prepareTutorial(data, id) {
+    const token = generation;
+    await window.MemberCustomExercises?.ready();
+    if (token !== generation || String(id) !== userId || !client) return null;
+    const source = window.RoutineComponents.parseRoutineJson(JSON.stringify(data));
+    const context = { userId: String(id), sourceKind: "tutorial", routineId: "common", revision: "1",
+      source, effective: clone(source), rows: new Map(), ready: true, warning: "" };
+    await prepareExtras(context, token);
+    if (token !== generation || String(id) !== userId) return null;
+    context.ready = context.extrasReady;
+    context.key = contextKey(context);
+    return context;
+  }
+  function addControl(context, day) {
+    const button = element("button", "member-pattern-add", "+ 운동 추가하기");
+    button.type = "button"; button.disabled = !context.extrasReady;
+    button.setAttribute("aria-haspopup", "dialog"); button.setAttribute("aria-controls", dialog.id);
+    button.addEventListener("click", () => open(context, day, null, button, "add"));
+    return button;
+  }
+  async function removeAdded(context, row, trigger) {
+    if (!current(context) || !visible() || busy || !context.extrasReady ||
+      !window.confirm(`'${resolveExercise(row.exercise_id)?.name || "추가 운동"}'을 이 패턴에서 삭제할까요?\n개인 운동 목록과 중량 기록은 유지됩니다.`)) return;
+    const token = generation; busy = true; trigger.disabled = true;
+    try {
+      const { data: auth, error: authError } = await client.auth.getUser();
+      if (!current(context, token)) return;
+      if (authError || auth?.user?.id !== userId) throw { code: "42501" };
+      const { data: result, error } = await client.rpc("remove_member_pattern_exercise", {
+        p_id: row.id, ...sourceArgs(context), p_expected_token: row.change_token
+      });
+      if (!current(context, token)) return;
+      if (error) throw error;
+      if (result?.removed !== true || result.id !== row.id) throw new Error("INVALID_RESPONSE");
+      await reload?.();
+      if (token !== generation || userId !== context.userId) return;
+      if (!active?.extrasReady || active?.additions.some(x => x.id === row.id))
+        showNotice("삭제 결과를 화면에서 확인하지 못했어요. 다시 불러와 주세요.", true);
+    } catch (error) {
+      if (current(context, token)) showNotice(errorMessage(error) + " 삭제 완료를 확인하지 못했어요. 다시 불러와 확인해 주세요.", true);
+    } finally { if (token === generation) { busy = false; trigger.disabled = false; } }
+  }
+  function controls(context, day, entry, addedRow = null) {
     const root = element("div", "exercise-replacement-controls");
-    const row = context.rows.get(slotKey(day, entry.order));
+    const row = addedRow ? null : context.rows.get(slotKey(day, entry.order));
     const change = element("button", "exercise-replacement-change", "종목변경");
-    change.type = "button"; change.disabled = !context.ready;
+    change.type = "button"; change.disabled = addedRow ? !context.extrasReady : !context.ready;
     change.setAttribute("aria-haspopup", "dialog"); change.setAttribute("aria-controls", dialog.id);
-    change.addEventListener("click", () => open(context, day, entry, change));
+    change.addEventListener("click", () => open(context, day, entry, change, addedRow ? "editAdded" : "replace", addedRow));
     root.append(change);
+    if (addedRow) {
+      root.prepend(element("span", "exercise-replacement-badge", "직접 추가한 운동"));
+      const remove = element("button", "member-pattern-remove", "운동 삭제"); remove.type = "button";
+      remove.disabled = !context.extrasReady;
+      remove.addEventListener("click", () => void removeAdded(context, addedRow, remove));
+      root.append(remove);
+    }
     if (row) {
       const original = resolveExercise(row.original_exercise_id);
       root.prepend(element("span", "exercise-replacement-badge", row.valid ? "직접 변경한 운동" : "변경 설정 확인 필요"));
@@ -173,7 +300,7 @@
   }
   function renderPersonal() {
     if (!view) return;
-    const rows = (window.MemberCustomExercises?.getExercises() || []).filter(exercise => exercise.exerciseId !== view.entry.exerciseId);
+    const rows = (window.MemberCustomExercises?.getExercises() || []).filter(exercise => exercise.exerciseId !== view.entry?.exerciseId);
     personalList.replaceChildren(...rows.map(item));
     const failed = !window.MemberCustomExercises || window.MemberCustomExercises.getError();
     $("[data-personal-status]").textContent = failed ? "개인 운동 목록을 불러오지 못했어요. 다시 불러와 주세요."
@@ -198,25 +325,29 @@
   function renderAll() {
     if (!view) return;
     const query = search.value.trim().replace(/\s/g, "").toLocaleLowerCase();
-    const rows = window.ExerciseDB.getActiveExercises().filter(exercise => exercise.exerciseId !== view.entry.exerciseId &&
+    const rows = window.ExerciseDB.getActiveExercises().filter(exercise => exercise.exerciseId !== view.entry?.exerciseId &&
       (!bodyPart.value || exercise.bodyParts.includes(bodyPart.value)) && exercise.name.replace(/\s/g, "").toLocaleLowerCase().includes(query));
     allList.replaceChildren(...rows.map(item));
     $("[data-replace-count]").textContent = rows.length ? `${rows.length}개 운동` : "조건에 맞는 운동이 없어요.";
   }
-  function open(context, day, entry, trigger) {
-    if (!current(context) || !context.ready || !visible() || busy || historyPending || dialog.open) return false;
-    const source = context.source.days.find(item => item.day === day)?.exercises.find(item => item.order === entry.order);
-    if (!source) return false;
-    view = { context, day, entry, source, target: null, restore: false };
+  function open(context, day, entry, trigger, mode = "replace", addedRow = null) {
+    if (!current(context) || !(mode === "replace" ? context.ready : context.extrasReady) || !visible() || busy || historyPending || dialog.open) return false;
+    const source = mode === "replace" ? context.source.days.find(item => item.day === day)?.exercises.find(item => item.order === entry.order) : null;
+    if (mode === "replace" && !source) return false;
+    view = { context, day, entry, source, mode, addedRow, additionId: mode === "add" ? crypto.randomUUID() : addedRow?.id, target: null, restore: false };
     returnFocus = trigger; returnScroll = { left: window.scrollX, top: window.scrollY }; previousOverflow = document.body.style.overflow;
     status.textContent = ""; checkButton.hidden = true; form.hidden = true; choices.hidden = false;
-    $(".exercise-replacement-current").textContent = `패턴 ${day} · ${entry.order}번 ${resolveExercise(entry.exerciseId)?.name || entry.exerciseId}`;
-    const alternativeId = resolveExercise(entry.exerciseId)?.personal ? source.exerciseId : entry.exerciseId;
+    $("#exerciseReplacementTitle").textContent = mode === "add" ? "운동 추가하기" : "종목변경";
+    $("[data-personal-choose]").textContent = mode === "add" ? "이 운동 추가하기" : "이 운동으로 변경하기";
+    $(".exercise-replacement-current").textContent = mode === "add" ? `패턴 ${day} 마지막에 운동을 추가해요.` : `패턴 ${day} · ${entry.order}번 ${resolveExercise(entry.exerciseId)?.name || entry.exerciseId}`;
+    const alternativeId = mode === "add" ? "" : resolveExercise(entry.exerciseId)?.personal ? source?.exerciseId || "" : entry.exerciseId;
     const alternatives = [...new Map(window.ExerciseDB.getAlternativeExercises(alternativeId)
-      .filter(exercise => exercise.exerciseId !== entry.exerciseId).map(exercise => [exercise.exerciseId, exercise])).values()];
+      .filter(exercise => exercise.exerciseId !== entry?.exerciseId).map(exercise => [exercise.exerciseId, exercise])).values()];
     recommended.replaceChildren(...(alternatives.length ? alternatives.map(item) : [element("p", "exercise-replacement-help", "등록된 추천 대체 운동이 없어요. 전체 운동에서 선택할 수 있어요.")]));
     search.value = ""; bodyPart.replaceChildren(new Option("전체 부위", ""));
     [...new Set(window.ExerciseDB.getActiveExercises().flatMap(exercise => exercise.bodyParts))].sort().forEach(part => bodyPart.append(new Option(part, part)));
+    recommended.hidden = mode === "add";
+    recommended.previousElementSibling.hidden = mode === "add";
     $(".exercise-replacement-all").open = false;
     dialog.querySelectorAll(".exercise-replacement-personal").forEach(node => { node.open = false; });
     personalName.value = ""; renderPersonal(); renderAll();
@@ -228,12 +359,12 @@
   }
   function choose(exercise, restore = false) {
     if (!view || !exercise || !exercise.enabled || busy) return;
-    view.target = exercise; view.restore = restore || exercise.exerciseId === view.source.exerciseId;
+    view.target = exercise; view.restore = view.mode === "replace" && (restore || exercise.exerciseId === view.source.exerciseId);
     choices.hidden = true; form.hidden = false; form.reset(); status.textContent = ""; checkButton.hidden = true;
-    $("[data-replace-target]").textContent = `${resolveExercise(view.entry.exerciseId).name} → ${exercise.name}`;
+    $("[data-replace-target]").textContent = view.mode === "add" ? exercise.name : `${resolveExercise(view.entry.exerciseId)?.name || view.entry.exerciseId} → ${exercise.name}`;
     $("[data-replace-meta]").textContent = exercise.personal ? "직접 입력한 운동" : `${exercise.bodyParts.join(" · ")} · 난이도 ${exercise.difficulty}/5`;
-    const currentExercise = resolveExercise(view.entry.exerciseId);
-    const sameType = !currentExercise.personal && !exercise.personal && currentExercise.exerciseType === exercise.exerciseType;
+    const currentExercise = resolveExercise(view.entry?.exerciseId);
+    const sameType = Boolean(currentExercise && !currentExercise.personal && !exercise.personal && currentExercise.exerciseType === exercise.exerciseType);
     fields.hidden = view.restore;
     fields.querySelectorAll("input").forEach(input => { input.required = !view.restore; input.disabled = view.restore; });
     if (!view.restore && sameType) {
@@ -255,6 +386,7 @@
     event.preventDefault();
     if (!view || busy || !current(view.context)) return;
     const state = view, context = state.context, token = generation;
+    if (state.mode === "add" || state.mode === "editAdded") { await saveAdded(state, token); return; }
     const row = context.rows.get(slotKey(state.day, state.entry.order));
     const sets = state.restore ? null : Number(form.elements.sets.value);
     const reps = state.restore ? null : Number(form.elements.reps.value);
@@ -268,12 +400,15 @@
       const { data: auth, error: authError } = await client.auth.getUser();
       if (!current(context, token)) return;
       if (authError || auth?.user?.id !== userId) throw { code: "42501" };
-      const args = { p_routine_id: context.routineId, p_revision: context.revision, p_day: state.day, p_order: state.entry.order,
+      const args = { ...(context.sourceKind === "tutorial" ? { p_version: context.revision } : { p_routine_id: context.routineId, p_revision: context.revision }), p_day: state.day, p_order: state.entry.order,
         p_original_id: state.source.exerciseId, p_sets: sets, p_reps: reps, p_rest_sec: rest, p_expected_token: row?.change_token || null };
       const isNewPersonal = !state.restore && state.target.personal && !state.target.exerciseId;
       if (isNewPersonal) args.p_name = state.target.name;
       else { args.p_replacement_id = state.restore ? null : state.target.exerciseId; args.p_restore = state.restore; }
-      const { data: result, error } = await client.rpc(isNewPersonal ? "set_member_custom_exercise_replacement" : "set_member_exercise_replacement", args);
+      const rpcName = context.sourceKind === "tutorial"
+        ? (isNewPersonal ? "set_member_custom_tutorial_exercise_replacement" : "set_member_tutorial_exercise_replacement")
+        : (isNewPersonal ? "set_member_custom_exercise_replacement" : "set_member_exercise_replacement");
+      const { data: result, error } = await client.rpc(rpcName, args);
       if (!current(context, token)) return;
       if (error) throw error;
       if (isNewPersonal) {
@@ -298,13 +433,54 @@
       } else showNotice("저장 완료를 확인하지 못했어요. 다시 불러와 상태를 확인해 주세요.", true);
     } finally { if (token === generation) setBusy(false); }
   }
+  async function saveAdded(state, token) {
+    const context = state.context;
+    const sets = Number(form.elements.sets.value), reps = Number(form.elements.reps.value), rest = Number(form.elements.rest.value);
+    if (!state.target?.enabled || !validDose({ sets, reps, rest_sec: rest })) {
+      status.textContent = "세트(1 ~ 20), 횟수(1 ~ 1000), 휴식(0 ~ 3600초)을 정수로 입력해 주세요."; return;
+    }
+    setBusy(true); status.textContent = "저장 중이에요.";
+    try {
+      const { data: auth, error: authError } = await client.auth.getUser();
+      if (!current(context, token)) return;
+      if (authError || auth?.user?.id !== userId) throw { code: "42501" };
+      const isNewPersonal = state.target.personal && !state.target.exerciseId;
+      const args = { p_id: state.additionId, ...sourceArgs(context), p_sets: sets, p_reps: reps, p_rest_sec: rest };
+      if (state.mode === "add") args.p_day = state.day;
+      else args.p_expected_token = state.addedRow.change_token;
+      if (isNewPersonal) args.p_name = state.target.name;
+      else args.p_exercise_id = state.target.exerciseId;
+      const name = (state.mode === "add" ? "add_member_" : "update_member_") + (isNewPersonal ? "custom_pattern_exercise" : "pattern_exercise");
+      const { data: result, error } = await client.rpc(name, args);
+      if (!current(context, token)) return;
+      if (error) throw error;
+      if (isNewPersonal) state.target = window.MemberCustomExercises.accept(result?.custom_exercise);
+      const saved = result?.addition;
+      if (saved?.id !== state.additionId || saved.user_id !== userId || saved.pattern_day !== state.day ||
+        saved.exercise_id !== state.target.exerciseId || saved.sets !== sets || saved.reps !== reps ||
+        saved.rest_sec !== rest || !uuidPattern.test(saved.change_token)) throw new Error("INVALID_RESPONSE");
+      close();
+      await reload?.();
+      if (token !== generation || userId !== context.userId) return;
+      const applied = active?.additions?.find(row => row.id === state.additionId);
+      if (!active?.extrasReady || active.sourceKind !== context.sourceKind || active.routineId !== context.routineId ||
+        active.revision !== context.revision || applied?.change_token !== saved.change_token)
+        showNotice("저장 결과를 화면에서 확인하지 못했어요. 다시 불러와 주세요.", true);
+    } catch (error) {
+      if (!current(context, token)) return;
+      if (view === state) {
+        status.textContent = errorMessage(error) + " 저장 완료를 확인하지 못했어요. 저장 상태를 다시 확인해 주세요.";
+        checkButton.hidden = false;
+      } else showNotice("저장 결과를 확인하지 못했어요. 다시 불러와 주세요.", true);
+    } finally { if (token === generation) setBusy(false); }
+  }
   function activate(context) {
     if (!context || context.userId !== userId) return;
     if (active?.key !== context.key) close({ restore: false });
     active = context; showNotice(context.warning, Boolean(context.warning));
   }
   function deactivate() { active = null; close({ restore: false }); showNotice(""); }
-  function reset() { generation++; deactivate(); client = null; userId = ""; reload = null; busy = false; }
+  function reset() { generation++; deactivate(); client = null; userId = ""; reload = null; busy = false; extrasCache.clear(); }
   function startMember(nextClient, id, onReload) { reset(); client = nextClient; userId = String(id); reload = onReload; }
   retry.addEventListener("click", () => { if (!busy) void reload?.(); });
   checkButton.addEventListener("click", () => { close(); void reload?.(); });
@@ -329,5 +505,5 @@
     .observe(app, { attributes: true, attributeFilter: ["hidden"] });
   [assigned, routinePanel].forEach(node => new MutationObserver(() => { if (!visible()) close({ restore: false }); })
     .observe(node, { attributes: true, attributeFilter: ["hidden"] }));
-  window.MemberExerciseReplacements = Object.freeze({ startMember, prepare, controls, activate, deactivate, reset });
+  window.MemberExerciseReplacements = Object.freeze({ startMember, prepare, prepareTutorial, controls, addControl, activate, deactivate, reset });
 })();
