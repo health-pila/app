@@ -17,9 +17,15 @@
   background: #fff;
 }
 .member-routine-menu-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   min-width: 0;
-  min-height: 44px;
-  padding: 13px 3px;
+  min-height: 100px;
+  height: 100px;
+  padding: 6px 3px;
   border: 0;
   border-radius: 9px;
   background: #eef1f5;
@@ -30,6 +36,17 @@
   font-weight: 700;
   line-height: 1.5;
   cursor: pointer;
+}
+/* 투명 PNG 원본을 그대로 사용합니다. 시안 대비 실제 버튼 높이는 약 30% 줄입니다. */
+.member-routine-menu-image {
+  display: block;
+  flex: 0 0 60px;
+  width: 72px;
+  height: 60px;
+  max-width: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
 }
 /* 버튼의 기존 축소율은 유지하고 글자에만 역보정해 안내문과 같은 17px로 표시합니다. */
 .member-routine-menu-label {

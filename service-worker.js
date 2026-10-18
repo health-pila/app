@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "144";
+const APP_VERSION = "147";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}`;
@@ -20,6 +20,7 @@ const APP_FILES = [
   `./exercise-content-sync.js?v=${APP_VERSION}`,
   `./weight-record-capture.js?v=${APP_VERSION}`,
   `./routine-components.js?v=${APP_VERSION}`,
+  `./member-routine-tutorial.js?v=${APP_VERSION}`,
   `./member-exercise-replacements.js?v=${APP_VERSION}`,
   `./member-exercise-replacements.css?v=${APP_VERSION}`,
   `./script.js?v=${APP_VERSION}`,
@@ -32,6 +33,12 @@ const APP_FILES = [
   "./images/demo/weight-record-example.svg",
   `./one-day-pt.js?v=${APP_VERSION}`,
   "./manifest.json",
+  `./images/routine-tab.png?v=${APP_VERSION}`,
+  `./images/cardio-tab.png?v=${APP_VERSION}`,
+  `./images/stretching-tab.png?v=${APP_VERSION}`,
+  `./images/nav-routine.png?v=${APP_VERSION}`,
+  `./images/nav-workout-log.png?v=${APP_VERSION}`,
+  `./images/nav-community.png?v=${APP_VERSION}`,
   "./images/center-logo.png",
   `./images/center-logo-plate.png?v=${APP_VERSION}`,
   "./images/icon-192.png",

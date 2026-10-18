@@ -4268,7 +4268,7 @@ body.camera-open {
 
 /* v50: 회원 화면을 제목 · 운동 패턴 · 안내 · 신청 영역으로 구분합니다. */
 #appScreen {
-  padding: 0 0 calc(104px + env(safe-area-inset-bottom));
+  padding: 0 0 calc(78px + env(safe-area-inset-bottom));
   background: #eef1f5;
 }
 
@@ -4545,6 +4545,27 @@ body.camera-open {
 /* 회원 루틴은 선택한 패턴 버튼으로 구분하므로 반복 안내는 표시하지 않습니다. */
 #memberRoutineComponents .routine-pattern-caption { display: none; }
 
+.member-routine-tutorial-notice {
+  margin: 0 2px 12px;
+  padding: 10px 12px;
+  border: 1px solid #e0e6ee;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #526078;
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+.member-routine-tutorial-notice p { margin: 0; }
+.member-routine-tutorial-notice p + p { margin-top: 4px; }
+#memberRoutineComponents.is-tutorial .routine-component-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+#memberRoutineComponents.is-tutorial .routine-component-actions .routine-weight-button {
+  grid-column: auto;
+  grid-row: auto;
+}
+
 :is(#appScreen, #adminRoutineJsonPreview, #guestDemoDialog) .routine-component-card {
   padding: 18.2px 2px;
   border: 0;
@@ -4688,20 +4709,32 @@ body.camera-open {
 
 #appScreen .member-bottom-nav {
   gap: 6px;
-  padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
   background: #fff;
   border-color: #e4e8ef;
   box-shadow: 0 -4px 16px rgba(23, 35, 62, 0.06);
 }
 
 #appScreen .member-tab-button {
-  min-height: 62px;
-  gap: 5px;
+  min-height: 48px;
+  padding: 2px 3px;
+  gap: 1px;
   border-radius: 14px;
 }
 
+/* 중분류 이미지의 실제 표시 크기(약 68 × 54px)의 절반입니다. */
+#appScreen .member-nav-image {
+  display: block;
+  flex: 0 0 27px;
+  width: 34px;
+  height: 27px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
 #appScreen .member-tab-button.is-active::before {
-  top: -10px;
+  top: -4px;
   width: 36px;
   height: 4px;
   border-radius: 4px;

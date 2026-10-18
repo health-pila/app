@@ -788,7 +788,9 @@ async function startMemberRoutineRealtimeSubscription(
       )
       .subscribe(function (status) {
         if (status === "SUBSCRIBED" && currentMemberRoutineUserId === userId && !appScreen.hidden) {
-          updateRoutineRequestStatus(userId);
+          // 최초 조회와 구독 사이에 새 배정이 생겼는지도 확인합니다.
+          if (routineChangeState.activeId === null) void loadMemberRoutine(userId, true);
+          else void updateRoutineRequestStatus(userId);
         }
         if (
           status === "CHANNEL_ERROR" ||
@@ -7898,12 +7900,13 @@ const routineRequestDialog = document.querySelector("#routineRequestDialog");
 const routineNewFormLink = document.querySelector("#routineNewFormLink");
 const submitRoutineChange = document.querySelector("#submitRoutineChange");
 const routineRequestDialogMessage = document.querySelector("#routineRequestDialogMessage");
-let routineChangeState = { userId: null, generation: 0, activeId: undefined, pending: undefined, saving: false };
+const defaultRoutineRequestButtonText = routineRequestButton.textContent;
+let routineChangeState = { userId: null, generation: 0, activeId: undefined, pending: undefined, tutorialEligible: undefined, saving: false };
 routineNewFormLink.href = routineRequestButton.href;
 
 function resetRoutineChangeRequest(userId = null) {
   routineChangeState = { userId, generation: routineChangeState.generation + 1,
-    activeId: undefined, pending: undefined, saving: false };
+    activeId: undefined, pending: undefined, tutorialEligible: undefined, saving: false };
   routineRequestStatusLoadId += 1;
   routineRequestStatusMessage.hidden = true;
   routineRequestDialogMessage.textContent = "";
@@ -7913,6 +7916,8 @@ function resetRoutineChangeRequest(userId = null) {
 
 function syncRoutineChangeRequest() {
   const state = routineChangeState;
+  routineRequestButton.textContent = state.activeId === null && state.pending === false && state.tutorialEligible === true
+    ? "나에게 맞는 루틴으로 신청하기" : defaultRoutineRequestButtonText;
   submitRoutineChange.disabled = state.saving || !state.activeId || state.pending !== false;
   routineNewFormLink.setAttribute("aria-disabled", String(state.saving));
   if (!state.saving && state.pending === true) routineRequestDialogMessage.textContent = "이미 접수된 운동 구성 신청이 있어요. 새 신청서를 작성하면 변경된 내용을 추가로 알려줄 수 있어요.";
@@ -7988,7 +7993,10 @@ submitRoutineChange.addEventListener("click", async function () {
 // 다른 기기에서 제출해도 서버에 저장된 대기 신청을 기준으로 안내합니다.
 async function updateRoutineRequestStatus(userId) {
   const requestId = ++routineRequestStatusLoadId;
-  if (appScreen.hidden) return;
+  const state = routineChangeState;
+  const current = () => requestId === routineRequestStatusLoadId && routineChangeState === state &&
+    state.userId === userId && !appScreen.hidden;
+  if (!current()) return false;
   try {
     let { data, error } = await supabaseClient
       .from("routine_requests")
@@ -8003,27 +8011,42 @@ async function updateRoutineRequestStatus(userId) {
       ({ data, error } = await supabaseClient.from("routine_requests").select("id")
         .eq("user_id", userId).eq("status", "pending").limit(1).maybeSingle());
     }
-
-    if (requestId !== routineRequestStatusLoadId || appScreen.hidden) return;
+    if (!current()) return false;
     if (error) throw error;
     routineRequestStatusMessage.hidden = !data;
-    if (routineChangeState.userId === userId) {
-      routineChangeState.pending = Boolean(data);
-      if (!data && !routineChangeState.saving && routineRequestDialog.open && [
-        "신청 상태를 확인하고 있어요…",
-        "이미 접수된 운동 구성 신청이 있어요. 새 신청서를 작성하면 변경된 내용을 추가로 알려줄 수 있어요."
-      ].includes(routineRequestDialogMessage.textContent)) routineRequestDialogMessage.textContent = "";
+    state.pending = Boolean(data);
+    if (data || state.activeId !== null) state.tutorialEligible = false;
+    if (!data && !state.saving && routineRequestDialog.open && [
+      "신청 상태를 확인하고 있어요…",
+      "이미 접수된 운동 구성 신청이 있어요. 새 신청서를 작성하면 변경된 내용을 추가로 알려줄 수 있어요."
+    ].includes(routineRequestDialogMessage.textContent)) routineRequestDialogMessage.textContent = "";
+    syncRoutineChangeRequest();
+    if (data) syncMemberRoutineTutorial(state);
+
+    // 활성 배정이 없을 때만 과거 신청·배정 이력을 조회합니다.
+    // 조회가 끝나기 전이나 실패한 경우에는 미신청으로 간주하지 않습니다.
+    if (!data && state.activeId === null) {
+      if (!window.MemberRoutineTutorial) throw new Error("TUTORIAL_MODULE_UNAVAILABLE");
+      const history = await window.MemberRoutineTutorial.readHistory(supabaseClient, userId);
+      if (!current()) return false;
+      state.tutorialEligible = !history.hasRequested && !history.hasAssigned;
       syncRoutineChangeRequest();
+      syncMemberRoutineTutorial(state);
     }
+    return true;
   } catch (error) {
-    // 조회 실패를 '접수되지 않음'으로 단정하거나 기존 운동 카드를 지우지 않습니다.
-    if (requestId === routineRequestStatusLoadId && !appScreen.hidden) {
+    if (current()) {
       console.error("운동 구성 신청 상태 확인 실패:", error);
-      if (routineChangeState.userId === userId && routineChangeState.pending === undefined) {
+      if (state.pending === undefined) {
         routineRequestDialogMessage.textContent = "신청 상태를 확인하지 못했어요. 창을 닫고 다시 열어 주세요.";
         syncRoutineChangeRequest();
       }
+      if (state.activeId === null && memberRoutineComponents.dataset.tutorial !== "true") {
+        memberRoutinePlaceholder.textContent = "신청 이력을 확인하지 못했어요. 상단 새로고침 버튼으로 다시 확인해 주세요.";
+        memberRoutinePlaceholder.hidden = false;
+      }
     }
+    return false;
   }
 }
 
@@ -8046,8 +8069,19 @@ const memberRoutineSummary = document.querySelector("#memberRoutineSummary");
 const memberWorkoutTitle = document.querySelector("#memberWorkoutTitle");
 const memberRoutinePlaceholder = document.querySelector("#memberRoutinePlaceholder");
 const memberOneDayPtEntry = document.querySelector("#memberOneDayPtEntry");
+const memberRoutineTutorialNotice = document.querySelector("#memberRoutineTutorialNotice");
+const memberAssignedRoutineLabel = assignedRoutineName.closest(".member-assigned-routine");
+
+function clearMemberTutorialDecoration() {
+  memberRoutineTutorialNotice.hidden = true;
+  memberAssignedRoutineLabel.hidden = false;
+  memberRoutineComponents.classList.remove("is-tutorial");
+  delete memberRoutineComponents.dataset.tutorial;
+  memberRoutineComponents.setAttribute("aria-label", "배정된 운동 구성");
+}
 
 function resetMemberRoutineComponents() {
+  clearMemberTutorialDecoration();
   memberOneDayPtEntry.hidden = true;
   window.MemberExerciseReplacements?.deactivate();
   memberRoutineAssignmentKey = null;
@@ -8059,6 +8093,42 @@ function resetMemberRoutineComponents() {
   memberWorkoutTitle.textContent = "나의 운동 구성";
   memberRoutinePlaceholder.textContent = "운동 구성을 불러오고 있어요.";
   memberRoutinePlaceholder.hidden = false;
+}
+
+function showUnassignedMemberRoutine() {
+  resetMemberRoutineCarousel();
+  resetMemberRoutineComponents();
+  renderRoutineDescription("");
+  routineDescription.dataset.sourceText = "";
+  assignedRoutineName.textContent = "배정된 루틴이 없습니다.";
+  memberRoutinePlaceholder.textContent = "아직 배정된 운동 루틴이 없어요.\n새 운동 루틴을 신청해 주세요.";
+}
+
+function syncMemberRoutineTutorial(state) {
+  if (state !== routineChangeState || appScreen.hidden || state.activeId !== null) return;
+  if (state.pending === true || state.tutorialEligible === false) {
+    showUnassignedMemberRoutine();
+    return;
+  }
+  if (state.pending !== false || state.tutorialEligible !== true) return;
+  const key = "tutorial:" + state.userId;
+  if (memberRoutineComponentsKey !== key) {
+    const root = window.MemberRoutineTutorial.render({ userId: state.userId, captureWeightRecord: saveWeightRecordCapture });
+    resetMemberRoutineComponents();
+    memberRoutineComponents.replaceChildren(root);
+    memberRoutineComponentsKey = key;
+  }
+  memberRoutineComponents.classList.add("is-tutorial");
+  memberRoutineComponents.dataset.tutorial = "true";
+  memberRoutineComponents.setAttribute("aria-label", "공통 튜토리얼 운동");
+  memberRoutineComponents.hidden = false;
+  memberRoutineTutorialNotice.hidden = false;
+  memberAssignedRoutineLabel.hidden = true;
+  memberWorkoutTitle.textContent = "튜토리얼 루틴";
+  memberRoutinePlaceholder.hidden = true;
+  memberOneDayPtEntry.hidden = true;
+  memberRoutineDisplayedUserId = state.userId;
+  memberRoutineDisplayedId = null;
 }
 
 async function prepareMemberRoutineComponents(data, userId) {
@@ -8081,6 +8151,7 @@ async function prepareMemberRoutineComponents(data, userId) {
 }
 
 function showMemberRoutineComponents(prepared) {
+  clearMemberTutorialDecoration();
   if (prepared.key === null) {
     window.MemberExerciseReplacements?.deactivate();
     if (memberRoutineComponentsKey !== null) resetMemberRoutineComponents();
@@ -8518,11 +8589,12 @@ async function loadMemberRoutine(
   const keepCurrent =
     preserveCurrentRoutine &&
     memberRoutineDisplayedUserId === userId;
+  let replacedTutorial = false;
 
   function isCurrentRequest() {
     return (
       requestId === memberRoutineLoadRequestId &&
-      !appScreen.hidden
+      routineChangeState.userId === userId && !appScreen.hidden
     );
   }
 
@@ -8575,24 +8647,22 @@ async function loadMemberRoutine(
 
     if (routineChangeState.userId === userId) {
       routineChangeState.activeId = data?.id || null;
+      if (data) routineChangeState.tutorialEligible = false;
       syncRoutineChangeRequest();
     }
 
     if (!data) {
-      resetMemberRoutineCarousel();
-      resetMemberRoutineComponents();
-
-      renderRoutineDescription("");
-
-      routineDescription.dataset.sourceText = "";
-
-      assignedRoutineName.textContent =
-        "배정된 루틴이 없습니다.";
-      memberRoutinePlaceholder.textContent = "아직 배정된 운동 루틴이 없어요.\n새 운동 루틴을 신청해 주세요.";
-
-      updateRoutineRequestStatus(userId, null);
-
+      // 이력 확인 전에는 기존 로딩/빈 화면을 쓰고, 확인된 튜토리얼은 조회 실패 때 유지합니다.
+      if (memberRoutineComponents.dataset.tutorial !== "true") showUnassignedMemberRoutine();
+      memberRoutineDisplayedUserId = userId;
+      memberRoutineDisplayedId = null;
+      await updateRoutineRequestStatus(userId);
       return;
+    }
+
+    if (memberRoutineComponents.dataset.tutorial === "true") {
+      resetMemberRoutineComponents();
+      replacedTutorial = true;
     }
 
     const preparedComponents = await prepareMemberRoutineComponents(data, userId);
@@ -8700,7 +8770,7 @@ async function loadMemberRoutine(
     console.error("루틴 불러오기 실패:", error);
 
     // 자동 갱신 실패 시에는 기존 화면 유지
-    if (!keepCurrent) {
+    if (!keepCurrent || replacedTutorial) {
       assignedRoutineName.textContent =
         "루틴을 불러오지 못했습니다.";
       memberRoutinePlaceholder.textContent = "운동 구성을 불러오지 못했어요. 상단 새로고침 버튼으로 다시 확인해 주세요.";
