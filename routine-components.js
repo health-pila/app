@@ -531,7 +531,8 @@
     const image = element("img");
     image.width = 88;
     image.height = 88;
-    image.alt = exercise.name + " 기구 사진";
+    image.alt = personal ? "직접 입력한 운동" : exercise.name + " 기구 사진";
+    if (personal) image.classList.add("routine-personal-image-icon");
     image.loading = "eager";
     image.decoding = "async";
     image.hidden = true;
@@ -539,10 +540,18 @@
     image.addEventListener("load", function () {
       image.hidden = false;
       placeholder.hidden = true;
-      imageArea.disabled = false;
-      zoomMark.hidden = false;
+      imageArea.disabled = personal;
+      zoomMark.hidden = personal;
     });
     image.addEventListener("error", function () {
+      if (personal) {
+        image.hidden = true;
+        imageArea.disabled = true;
+        zoomMark.hidden = true;
+        placeholder.hidden = false;
+        placeholder.textContent = "직접 입력한 운동";
+        return;
+      }
       const bundled = window.ExerciseDB.getExerciseImageUrl(entry.exerciseId, true);
       if (!options?.imageUrls?.[entry.exerciseId] && bundled && image.src !== bundled) {
         image.src = bundled;
@@ -554,7 +563,7 @@
       placeholder.hidden = false;
       placeholder.textContent = "사진을 불러오지 못했어요";
     });
-    const imageUrl = personal ? "" : options?.imageUrls?.[entry.exerciseId] || window.ExerciseDB.getExerciseImageUrl(entry.exerciseId);
+    const imageUrl = personal ? new URL("images/personal-exercise-note.png", document.baseURI).href : options?.imageUrls?.[entry.exerciseId] || window.ExerciseDB.getExerciseImageUrl(entry.exerciseId);
     if (imageUrl) {
       image.src = imageUrl;
     } else {
@@ -562,7 +571,7 @@
     }
     imageArea.append(image, placeholder, zoomMark);
     imageArea.addEventListener("click", function () {
-      if (!imageArea.disabled) openEquipmentImage(imageArea, image, exercise.name);
+      if (!personal && !imageArea.disabled) openEquipmentImage(imageArea, image, exercise.name);
     });
 
     const info = element("div", "routine-component-info");

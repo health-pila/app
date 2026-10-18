@@ -1723,7 +1723,7 @@ body {
 
 /* 제목과 본문 영역 */
 .community-post-content {
-  padding: 19px 18px 18px;
+  padding: 13.3px 18px 18px;
 }
 
 .community-post-title {
@@ -3183,7 +3183,7 @@ body.camera-open {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 16.8px;
 }
 
 .community-menu-button {
@@ -3192,9 +3192,9 @@ body.camera-open {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
   min-width: 0;
-  padding: 8px 10px 12px;
+  padding: 4px 10px 7.3px;
   border: 1px solid #e3e8ef;
   border-radius: 16px;
   background-color: #fff;
@@ -3206,8 +3206,8 @@ body.camera-open {
 
 .community-menu-icon {
   display: block;
-  width: 32px;
-  height: 32px;
+  width: 27.2px;
+  height: 27.2px;
   flex-shrink: 0;
   opacity: 0.75;
 }
@@ -3221,7 +3221,7 @@ body.camera-open {
 .community-menu-button::after {
   content: "";
   position: absolute;
-  bottom: 7px;
+  bottom: 3px;
   left: 50%;
   width: 28px;
   height: 3px;
@@ -3532,6 +3532,13 @@ body.camera-open {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: contain;
+}
+
+/* 개인 운동의 공통 아이콘은 실제 기구 사진과 구분하고 여백 있게 표시합니다. */
+.routine-personal-image img.routine-personal-image-icon {
+  width: 64%;
+  height: 64%;
   object-fit: contain;
 }
 
@@ -4121,12 +4128,12 @@ body.camera-open {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  min-height: 44px;
+  gap: 6px;
+  min-height: 37.4px;
   max-width: 100%;
-  padding: 11px 16px;
+  padding: 7.7px 8.3px;
   border: 1px solid var(--brand-orange);
-  border-radius: 24px;
+  border-radius: 20px;
   color: var(--brand-orange);
   background: #fff;
   box-shadow: 0 4px 14px rgba(23, 35, 62, 0.14);
@@ -4410,11 +4417,11 @@ body.camera-open {
 }
 
 .member-routine-hero {
-  padding: 22px 20px 18px;
+  padding: 22px 20px 9px;
 }
 
 .member-routine-hero h2 {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   color: var(--brand-orange);
   font-size: 26px;
   font-weight: 800;
@@ -4490,8 +4497,8 @@ body.camera-open {
 }
 
 .rest-timer-toggle svg {
-  width: 18px;
-  height: 18px;
+  width: 15.3px;
+  height: 15.3px;
 }
 
 .member-routine-placeholder {
