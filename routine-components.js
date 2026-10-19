@@ -578,10 +578,18 @@
     const info = element("div", "routine-component-info");
     const title = element("div", "routine-component-title");
     title.append(number, element("h5", "routine-component-name", exercise.name));
+    let dose = element("p", "routine-component-dose", entry.reps + "회 × " + entry.sets + "세트");
+    if (options?.exerciseReplacementContext && window.MemberExerciseReplacements?.doseControl) {
+      const row = element("div", "routine-component-dose-row");
+      row.append(dose, window.MemberExerciseReplacements.doseControl(
+        options.exerciseReplacementContext, options.patternDay, entry, options.addedRow
+      ));
+      dose = row;
+    }
     info.append(
       title,
       element("p", "routine-component-body-parts", exercise.bodyParts.join(" · ")),
-      element("p", "routine-component-dose", entry.reps + "회 × " + entry.sets + "세트"),
+      dose,
       element("p", "routine-component-rest", "휴식 " + entry.restSec + "초")
     );
     main.append(imageArea, info);

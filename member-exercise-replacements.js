@@ -87,6 +87,7 @@
     if (message.includes("ADDITION_UNAVAILABLE")) return "이 추가 운동을 확인하지 못했어요. 다시 불러와 주세요.";
     if (message.includes("ADDITION_CONFLICT")) return "다른 기기에서 이 추가 운동을 변경했어요. 저장 상태를 다시 확인해 주세요.";
     if (message.includes("REPLACEMENT_CONFLICT")) return "다른 기기에서 이 운동을 변경했어요. 저장 상태를 다시 확인한 뒤 선택해 주세요.";
+    if (message.includes("SAME_EXERCISE_REQUIRED")) return "현재 운동이 변경됐어요. 저장 상태를 다시 확인한 뒤 수정해 주세요.";
     if (["PGRST202", "PGRST205", "42P01", "42883"].includes(error?.code)) return "운동 교체 저장소 설정이 필요해요. 현재는 원본 루틴을 표시합니다.";
     if (error?.code === "42501" || message.includes("LOGIN_REQUIRED")) return "로그인 상태와 본인의 루틴인지 확인한 뒤 다시 시도해 주세요.";
     if (message.includes("INVALID_CUSTOM_EXERCISE_NAME")) return "운동명을 1 ~ 60자로 입력해 주세요. 줄바꿈과 보이지 않는 문자는 사용할 수 없어요.";
@@ -112,7 +113,7 @@
         const entry = day?.exercises.find(entry => entry.order === row.exercise_order);
         if (!entry || entry.exerciseId !== row.original_exercise_id) return;
         const exercise = resolveExercise(row.replacement_exercise_id);
-        const valid = exercise?.enabled && row.replacement_exercise_id !== entry.exerciseId && row.change_token &&
+        const valid = exercise?.enabled && row.change_token &&
           Number.isInteger(row.sets) && row.sets >= 1 && row.sets <= 20 &&
           Number.isInteger(row.reps) && row.reps >= 1 && row.reps <= 1000 &&
           Number.isInteger(row.rest_sec) && row.rest_sec >= 0 && row.rest_sec <= 3600;
@@ -179,8 +180,7 @@
           const slot = slotKey(row.pattern_day, row.exercise_order);
           if (row.user_id !== userId || row.tutorial_version !== context.revision || !original ||
             original.exerciseId !== row.original_exercise_id || slots.has(slot) || !uuidPattern.test(row.change_token) ||
-            !validDose(row) || !resolveExercise(row.replacement_exercise_id)?.enabled ||
-            row.replacement_exercise_id === original.exerciseId) throw new Error("INVALID_TUTORIAL_REPLACEMENT");
+            !validDose(row) || !resolveExercise(row.replacement_exercise_id)?.enabled) throw new Error("INVALID_TUTORIAL_REPLACEMENT");
           slots.add(slot);
         });
       } else if (result.tutorial_replacements.length) throw new Error("INVALID_EXTRAS_RESPONSE");
@@ -279,16 +279,25 @@
     }
     if (row) {
       const original = resolveExercise(row.original_exercise_id);
-      root.prepend(element("span", "exercise-replacement-badge", row.valid ? "직접 변경한 운동" : "변경 설정 확인 필요"));
-      const restore = element("button", "exercise-replacement-restore", "원래 운동으로 복원"); restore.type = "button";
+      const doseOnly = row.original_exercise_id === row.replacement_exercise_id;
+      root.prepend(element("span", "exercise-replacement-badge", row.valid ? (doseOnly ? "직접 수정한 설정" : "직접 변경한 운동") : "변경 설정 확인 필요"));
+      const restore = element("button", "exercise-replacement-restore", doseOnly ? "원래 추천으로 복원" : "원래 운동으로 복원"); restore.type = "button";
       restore.disabled = !context.ready;
       restore.addEventListener("click", () => {
         if (open(context, day, entry, restore)) choose(original, true);
       });
       root.append(restore);
-      root.append(element("small", "exercise-replacement-original", `원래 배정: ${original?.name || row.original_exercise_id}`));
+      if (!doseOnly) root.append(element("small", "exercise-replacement-original", `원래 배정: ${original?.name || row.original_exercise_id}`));
     }
     return root;
+  }
+  function doseControl(context, day, entry, addedRow = null) {
+    const button = element("button", "exercise-dose-edit", "수정");
+    button.type = "button"; button.disabled = !context.ready || !context.extrasReady;
+    button.setAttribute("aria-label", `${resolveExercise(entry.exerciseId)?.name || entry.exerciseId} 횟수·세트·휴식시간 수정`);
+    button.setAttribute("aria-haspopup", "dialog"); button.setAttribute("aria-controls", dialog.id);
+    button.addEventListener("click", () => open(context, day, entry, button, "dose", addedRow));
+    return button;
   }
   function cleanup(restore) {
     if (dialog.open) dialog.close();
@@ -349,12 +358,18 @@
   }
   function open(context, day, entry, trigger, mode = "replace", addedRow = null) {
     if (!current(context) || !(mode === "replace" ? context.ready : context.extrasReady) || !visible() || busy || historyPending || dialog.open) return false;
-    const source = mode === "replace" ? context.source.days.find(item => item.day === day)?.exercises.find(item => item.order === entry.order) : null;
-    if (mode === "replace" && !source) return false;
+    if (mode === "dose" && (!context.ready || !resolveExercise(entry?.exerciseId)?.enabled)) return false;
+    const needsSource = mode === "replace" || (mode === "dose" && !addedRow);
+    const source = needsSource ? context.source.days.find(item => item.day === day)?.exercises.find(item => item.order === entry.order) : null;
+    if (needsSource && !source) return false;
     view = { context, day, entry, source, mode, addedRow, additionId: mode === "add" ? crypto.randomUUID() : addedRow?.id, target: null, restore: false };
     returnFocus = trigger; returnScroll = { left: window.scrollX, top: window.scrollY }; previousOverflow = document.body.style.overflow;
     status.textContent = ""; checkButton.hidden = true; form.hidden = true; choices.hidden = false;
-    $("#exerciseReplacementTitle").textContent = mode === "add" ? "운동 추가하기" : "종목변경";
+    $("#exerciseReplacementTitle").textContent = mode === "dose" ? "운동 설정 수정" : mode === "add" ? "운동 추가하기" : "종목변경";
+    $("[data-replace-back]").hidden = mode === "dose";
+    $("[data-replace-meta]").hidden = mode === "dose";
+    $(".exercise-replacement-safety").hidden = mode === "dose";
+    $(".exercise-replacement-current").hidden = mode === "dose";
     $("[data-personal-choose]").textContent = mode === "add" ? "이 운동 추가하기" : "이 운동으로 변경하기";
     $(".exercise-replacement-current").textContent = mode === "add" ? `패턴 ${day} 마지막에 운동을 추가해요.` : `패턴 ${day} · ${entry.order}번 ${resolveExercise(entry.exerciseId)?.name || entry.exerciseId}`;
     const alternativeId = mode === "add" ? "" : resolveExercise(entry.exerciseId)?.personal ? source?.exerciseId || "" : entry.exerciseId;
@@ -368,31 +383,32 @@
     $(".exercise-replacement-all").open = false;
     dialog.querySelectorAll(".exercise-replacement-personal").forEach(node => { node.open = false; });
     personalName.value = ""; renderPersonal(); renderAll();
-    void refreshPersonal(view);
+    if (mode !== "dose") void refreshPersonal(view);
     try { dialog.showModal(); } catch (_) { cleanup(true); return false; }
     document.body.style.overflow = "hidden"; $(".exercise-replacement-content").scrollTop = 0; closeButton.focus({ preventScroll: true });
     try { historyToken = `${Date.now()}-${Math.random().toString(36).slice(2)}`; history.pushState({ ...history.state, [historyKey]: historyToken }, "", location.href); } catch (_) { historyToken = ""; }
+    if (mode === "dose") choose(resolveExercise(entry.exerciseId));
     return true;
   }
   function choose(exercise, restore = false) {
     if (!view || !exercise || !exercise.enabled || busy) return;
     view.target = exercise; view.restore = view.mode === "replace" && (restore || exercise.exerciseId === view.source.exerciseId);
     choices.hidden = true; form.hidden = false; form.reset(); status.textContent = ""; checkButton.hidden = true;
-    $("[data-replace-target]").textContent = view.mode === "add" ? exercise.name : `${resolveExercise(view.entry.exerciseId)?.name || view.entry.exerciseId} → ${exercise.name}`;
+    $("[data-replace-target]").textContent = view.mode === "add" || view.mode === "dose" ? exercise.name : `${resolveExercise(view.entry.exerciseId)?.name || view.entry.exerciseId} → ${exercise.name}`;
     $("[data-replace-meta]").textContent = exercise.personal ? "직접 입력한 운동" : `${exercise.bodyParts.join(" · ")} · 난이도 ${exercise.difficulty}/5`;
     const currentExercise = resolveExercise(view.entry?.exerciseId);
     const sameType = Boolean(currentExercise && !currentExercise.personal && !exercise.personal && currentExercise.exerciseType === exercise.exerciseType);
     fields.hidden = view.restore;
     fields.querySelectorAll("input").forEach(input => { input.required = !view.restore; input.disabled = view.restore; });
-    if (!view.restore && sameType) {
+    if (!view.restore && (sameType || view.mode === "dose")) {
       form.elements.sets.value = view.entry.sets; form.elements.reps.value = view.entry.reps; form.elements.rest.value = view.entry.restSec;
     }
     $("[data-replace-dose-help]").textContent = view.restore
       ? `원래 추천한 ${view.source.reps}회 × ${view.source.sets}세트 · 휴식 ${view.source.restSec}초로 복원합니다. 운동 기록과 중량 기록은 유지됩니다.`
-      : sameType ? ""
+      : sameType || view.mode === "dose" ? ""
         : "원하는 세트·횟수·휴식시간을 직접 입력해 주세요.";
     $("[data-replace-save]").textContent = view.restore ? "확인하고 원래 운동으로 복원" : "확인하고 저장";
-    $("[data-replace-back]").focus({ preventScroll: true });
+    (view.mode === "dose" ? form.elements.sets : $("[data-replace-back]")).focus({ preventScroll: true });
   }
   function setBusy(value) {
     busy = value;
@@ -403,6 +419,7 @@
     event.preventDefault();
     if (!view || busy || !current(view.context)) return;
     const state = view, context = state.context, token = generation;
+    if (state.mode === "dose") { await saveDose(state, token); return; }
     if (state.mode === "add" || state.mode === "editAdded") { await saveAdded(state, token); return; }
     const row = context.rows.get(slotKey(state.day, state.entry.order));
     const sets = state.restore ? null : Number(form.elements.sets.value);
@@ -448,6 +465,53 @@
         status.textContent = errorMessage(error) + (error?.code ? "" : " 저장 완료를 확인하지 못했어요. 다시 확인한 뒤 재시도해 주세요.");
         checkButton.hidden = false;
       } else showNotice("저장 완료를 확인하지 못했어요. 다시 불러와 상태를 확인해 주세요.", true);
+    } finally { if (token === generation) setBusy(false); }
+  }
+  async function saveDose(state, token) {
+    const context = state.context;
+    const sets = Number(form.elements.sets.value), reps = Number(form.elements.reps.value), rest = Number(form.elements.rest.value);
+    if (!validDose({ sets, reps, rest_sec: rest }) || [...fields.querySelectorAll("input")].some(input => !input.value.trim())) {
+      status.textContent = "세트(1 ~ 20), 횟수(1 ~ 1000), 휴식(0 ~ 3600초)을 정수로 입력해 주세요."; return;
+    }
+    const prior = state.addedRow || context.rows.get(slotKey(state.day, state.entry.order));
+    setBusy(true); status.textContent = "저장 중이에요.";
+    try {
+      const { data: auth, error: authError } = await client.auth.getUser();
+      if (!current(context, token)) return;
+      if (authError || auth?.user?.id !== userId) throw { code: "42501" };
+      const { data: result, error } = await client.rpc("set_member_exercise_parameters", {
+        ...sourceArgs(context), p_day: state.day, p_order: state.addedRow ? null : state.entry.order,
+        p_exercise_id: state.entry.exerciseId, p_sets: sets, p_reps: reps, p_rest_sec: rest,
+        p_expected_token: prior?.change_token || null, p_added_id: state.addedRow?.id || null
+      });
+      if (!current(context, token)) return;
+      if (error) throw error;
+      const saved = state.addedRow ? result?.addition : result?.replacement;
+      if (result?.restored === true && !state.addedRow) {
+        if (state.entry.exerciseId !== state.source.exerciseId || sets !== state.source.sets ||
+          reps !== state.source.reps || rest !== state.source.restSec) throw new Error("INVALID_RESPONSE");
+      } else if (!saved || saved.user_id !== userId || saved.pattern_day !== state.day ||
+        (state.addedRow ? saved.id !== state.addedRow.id || saved.exercise_id !== state.entry.exerciseId
+          : saved.exercise_order !== state.entry.order || saved.original_exercise_id !== state.source.exerciseId ||
+            saved.replacement_exercise_id !== state.entry.exerciseId) ||
+        saved.sets !== sets || saved.reps !== reps || saved.rest_sec !== rest ||
+        !uuidPattern.test(saved.change_token)) throw new Error("INVALID_RESPONSE");
+      close();
+      await reload?.();
+      if (token !== generation || userId !== context.userId) return;
+      const applied = state.addedRow ? active?.additions?.find(row => row.id === state.addedRow.id)
+        : active?.effective.days.find(day => day.day === state.day)?.exercises.find(entry => entry.order === state.entry.order);
+      if (active?.ready && active.extrasReady && active.sourceKind === context.sourceKind &&
+        active.routineId === context.routineId && active.revision === context.revision &&
+        (state.addedRow ? applied?.exercise_id : applied?.exerciseId) === state.entry.exerciseId &&
+        applied?.sets === sets && applied?.reps === reps && (state.addedRow ? applied?.rest_sec : applied?.restSec) === rest) showNotice("");
+      else showNotice("저장 결과를 화면에서 확인하지 못했어요. 다시 불러와 주세요.", true);
+    } catch (error) {
+      if (!current(context, token)) return;
+      if (view === state) {
+        status.textContent = errorMessage(error) + " 저장 완료를 확인하지 못했어요. 저장 상태를 다시 확인해 주세요.";
+        checkButton.hidden = false;
+      } else showNotice("저장 결과를 확인하지 못했어요. 다시 불러와 주세요.", true);
     } finally { if (token === generation) setBusy(false); }
   }
   async function saveAdded(state, token) {
@@ -522,5 +586,5 @@
     .observe(app, { attributes: true, attributeFilter: ["hidden"] });
   [assigned, routinePanel].forEach(node => new MutationObserver(() => { if (!visible()) close({ restore: false }); })
     .observe(node, { attributes: true, attributeFilter: ["hidden"] }));
-  window.MemberExerciseReplacements = Object.freeze({ startMember, prepare, prepareTutorial, controls, addControl, activate, deactivate, reset });
+  window.MemberExerciseReplacements = Object.freeze({ startMember, prepare, prepareTutorial, controls, doseControl, addControl, activate, deactivate, reset });
 })();
