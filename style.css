@@ -4,6 +4,11 @@
 }
 
 /* 웹페이지 전체 */
+/* 세로 경계에서 당겨서 새로고침만 막습니다. 일반/가로 스크롤은 유지합니다. */
+html, body {
+  overscroll-behavior-y: contain;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
