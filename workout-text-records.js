@@ -9,17 +9,25 @@
   dialog.id = "workoutTextDialog"; dialog.className = "workout-text-dialog";
   dialog.setAttribute("aria-labelledby", "workoutTextTitle");
   dialog.innerHTML = `<form><div class="workout-text-heading"><h2 id="workoutTextTitle">기록만 입력하기</h2><button type="button" data-text-close>닫기</button></div>
-    <label for="workoutTextBody">운동 기록</label>
+    <div class="workout-text-tools"><label for="workoutTextBody">운동 기록</label><button type="submit" class="workout-text-save">기록 저장</button></div>
     <textarea id="workoutTextBody" name="body" rows="6" maxlength="120" required aria-describedby="workoutTextHelp"></textarea>
     <p id="workoutTextHelp">시간과 오늘의 운동을 자유롭게 적어 주세요. 미리 적힌 문구도 지울 수 있어요.</p>
-    <p data-text-status role="status"></p><button type="button" data-text-check hidden>저장 상태 다시 확인</button>
-    <button type="submit" class="workout-text-save">기록 저장</button></form>`;
+    <p data-text-status role="status"></p><button type="button" data-text-check hidden>저장 상태 다시 확인</button></form>`;
   document.body.append(dialog);
   const form = dialog.querySelector("form"), input = form.elements.body;
   const closeButton = dialog.querySelector("[data-text-close]"), saveButton = dialog.querySelector(".workout-text-save");
   const checkButton = dialog.querySelector("[data-text-check]"), status = dialog.querySelector("[data-text-status]");
   let client = null, owner = "", generation = 0, onSaved = null, draft = null, busy = false, previousOverflow = null;
   const current = (token, userId) => token === generation && owner === userId && !app.hidden;
+  // 이 입력창만 키보드를 제외한 실제 표시 영역 안에 맞춥니다.
+  function syncDialogViewport() {
+    if (!dialog.open) return;
+    const viewport = window.visualViewport;
+    const height = viewport?.height || window.innerHeight;
+    const top = viewport?.offsetTop || 0;
+    dialog.style.setProperty("--workout-text-max-height", `${Math.max(0, height - 24)}px`);
+    dialog.style.setProperty("--workout-text-center", `${top + height / 2}px`);
+  }
   function setBusy(value) {
     busy = value; saveButton.disabled = value || Boolean(draft?.saved) || Boolean(draft?.uncertain);
     input.readOnly = value || Boolean(draft?.saved) || Boolean(draft?.uncertain);
@@ -105,7 +113,7 @@
     draft = { token: generation, owner, takenAt: new Date().toISOString(), saved: false, uncertain: false };
     input.value = template; status.textContent = ""; checkButton.hidden = true; setBusy(false);
     previousOverflow = document.body.style.overflow;
-    dialog.showModal(); document.body.style.overflow = "hidden";
+    dialog.showModal(); document.body.style.overflow = "hidden"; syncDialogViewport();
     input.focus({ preventScroll: true }); input.setSelectionRange(template.indexOf("\n"), template.indexOf("\n"));
   });
   closeButton.addEventListener("click", () => close());
@@ -114,5 +122,8 @@
   new MutationObserver(() => { if (app.hidden) reset(); else if (tab.hidden) close(false); })
     .observe(app, { attributes: true, subtree: true, attributeFilter: ["hidden"] });
   window.addEventListener("pagehide", () => close(false));
+  window.addEventListener("resize", syncDialogViewport, { passive: true });
+  window.visualViewport?.addEventListener("resize", syncDialogViewport, { passive: true });
+  window.visualViewport?.addEventListener("scroll", syncDialogViewport, { passive: true });
   window.WorkoutTextRecords = Object.freeze({ start, reset });
 })();

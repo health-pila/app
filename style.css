@@ -12,17 +12,19 @@
 .workout-text-button:disabled { opacity: .5; cursor: default; }
 .workout-text-button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
 .workout-record-card.is-text-only .workout-record-caption { min-height: 0; padding-top: 3px; }
-.workout-text-dialog { box-sizing: border-box; width: min(460px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 20px 16px; border: 0; border-radius: 20px; color: #17233e; background: #fff; font-family: inherit; overflow-y: auto; overscroll-behavior: contain; }
+.workout-text-dialog { position: fixed; top: var(--workout-text-center, 50%); bottom: auto; margin: 0 auto; transform: translateY(-50%); box-sizing: border-box; width: min(460px, calc(100vw - 24px)); max-height: var(--workout-text-max-height, calc(100dvh - 24px)); padding: 20px 16px; border: 0; border-radius: 20px; color: #17233e; background: #fff; font-family: inherit; overflow-y: auto; overscroll-behavior: contain; }
 .workout-text-dialog::backdrop { background: #18243bb3; }
 .workout-text-dialog .workout-text-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
 .workout-text-heading h2 { margin: 0; color: #c24c00; font-size: 19px; line-height: 1.5; }
 .workout-text-dialog label { display: block; margin-bottom: 6px; color: #526078; font-size: 13px; }
+.workout-text-tools { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 8px; background: #fff; }
+.workout-text-tools label { margin: 0; }
 .workout-text-dialog textarea { display: block; box-sizing: border-box; width: 100%; min-height: 170px; padding: 12px; border: 1px solid #dce2eb; border-radius: 10px; color: #17233e; background: #f8fafc; font: inherit; font-size: 16px; line-height: 1.7; resize: vertical; }
 .workout-text-dialog p { margin: 10px 0; color: #697586; font-size: 12px; line-height: 1.7; }
 .workout-text-dialog [data-text-status] { color: #a13c25; }
 .workout-text-dialog [data-text-status]:empty { display: none; }
 .workout-text-dialog button { min-height: 38px; padding: 7px 11px; border: 1px solid #dce2eb; border-radius: 8px; background: #fff; color: #526078; font: inherit; font-size: 13px; cursor: pointer; }
-.workout-text-dialog .workout-text-save { width: 100%; min-height: 44px; margin-top: 10px; border-color: #ec6a1a; color: #fff; background: #ec6a1a; font-weight: 700; }
+.workout-text-dialog .workout-text-save { flex: 0 0 auto; min-height: 44px; margin: 0; padding: 7px 14px; border-color: #ec6a1a; color: #fff; background: #ec6a1a; font-weight: 700; }
 .workout-text-dialog button:disabled { opacity: .5; cursor: default; }
 
 /* 웹페이지 전체 */
