@@ -3151,7 +3151,9 @@ function renderWorkoutRecords() {
     recordCard.className =
       "workout-record-card";
 
-    const recordPhotoArea = createWorkoutRecordPhoto(record, recordIndex === 0);
+    const textOnly = record.photo_path === null;
+    const recordPhotoArea = textOnly ? null : createWorkoutRecordPhoto(record, recordIndex === 0);
+    recordCard.classList.toggle("is-text-only", textOnly);
 
     const recordCaption =
       document.createElement("p");
@@ -3317,8 +3319,8 @@ function renderWorkoutRecords() {
       recordButtons
     );
 
+    if (recordPhotoArea) recordCard.append(recordPhotoArea);
     recordCard.append(
-      recordPhotoArea,
       recordCaption,
       captionEditor,
       editActions,
@@ -3456,7 +3458,7 @@ async function deleteWorkoutRecord(
   deleteButton
 ) {
   const shouldDelete = window.confirm(
-    "이 운동 기록을 삭제할까요?\n삭제한 사진은 복구할 수 없습니다."
+    record.photo_path === null ? "이 운동 기록을 삭제할까요?" : "이 운동 기록을 삭제할까요?\n삭제한 사진은 복구할 수 없습니다."
   );
 
   if (!shouldDelete) {
@@ -3501,16 +3503,18 @@ async function deleteWorkoutRecord(
       );
     }
 
-    const { error: photoDeleteError } =
-      await supabaseClient.storage
-        .from("workout-photos")
-        .remove([record.photo_path]);
+    if (record.photo_path !== null) {
+      const { error: photoDeleteError } =
+        await supabaseClient.storage
+          .from("workout-photos")
+          .remove([record.photo_path]);
 
-    if (photoDeleteError) {
-      console.error(
-        "운동 기록 사진 파일 삭제 실패:",
-        photoDeleteError
-      );
+      if (photoDeleteError) {
+        console.error(
+          "운동 기록 사진 파일 삭제 실패:",
+          photoDeleteError
+        );
+      }
     }
 
     await loadWorkoutRecords(user.id);
@@ -8806,6 +8810,16 @@ async function showWorkoutApp(userId) {
   window.MemberCustomExercises?.start(supabaseClient, userId);
   window.StretchingVideos?.startMember(supabaseClient, userId);
   window.MemberExerciseReplacements?.startMember(supabaseClient, userId, () => loadMemberRoutine(userId, true));
+  window.WorkoutTextRecords?.start(supabaseClient, userId, async record => {
+    if (appScreen.hidden || workoutRecordsUserId !== userId) return false;
+    const takenAt = new Date(record.taken_at);
+    visibleWorkoutMonth = new Date(takenAt.getFullYear(), takenAt.getMonth(), 1);
+    selectedWorkoutDate = getWorkoutRecordDateKey(record.taken_at);
+    shouldSelectLatestWorkoutDate = false;
+    await loadWorkoutRecords(userId);
+    return !appScreen.hidden && workoutRecordsUserId === userId &&
+      workoutRecords.some(item => String(item.id) === String(record.id));
+  });
 
   workoutCaptureBadge.start(userId);
   const memberTabBeforeRefresh =
@@ -9398,6 +9412,7 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId) {
+  window.WorkoutTextRecords?.reset();
   window.ExerciseContentSync?.start(supabaseClient);
   window.MemberExerciseReplacements?.reset();
   workoutCaptureBadge.reset();
@@ -10454,6 +10469,7 @@ async function handleLogout() {
     }
 
     window.OneDayPT.reset();
+    window.WorkoutTextRecords?.reset();
     workoutCaptureBadge.reset();
     window.MemberCardioPrograms?.reset();
     window.StretchingVideos?.reset();
@@ -10762,12 +10778,10 @@ window.RoutineComponents?.configureAdminContext?.(function () {
 initializeLogin();
 
 
-// 회원 운동 구성 탭의 휴식 타이머. 서버 저장 없이 현재 앱에서만 동작합니다.
+// 회원 화면 공통 휴식 타이머. 대분류 이동과 관계없이 현재 앱에서 계속 동작합니다.
 (function () {
   "use strict";
   const app = document.querySelector("#appScreen");
-  const routinePanel = document.querySelector("#routineTabPanel");
-  const assignedPanel = document.querySelector("#memberAssignedRoutinePanel");
   const widget = document.querySelector("#memberRestTimer");
   const toggle = document.querySelector("#restTimerToggle");
   const toggleLabel = document.querySelector("#restTimerToggleLabel");
@@ -10780,7 +10794,7 @@ initializeLogin();
   const addTen = document.querySelector("#restTimerAddTen");
   const presets = Array.from(document.querySelectorAll("[data-rest-seconds]"));
   const nav = document.querySelector(".member-bottom-nav");
-  if (!app || !routinePanel || !widget || !toggle || !panel) return;
+  if (!app || !widget || !toggle || !panel) return;
 
   let duration = 60;
   let remaining = duration * 1000;
@@ -10792,13 +10806,61 @@ initializeLogin();
   let drag = null;
   let suppressClick = false;
   let suppressClickTimer = null;
+  let restAudio = null;
+  let alertPrepared = false;
+  const alertNodes = new Set();
+
+  function stopRestAlert() {
+    alertNodes.forEach(node => { try { node.stop(); } catch (_) {} });
+    alertNodes.clear();
+  }
+
+  function prepareRestAlert() {
+    alertPrepared = true;
+    try {
+      const Audio = window.AudioContext || window.webkitAudioContext;
+      if (!Audio) return;
+      if (!restAudio || restAudio.state === "closed") restAudio = new Audio();
+      const context = restAudio;
+      if (context.state !== "running") void context.resume().catch(() => {});
+      // 시작 버튼의 사용자 동작 안에서 무음 버퍼를 재생해 iOS 오디오도 준비합니다.
+      const source = context.createBufferSource();
+      source.buffer = context.createBuffer(1, 1, context.sampleRate);
+      source.connect(context.destination);
+      source.onended = () => source.disconnect();
+      source.start();
+    } catch (_) { /* 소리 지원 여부와 관계없이 타이머는 계속 동작합니다. */ }
+  }
+
+  function notifyRestFinished() {
+    if (!alertPrepared || !isVisible()) return;
+    // 종료된 상태로 먼저 전환한 뒤 호출하므로 같은 실행에서 한 번만 울립니다.
+    try { navigator.vibrate?.([160, 90, 160]); } catch (_) {}
+    const context = restAudio;
+    if (!context || context.state !== "running") return;
+    stopRestAlert();
+    try {
+      [0, 0.24].forEach(delay => {
+        const oscillator = context.createOscillator(), gain = context.createGain();
+        const when = context.currentTime + delay;
+        oscillator.type = "sine"; oscillator.frequency.value = 880;
+        gain.gain.setValueAtTime(0, when);
+        gain.gain.linearRampToValueAtTime(0.18, when + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, when + 0.16);
+        oscillator.connect(gain); gain.connect(context.destination);
+        alertNodes.add(oscillator);
+        oscillator.onended = () => { alertNodes.delete(oscillator); oscillator.disconnect(); gain.disconnect(); };
+        oscillator.start(when); oscillator.stop(when + 0.18);
+      });
+    } catch (_) { stopRestAlert(); }
+  }
 
   function setText(node, text) {
     if (node.textContent !== text) node.textContent = text;
   }
 
   function isVisible() {
-    return !app.hidden && !routinePanel.hidden && !assignedPanel?.hidden && document.visibilityState === "visible";
+    return !app.hidden && document.visibilityState === "visible";
   }
 
   function stopTicker() {
@@ -10808,11 +10870,13 @@ initializeLogin();
 
   function updateRemaining() {
     if (phase !== "running") return;
-    remaining = Math.max(0, deadline - Date.now());
+    const overdue = Date.now() - deadline;
+    remaining = Math.max(0, -overdue);
     if (remaining === 0) {
       phase = "finished";
       deadline = null;
       stopTicker();
+      if (overdue <= 5000) notifyRestFinished();
     }
   }
 
@@ -10860,6 +10924,7 @@ initializeLogin();
 
   function resetTimer() {
     stopTicker();
+    stopRestAlert();
     phase = "idle";
     remaining = duration * 1000;
     deadline = null;
@@ -10974,15 +11039,15 @@ initializeLogin();
   });
 
   function syncVisibility() {
-    widget.hidden = app.hidden || routinePanel.hidden || Boolean(assignedPanel?.hidden);
+    widget.hidden = app.hidden;
     if (widget.hidden) endDrag();
     if (app.hidden) {
+      alertPrepared = false;
       resetPosition();
       duration = 60;
       resetTimer();
       collapse();
     } else {
-      if (routinePanel.hidden || assignedPanel?.hidden) collapse();
       updateRemaining();
       render();
       positionWidget();
@@ -11028,6 +11093,8 @@ initializeLogin();
       phase = "paused";
       deadline = null;
     } else {
+      stopRestAlert();
+      prepareRestAlert();
       if (phase === "finished") remaining = duration * 1000;
       deadline = Date.now() + remaining;
       phase = "running";
@@ -11081,18 +11148,16 @@ initializeLogin();
 
   const observer = new MutationObserver(syncVisibility);
   observer.observe(app, { attributes: true, attributeFilter: ["hidden"] });
-  observer.observe(routinePanel, { attributes: true, attributeFilter: ["hidden"] });
-  if (assignedPanel) observer.observe(assignedPanel, { attributes: true, attributeFilter: ["hidden"] });
   if (nav && window.ResizeObserver) new window.ResizeObserver(positionWidget).observe(nav);
   window.addEventListener("resize", positionWidget);
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", positionWidget);
     window.visualViewport.addEventListener("scroll", positionWidget);
   }
-  window.addEventListener("pagehide", function () { stopTicker(); resetPosition(); });
+  window.addEventListener("pagehide", function () { stopTicker(); stopRestAlert(); resetPosition(); });
   window.addEventListener("pageshow", function () { resetPosition(); syncVisibility(); });
   document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState !== "visible") resetPosition();
+    if (document.visibilityState !== "visible") { stopRestAlert(); resetPosition(); }
     syncVisibility();
   });
   syncVisibility();
