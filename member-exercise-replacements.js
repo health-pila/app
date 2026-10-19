@@ -217,7 +217,24 @@
     return context;
   }
   function addControl(context, day) {
-    const button = element("button", "member-pattern-add", "+ 운동 추가하기");
+    const button = element("button", "member-pattern-add");
+    const plus = element("span", "member-pattern-add-icon");
+    plus.setAttribute("aria-hidden", "true");
+    const plusSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    plusSvg.setAttribute("viewBox", "0 0 24 24");
+    plusSvg.setAttribute("focusable", "false");
+    const plusPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    plusPath.setAttribute("d", "M12 5v14M5 12h14");
+    plusSvg.append(plusPath); plus.append(plusSvg);
+    const arrow = element("span", "member-pattern-add-arrow");
+    arrow.setAttribute("aria-hidden", "true");
+    const arrowSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    arrowSvg.setAttribute("viewBox", "0 0 24 24");
+    arrowSvg.setAttribute("focusable", "false");
+    const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrowPath.setAttribute("d", "m9 5 7 7-7 7");
+    arrowSvg.append(arrowPath); arrow.append(arrowSvg);
+    button.append(plus, element("span", "member-pattern-add-label", "운동 종목 추가하기"), arrow);
     button.type = "button"; button.disabled = !context.extrasReady;
     button.setAttribute("aria-haspopup", "dialog"); button.setAttribute("aria-controls", dialog.id);
     button.addEventListener("click", () => open(context, day, null, button, "add"));
