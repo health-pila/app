@@ -239,6 +239,9 @@ const loginScreen = document.querySelector("#loginScreen");
 const appScreen = document.querySelector("#appScreen");
 const adminScreen = document.querySelector("#adminScreen");
 // 회원 화면 하단 탭
+// 센터 커뮤니티 기본 페이지: "news" = 센터 소식, "inquiry" = 문의하기
+const DEFAULT_COMMUNITY_MENU = "news";
+
 const memberTabButtons =
   document.querySelectorAll("[data-member-tab]");
 
@@ -2098,12 +2101,14 @@ function showMemberTab(tabName) {
     return;
   }
 
-// 센터 커뮤니티 진입 시 문의하기를 기본으로 표시
-if (tabName === "community") {
-  showCommunityMenu(
-    isMemberInquiryEnabled ? "inquiry" : "news"
-  );
-}
+  // 센터 커뮤니티 진입 시 DEFAULT_COMMUNITY_MENU에서 지정한 페이지 표시
+  if (tabName === "community") {
+    showCommunityMenu(
+      DEFAULT_COMMUNITY_MENU === "inquiry" && isMemberInquiryEnabled
+        ? "inquiry"
+        : "news"
+    );
+  }
 
   Object.entries(memberTabPanels).forEach(
     ([panelName, panel]) => {
