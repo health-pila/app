@@ -245,6 +245,7 @@ const memberTabButtons =
 const memberTabPanels = {
   routine: document.querySelector("#routineTabPanel"),
   workoutLog: document.querySelector("#workoutLogTabPanel"),
+  services: document.querySelector("#memberServicesTabPanel"),
   community: document.querySelector("#communityTabPanel")
 };
 

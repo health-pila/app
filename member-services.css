@@ -1,0 +1,170 @@
+/* 회원용 이용권·결제 화면. 관리자와 운동 카드 스타일에는 적용하지 않습니다. */
+#appScreen > #memberServicesTabPanel.member-services-panel {
+  padding: 24px 14px 0;
+}
+
+.member-services-heading {
+  margin: 0 6px 16px;
+  color: var(--brand-orange);
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* 공통 흰 프레임 안에 이미지와 하단 안내가 연결된 서비스 카드를 배치합니다. */
+.member-services-surface {
+  min-width: 0;
+  padding: 16px 12px 18px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(23, 35, 62, 0.05);
+}
+
+.member-services-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 10px;
+  margin: 0 auto;
+}
+
+.member-service-item {
+  min-width: 0;
+}
+
+.member-service-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dce4ee;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--brand-navy);
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(23, 35, 62, 0.025);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.member-service-media {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  aspect-ratio: 1.14;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f3f6fa, #f8fafc);
+}
+
+.member-service-card img {
+  display: block;
+  width: 84%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  /* 썸네일의 기존 주황 외곽선을 가리고 밝은 카드 배경과 자연스럽게 연결합니다. */
+  clip-path: inset(2% round 10%);
+  mix-blend-mode: multiply;
+}
+
+.member-service-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-top: 1px solid #e5ebf2;
+  background: #fff;
+  color: var(--brand-navy);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: left;
+  word-break: keep-all;
+}
+
+.member-service-caption-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.member-service-arrow {
+  flex: 0 0 auto;
+  display: block;
+  width: 7px;
+  height: 7px;
+  margin-right: 2px;
+  border-top: 2px solid #526b87;
+  border-right: 2px solid #526b87;
+  transform: rotate(45deg);
+}
+
+.member-service-card:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 3px rgba(23, 35, 62, 0.1);
+}
+
+.member-service-card:focus-visible {
+  outline: 3px solid var(--brand-orange);
+  outline-offset: 3px;
+}
+
+.member-services-note {
+  margin: 18px 4px 0;
+  color: #697586;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+  word-break: keep-all;
+}
+
+/* 네 메뉴를 같은 높이로 유지하고 좁은 화면에서도 한 줄로 표시합니다. */
+#appScreen .member-bottom-nav {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+#appScreen .member-tab-button {
+  padding-left: 2px;
+  padding-right: 2px;
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  #appScreen > #memberServicesTabPanel.member-services-panel {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .member-services-surface {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .member-services-heading {
+    margin-right: 10px;
+    margin-left: 10px;
+  }
+
+  .member-service-caption {
+    padding-right: 9px;
+    padding-left: 9px;
+    font-size: 13px;
+  }
+
+  #appScreen .member-tab-button {
+    padding-left: 1px;
+    padding-right: 1px;
+    font-size: 11px;
+    letter-spacing: -0.15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-service-card { transition: none; }
+}

@@ -17,6 +17,8 @@
   background: #fff;
 }
 .member-routine-menu-button {
+  --menu-button-edge: #bdcadb;
+  --menu-button-shadow: rgba(23, 35, 62, 0.13);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -25,17 +27,21 @@
   min-width: 0;
   min-height: 74px;
   height: 74px;
-  padding: 2px 3px;
-  border: 0;
-  border-radius: 9px;
-  background: #eef1f5;
+  padding: 1px 2px;
+  border: 1px solid #b8c6d8;
+  border-radius: 11px;
+  background: linear-gradient(180deg, #ffffff, #f3f6fa);
   color: #4b5769;
   font: inherit;
   font-size: 17px;
   transform: scale(0.945, 0.9);
   font-weight: 700;
   line-height: 1.2;
+  box-shadow: 0 3px 0 var(--menu-button-edge),
+    0 5px 9px var(--menu-button-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 /* 투명 PNG를 사용하며 v147 대비 이미지 크기를 20% 줄입니다. */
 .member-routine-menu-image {
@@ -54,10 +60,19 @@
   transform: scale(1.0582010582, 1.1111111111);
 }
 .member-routine-menu-button.is-active {
-  background: #ffe0c5;
+  --menu-button-edge: #df5d0b;
+  --menu-button-shadow: rgba(236, 106, 26, 0.18);
+  border-color: var(--brand-orange);
+  background: linear-gradient(180deg, #fff0df, #ffe0c5);
   color: #a94200;
-  box-shadow: inset 2px 3px 6px rgba(115, 57, 20, 0.24),
-    inset -1px -1px 2px rgba(255, 255, 255, 0.8);
+}
+.member-routine-menu-button:active {
+  transform: translateY(3px) scale(0.945, 0.9);
+  box-shadow: 0 0 0 var(--menu-button-edge),
+    0 1px 3px var(--menu-button-shadow), inset 0 1px 2px rgba(23, 35, 62, 0.07);
+}
+@media (prefers-reduced-motion: reduce) {
+  .member-routine-menu-button { transition: none; }
 }
 .member-routine-menu-button:focus-visible,
 .cardio-program-summary:focus-visible,
@@ -295,3 +310,4 @@
 @media (max-width: 360px) {
   #memberRoutinePageHeading.is-cardio-heading { font-size: 25px; }
 }
+

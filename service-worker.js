@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "161";
+const APP_VERSION = "166";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}`;
@@ -13,6 +13,8 @@ const APP_FILES = [
   `./style.css?v=${APP_VERSION}`,
   `./pull-to-refresh-guard.js?v=${APP_VERSION}`,
   `./cardio-programs.css?v=${APP_VERSION}`,
+  `./member-services.css?v=${APP_VERSION}`,
+  `./member-services.js?v=${APP_VERSION}`,
   `./stretching-videos.css?v=${APP_VERSION}`,
   `./stretching-videos.js?v=${APP_VERSION}`,
   `./cardio-programs.js?v=${APP_VERSION}`,
@@ -41,6 +43,13 @@ const APP_FILES = [
   `./images/nav-routine.png?v=${APP_VERSION}`,
   `./images/nav-workout-log.png?v=${APP_VERSION}`,
   `./images/nav-community.png?v=${APP_VERSION}`,
+  `./images/nav-services.webp?v=${APP_VERSION}`,
+  "./images/service-renewal.webp",
+  "./images/service-locker.webp",
+  "./images/service-clothing.webp",
+  "./images/service-water.webp",
+  "./images/service-pilates-trial.webp",
+  "./images/service-free-class.webp",
   "./images/personal-exercise-note.png",
   "./images/center-logo.png",
   `./images/center-logo-plate.png?v=${APP_VERSION}`,
