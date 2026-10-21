@@ -759,7 +759,15 @@
       const changeButton = replacementControls.querySelector(".exercise-replacement-change");
       if (changeButton) {
         title.classList.add("routine-component-title-with-change");
-        title.append(changeButton);
+        const completion = window.MemberWorkoutCompletion?.createControl(entry, options);
+        if (completion) {
+          const tools = element("div", "routine-component-card-tools");
+          tools.append(changeButton, completion);
+          info.classList.add("routine-component-info-with-completion");
+          info.append(tools);
+        } else {
+          title.append(changeButton);
+        }
       }
       if (replacementControls.childElementCount) card.append(replacementControls);
     }
