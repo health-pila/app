@@ -4540,6 +4540,15 @@ function renderMemberAccountEmail(email = "") {
   connectAppMenu("member", appScreen, logoutButton);
   connectAppMenu("admin", adminScreen, document.querySelector("#adminLogoutButton"));
 })();
+const refreshLoginButton = document.querySelector("#refreshLoginButton");
+refreshLoginButton?.addEventListener("click", function () {
+  if (refreshLoginButton.disabled) return;
+  refreshLoginButton.disabled = true;
+  refreshLoginButton.setAttribute("aria-label", "새로고침 중");
+  refreshLoginButton.lastElementChild.textContent = "갱신 중...";
+  setTimeout(function () { window.location.reload(); }, 150);
+});
+
 const refreshMemberAppButton =
   document.querySelector("#refreshMemberAppButton");
 
@@ -11199,3 +11208,4 @@ initializeLogin();
   });
   syncVisibility();
 })();
+
