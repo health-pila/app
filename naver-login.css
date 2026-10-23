@@ -1,0 +1,349 @@
+/* 네이버 로그인 BI: 공식 PNG / 지정 녹색 #03A94D. 기존 회원 화면과 분리합니다. */
+.naver-login-entry {
+  margin: 0 0 16px;
+}
+
+.naver-auth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid #03a94d;
+  border-radius: 12px;
+  background: #03a94d;
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.naver-auth-button img {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.naver-auth-button:disabled {
+  cursor: wait;
+}
+
+.naver-auth-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.naver-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 0;
+  color: #667085;
+  font-size: 12px;
+}
+
+.naver-login-divider::before,
+.naver-login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e4e8ef;
+}
+
+.naver-auth-message {
+  margin: 10px 0 0;
+  color: #4b5563;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+#appScreen .naver-account-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--brand-navy);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+#appScreen .naver-account-link img {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+}
+
+#appScreen .naver-account-link:disabled {
+  color: #526078;
+  cursor: default;
+}
+
+#appScreen .naver-account-link:hover:not(:disabled) {
+  background: #eef1f5;
+}
+
+#memberMenuPanel .naver-link-message {
+  margin: 4px 12px 10px;
+  font-size: 12px;
+}
+
+.naver-auth-button:focus-visible,
+#appScreen .naver-account-link:focus-visible {
+  outline: 3px solid #ec6a1a;
+  outline-offset: 2px;
+}
+
+.naver-auth-message[hidden],
+#appScreen .naver-account-link[hidden] {
+  display: none;
+}
+
+/* 로그인 랜딩 화면. 회원·관리자·비밀번호 재설정 페이지에는 적용하지 않습니다. */
+#loginScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 460px;
+  min-height: 100dvh;
+  padding: calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(ellipse at 105% 0, #ffead8 0, #fff4e800 40%),
+    #fffaf4;
+}
+
+#loginScreen[hidden] { display: none; }
+
+#loginScreen .login-welcome { padding: 0 8px; }
+
+#loginScreen .login-center-logo {
+  display: block;
+  width: 158px;
+  max-width: 60%;
+  height: auto;
+  margin: 0 0 20px;
+  object-fit: contain;
+}
+
+#loginScreen .login-welcome h1 {
+  margin: 0;
+  color: var(--brand-navy);
+  font-size: clamp(28px, 7.8vw, 35px);
+  font-weight: 800;
+  letter-spacing: -1.3px;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+#loginScreen .login-welcome h1 span { color: #ed650a; }
+
+#loginScreen .login-welcome > p {
+  margin: 12px 0 22px;
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: -0.35px;
+  word-break: keep-all;
+}
+
+#loginScreen .login-box {
+  box-sizing: border-box;
+  padding: 22px 20px 16px;
+  border: 1px solid #dce3ed;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 8px 24px #17233e06;
+}
+
+#loginScreen .login-panel-heading {
+  margin: 0 0 16px;
+  color: var(--brand-navy);
+  font-size: 25px;
+  line-height: 1.4;
+  letter-spacing: -0.5px;
+}
+
+#loginScreen .naver-login-entry { margin: 0 0 14px; }
+#loginScreen .naver-login-divider { margin-top: 16px; }
+
+#loginScreen .login-form { gap: 9px; }
+#loginScreen .login-form label { margin-top: 4px; }
+
+#loginScreen .login-form input {
+  min-height: 48px;
+  padding: 12px 13px;
+  border-color: #ccd5e2;
+  border-radius: 11px;
+  font-size: 16px;
+}
+
+#loginScreen .login-form input::placeholder { color: #929bab; opacity: 1; }
+#loginScreen .password-field input { padding-right: 48px; }
+
+#loginScreen .login-password-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 7px;
+}
+
+#loginScreen .login-password-heading label { margin: 0; }
+
+#loginScreen #loginForm #forgotPasswordLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: auto;
+  min-height: 32px;
+  margin: -5px 0;
+  padding: 5px 0 5px 6px;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+#loginScreen #loginButton {
+  min-height: 48px;
+  margin-top: 7px;
+  padding: 12px;
+  border-radius: 11px;
+  font-size: 16px;
+}
+
+#loginScreen #loginForm #showSignupButton {
+  min-height: 44px;
+  margin-top: 1px;
+  padding: 10px 2px;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+#loginScreen #showSignupButton strong {
+  margin-left: 4px;
+  color: #df5a06;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+#loginScreen .login-preview-entry { margin: 16px 0 0; }
+
+#loginScreen #openGuestDemo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 11px;
+  min-height: 88px;
+  padding: 16px 14px;
+  border: 1px solid #ed8a42;
+  border-radius: 17px;
+  background: linear-gradient(135deg, #fff 0, #fff3e7 100%);
+  box-shadow: 0 4px 0 #f3d2b6, 0 7px 16px #b8601910;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+#loginScreen .login-preview-icon {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  color: #ed6a0a;
+}
+
+#loginScreen .login-preview-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+#loginScreen .login-preview-copy strong {
+  color: var(--brand-navy);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.4px;
+}
+
+#loginScreen .login-preview-copy > span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+#loginScreen .login-preview-arrow {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  color: #ed6a0a;
+}
+
+#loginScreen #openGuestDemo:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #f3d2b6;
+}
+
+#loginScreen #openGuestDemo:focus-visible,
+#loginScreen #loginInstallButton:focus-visible {
+  outline: 3px solid #ec6a1a;
+  outline-offset: 3px;
+}
+
+#loginScreen .login-footer { margin-top: 23px; }
+#loginScreen .login-install-area { margin: 0 12px; }
+
+#loginScreen #loginInstallButton {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d5dde8;
+  border-radius: 12px;
+  background: #f0f3f7;
+  color: var(--brand-orange);
+  font-size: 17px;
+  box-shadow: 0 2px 0 #dce3ed;
+}
+
+#loginScreen #loginInstallButton:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #dce3ed;
+}
+
+#loginScreen .login-security-note {
+  margin: 13px 12px 0;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.7;
+  text-align: center;
+  word-break: keep-all;
+}
+
+@media (max-width: 350px) {
+  #loginScreen { padding-right: 16px; padding-left: 16px; }
+  #loginScreen .login-box { padding-right: 16px; padding-left: 16px; }
+  #loginScreen #openGuestDemo { gap: 8px; padding-right: 11px; padding-left: 11px; }
+  #loginScreen .login-preview-icon { flex-basis: 32px; width: 32px; height: 32px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #loginScreen #openGuestDemo { transition: none; }
+}

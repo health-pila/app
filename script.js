@@ -1,6 +1,9 @@
 const SUPABASE_URL = "https://cithfqbzszgiqjifhrqy.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0mGHHS1HcRHh0Ttt8sZwtA_MBI22p1w";
 
+// SDK가 OAuth 복귀 주소를 처리하기 전에 표시용 오류 종류만 읽습니다.
+const naverAuthReturn = window.NaverLogin?.captureReturn(window.location.href);
+
 // 복구 링크가 기본 앱 주소로 돌아와도 운동 화면 대신 재설정 페이지로 보냅니다.
 const isPasswordRecoveryReturn =
   new URLSearchParams(window.location.hash.slice(1)).get("type") === "recovery";
@@ -4477,6 +4480,17 @@ const toggleRoutineDescriptionButton = document.querySelector(
 );
 const logoutButton = document.querySelector("#logoutButton");
 const memberAccountEmail = document.querySelector("#memberAccountEmail");
+const naverAuth = window.NaverLogin?.create({
+  client: supabaseClient,
+  supabaseUrl: SUPABASE_URL,
+  returnInfo: naverAuthReturn,
+  loginButton: document.querySelector("#naverLoginButton"),
+  linkButton: document.querySelector("#naverLinkButton"),
+  loginMessage: document.querySelector("#naverLoginMessage"),
+  linkMessage: document.querySelector("#naverLinkMessage"),
+  conflictingButtons: [loginButton, signupButton, showSignupButton, hideSignupButton,
+    logoutButton, document.querySelector("#refreshMemberAppButton")].filter(Boolean)
+});
 
 function renderMemberAccountEmail(email = "") {
   const value = typeof email === "string" ? email.trim() : "";
@@ -9472,7 +9486,7 @@ async function showScreenForCurrentUser() {
 
   const { data: profile, error: profileError } = await supabaseClient
     .from("profiles")
-    .select("role")
+    .select("role,email")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -9487,11 +9501,13 @@ async function showScreenForCurrentUser() {
   }
 
   if (profile.role === "admin") {
+    naverAuth?.renderUser(user, profile.role);
     await showAdminApp(user.id);
     return;
   }
 
-  renderMemberAccountEmail(user.email);
+  naverAuth?.renderUser(user, profile.role);
+  renderMemberAccountEmail(user.email || profile.email);
   await showWorkoutApp(user.id);
 }
 
@@ -10379,6 +10395,7 @@ applyAdminRoutineJsonButton?.addEventListener("click", applyValidatedAdminRoutin
 // 로그인 버튼 기능
 loginForm.addEventListener("submit", async function (event) {
   event.preventDefault();
+  if (naverAuth?.isBusy()) return;
 
   loginMessage.textContent = "로그인 중...";
   loginButton.disabled = true;
@@ -10425,6 +10442,8 @@ async function initializeLogin() {
       window.history.replaceState(null, "", currentUrl.href);
       // 이 브라우저에 남아 있던 로그인도 정리하고 새 비밀번호로 로그인하게 합니다.
       await supabaseClient.auth.signOut({ scope: "local" });
+      naverAuth?.reset();
+      await naverAuth?.finishReturn(null);
       loginMessage.textContent = "새 비밀번호로 로그인해 주세요.";
       return;
     }
@@ -10432,6 +10451,8 @@ async function initializeLogin() {
       data: { session },
       error: sessionError
     } = await supabaseClient.auth.getSession();
+
+    if (naverAuth && !(await naverAuth.finishReturn(session))) return;
 
     if (sessionError) {
       console.error(
@@ -10498,6 +10519,7 @@ async function handleLogout() {
     renderWorkoutCalendar();
 
     // 회원·관리자 화면을 숨기고 로그인 화면 표시
+    naverAuth?.reset();
     renderMemberAccountEmail();
     appScreen.hidden = true;
     adminScreen.hidden = true;
@@ -10526,6 +10548,7 @@ async function handleLogout() {
     signupForm.hidden = true;
     loginForm.hidden = false;
     showSignupButton.hidden = false;
+    updateLoginPanelTitle();
 
     // 입력값과 안내 메시지 초기화
     loginForm.reset();
@@ -10611,10 +10634,16 @@ toggleRoutineDescriptionButton.addEventListener("click", function () {
     String(isExpanded)
   );
 });
+function updateLoginPanelTitle() {
+  const title = document.getElementById("loginPanelHeading");
+  if (title) title.textContent = signupForm.hidden ? "로그인" : "회원가입";
+}
+
 function showSignupForm() {
   loginForm.hidden = true;
   showSignupButton.hidden = true;
   signupForm.hidden = false;
+  updateLoginPanelTitle();
 
   loginMessage.textContent = "";
   signupMessage.textContent = "";
@@ -10626,6 +10655,7 @@ function showLoginForm() {
   signupForm.hidden = true;
   loginForm.hidden = false;
   showSignupButton.hidden = false;
+  updateLoginPanelTitle();
 
   signupMessage.textContent = "";
   signupForm.reset();
@@ -10637,6 +10667,7 @@ hideSignupButton.addEventListener("click", showLoginForm);
 
 signupForm.addEventListener("submit", async function (event) {
   event.preventDefault();
+  if (naverAuth?.isBusy()) return;
 
   const name = signupName.value.trim();
   const phoneLast4 = signupPhoneLast4.value.trim();
