@@ -347,3 +347,12 @@
 @media (prefers-reduced-motion: reduce) {
   #loginScreen #openGuestDemo { transition: none; }
 }
+
+
+/* v170: 네이버 사전 검수 완료 전까지 회원용 진입 버튼만 숨깁니다.
+   이메일 로그인, 화면 디자인, 서버 인증 설정과 기존 계정 연결은 유지합니다. */
+#loginScreen .naver-login-entry,
+#appScreen #naverLinkButton,
+#appScreen #naverLinkMessage {
+  display: none !important;
+}
