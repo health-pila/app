@@ -385,3 +385,17 @@
 #loginScreen .login-refresh-button:active { background: #eef1f5; }
 #loginScreen .login-refresh-button:disabled { opacity: 0.6; cursor: wait; }
 #loginScreen .login-refresh-button:focus-visible { outline: 3px solid #ec6a1a; outline-offset: 3px; }
+
+/* v181: 이메일 로그인 영역만 여백을 조정합니다. 글자 크기는 유지합니다. */
+#loginScreen .login-box:has(#loginForm:not([hidden])) { padding-top: 17.1px; padding-bottom: 12.4px; }
+#loginScreen .login-box:has(#loginForm:not([hidden])) > .login-panel-heading { margin-bottom: 10px; }
+#loginScreen #loginForm { gap: 6px; }
+#loginScreen #loginForm > label { margin-top: 3px; }
+#loginScreen #loginForm input { min-height: 42px; padding-top: 9px; padding-bottom: 9px; }
+#loginScreen #loginForm .login-password-heading { margin-top: 5px; }
+#loginScreen #loginButton { min-height: 42px; margin-top: 5px; padding-top: 9px; padding-bottom: 9px; }
+#loginScreen #loginForm #showSignupButton { min-height: 38px; margin-top: .85px; padding-top: 8px; padding-bottom: 8px; }
+
+/* 설치 버튼이 보일 때와 보이지 않을 때 모두 보안 안내까지의 여백을 30% 줄입니다. */
+#loginScreen .login-footer { margin-top: 16.1px; }
+#loginScreen .login-security-note { margin-top: 9.1px; }
