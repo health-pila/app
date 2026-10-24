@@ -4638,8 +4638,8 @@ body.camera-open {
 }
 
 :is(#appScreen, #adminRoutineJsonPreview, #guestDemoDialog) .routine-component-body-parts {
-  margin: 3px 0 5px;
-  font-size: 12px;
+  margin: 1.5px 0 5px;
+  font-size: 13px;
 }
 
 :is(#appScreen, #adminRoutineJsonPreview, #guestDemoDialog) .routine-component-dose {
@@ -4647,7 +4647,8 @@ body.camera-open {
 }
 
 :is(#appScreen, #adminRoutineJsonPreview, #guestDemoDialog) .routine-component-rest {
-  font-size: 12px;
+  margin-top: 1.4px;
+  font-size: 13px;
 }
 
 :is(#appScreen, #adminRoutineJsonPreview, #guestDemoDialog) .routine-component-actions {
@@ -5259,7 +5260,7 @@ body.naver-shortcut-guide-open { overflow: hidden; }
 .routine-weight-panel {
   min-width: 0;
   margin-top: 12px;
-  padding: 12px 12px 12px 6px;
+  padding: 12px 6px;
   border: 1px solid #dce2eb;
   border-radius: 10px;
   background: #f8fafc;
@@ -5385,6 +5386,7 @@ body.naver-shortcut-guide-open { overflow: hidden; }
 
 textarea.routine-weight-cell {
   min-height: 55.8px;
+  font-size: 12px;
   resize: vertical;
   text-align: left;
 }

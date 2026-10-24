@@ -415,7 +415,7 @@
             pendingChanges.forEach(change => { sets[change.index][change.key] = change.value; });
             (recordStorage || localStorage).setItem(storageKey, JSON.stringify({ version: 1, sets }));
             pendingChanges.clear();
-            status.textContent = recordStorage ? "체험 기록을 입력했어요." : "이 브라우저에 저장했어요.";
+            status.textContent = "";
           } catch (error) {
             status.textContent = "저장하지 못했어요. 페이지를 닫기 전에 입력 내용을 복사해 주세요.";
           }
@@ -428,7 +428,6 @@
     });
     table.append(head, body);
     scroll.append(table);
-    const hint = element("p", "routine-weight-scroll-hint", "5세트까지 기록 가능합니다.");
     const captureHint = element("p", "routine-weight-save-hint", "저장 버튼을 누르면 현재 기록이 '운동 기록' 탭에 사진으로 저장돼요.");
     captureHint.id = panelId + "-save-hint";
     captureHint.hidden = true;
@@ -503,7 +502,7 @@
         (recordStorage || localStorage).removeItem(storageKey);
         pendingChanges.clear();
         inputs.forEach(({ input }) => { input.value = ""; });
-        status.textContent = "세트 기록을 초기화했어요.";
+        status.textContent = "";
       } catch (error) {
         status.textContent = "초기화하지 못했어요. 기록은 그대로 유지됩니다.";
       }
@@ -519,7 +518,7 @@
         // 입력칸에 자동 초점을 주지 않아 모바일 자판이 바로 열리지 않습니다.
       });
     });
-    panel.append(toolbar, captureHint, scroll, hint, legacy, status);
+    panel.append(toolbar, captureHint, scroll, legacy, status);
     return { button, panel };
   }
 

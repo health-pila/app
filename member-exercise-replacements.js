@@ -40,12 +40,12 @@
         <button type="button" data-replace-back>← 다른 운동 선택</button>
         <h3 data-replace-target></h3><p data-replace-meta class="exercise-replacement-help"></p>
         <p data-replace-dose-help class="exercise-replacement-help"></p>
+        <button type="submit" data-replace-save class="exercise-replacement-save">확인하고 저장</button>
         <div class="exercise-replacement-dose-fields">
           <label>세트<input name="sets" type="number" min="1" max="20" step="1" required inputmode="numeric"></label>
           <label>세트당 횟수<input name="reps" type="number" min="1" max="1000" step="1" required inputmode="numeric"></label>
           <label>휴식(초)<input name="rest" type="number" min="0" max="3600" step="1" required inputmode="numeric"></label>
         </div>
-        <button type="submit" data-replace-save class="exercise-replacement-save">확인하고 저장</button>
       </form>
       <p data-replace-status class="exercise-replacement-status" role="status"></p>
       <button type="button" data-replace-check hidden>저장 상태 다시 확인</button>
@@ -57,6 +57,15 @@
   const form = $("[data-replace-confirm]"), fields = $(".exercise-replacement-dose-fields");
   const closeButton = $("[data-replace-close]");
   const status = $("[data-replace-status]"), checkButton = $("[data-replace-check]");
+  // 자판을 제외한 실제 표시 영역에 맞춥니다. 저장 버튼은 입력칸 위에 유지합니다.
+  function syncDialogViewport() {
+    if (!dialog.open) return;
+    const viewport = window.visualViewport;
+    const height = viewport?.height || window.innerHeight;
+    const top = viewport?.offsetTop || 0;
+    dialog.style.setProperty("--replacement-max-height", `${Math.max(0, height - 24)}px`);
+    dialog.style.setProperty("--replacement-center", `${top + height / 2}px`);
+  }
   let client = null, userId = "", generation = 0, active = null, view = null, busy = false, reload = null;
   let returnFocus = null, previousOverflow = null, returnScroll = null, historyToken = "", historyPending = false;
   const personalList = $("[data-personal-list]"), personalName = $("#personalExerciseName");
@@ -385,6 +394,7 @@
     personalName.value = ""; renderPersonal(); renderAll();
     if (mode !== "dose") void refreshPersonal(view);
     try { dialog.showModal(); } catch (_) { cleanup(true); return false; }
+    syncDialogViewport();
     document.body.style.overflow = "hidden"; $(".exercise-replacement-content").scrollTop = 0; closeButton.focus({ preventScroll: true });
     try { historyToken = `${Date.now()}-${Math.random().toString(36).slice(2)}`; history.pushState({ ...history.state, [historyKey]: historyToken }, "", location.href); } catch (_) { historyToken = ""; }
     if (mode === "dose") choose(resolveExercise(entry.exerciseId));
@@ -582,10 +592,12 @@
     }
   });
   window.addEventListener("pagehide", () => close({ restore: false, navigate: false }));
+  window.addEventListener("resize", syncDialogViewport, { passive: true });
+  window.visualViewport?.addEventListener("resize", syncDialogViewport, { passive: true });
+  window.visualViewport?.addEventListener("scroll", syncDialogViewport, { passive: true });
   new MutationObserver(() => { if (app.hidden && userId) reset(); else if (!visible()) close({ restore: false }); })
     .observe(app, { attributes: true, attributeFilter: ["hidden"] });
   [assigned, routinePanel].forEach(node => new MutationObserver(() => { if (!visible()) close({ restore: false }); })
     .observe(node, { attributes: true, attributeFilter: ["hidden"] }));
   window.MemberExerciseReplacements = Object.freeze({ startMember, prepare, prepareTutorial, controls, doseControl, addControl, activate, deactivate, reset });
 })();
-
