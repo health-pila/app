@@ -163,7 +163,7 @@
       managementNotes: "가슴 복합 머신 운동. 초보 기초 단계는 EX003을 우선하고, 운동 경험이 쌓이면 선택 운동으로 활용.",
       checklist: ["어깨가 귀 쪽으로 올라가지는 않나요?","손목이 뒤로 꺾이지 않고 팔뚝과 나란한가요?","양쪽 손잡이를 반동 없이 고르게 움직이고 있나요?"],
       alternativeExerciseIds: ["EX003"],
-      difficulty: 3,
+      difficulty: 4,
       cautionTags: ["어깨","팔꿈치"],
       videoUrl: "https://youtu.be/XIodCnWhtcQ",
       defaultGifUrl: "",
