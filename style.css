@@ -5788,9 +5788,10 @@ textarea.routine-weight-cell {
   margin-bottom: 0;
 }
 
+/* v185: 미리보기의 세 기능을 한 줄에 유지합니다. */
 #guestDemoDialog #guestDemoRoutineCards .routine-component-actions {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
 }
 
 #guestDemoDialog #guestDemoRoutineCards .routine-component-actions > button {
@@ -5798,6 +5799,25 @@ textarea.routine-weight-cell {
 }
 
 #guestDemoRoutineCards .routine-component-actions > .routine-weight-button {
-  grid-column: 1 / -1;
+  grid-column: auto;
   grid-row: auto;
 }
+
+#guestDemoDialog #guestDemoRoutineCards .routine-component-actions > .routine-action-with-icon {
+  padding-right: 2px;
+  padding-left: 2px;
+  gap: 2px;
+}
+
+#guestDemoRoutineCards .routine-action-icon {
+  flex-basis: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+#guestDemoRoutineCards .routine-action-chevron {
+  flex-basis: 8px;
+  width: 8px;
+  height: 8px;
+}
+
