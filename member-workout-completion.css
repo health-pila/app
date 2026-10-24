@@ -1,4 +1,4 @@
-/* 회원 카드의 오른쪽에 종목변경과 수행완료를 세로로 배치합니다. */
+/* 종목변경은 운동명 옆, 수행완료는 횟수·세트 옆에 배치합니다. */
 #appScreen .routine-component-info-with-completion {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -12,7 +12,7 @@
 
 #appScreen .routine-component-card-tools {
   grid-column: 2;
-  grid-row: 1 / span 4;
+  grid-row: 1 / span 2;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -32,7 +32,7 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  min-height: 32px;
+  min-height: 26px;
   margin: 0;
   padding: 0 2px;
   color: #526078;
@@ -44,6 +44,23 @@
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+#appScreen .routine-component-info-with-completion > .routine-component-title { grid-row: 1; }
+#appScreen .routine-component-info-with-completion > .routine-component-body-parts { grid-row: 2; }
+#appScreen .routine-component-info-with-completion > .routine-component-dose-row { grid-row: 3; align-content: flex-start; }
+#appScreen .routine-component-info-with-completion > .routine-component-rest { grid-row: 4; }
+#appScreen .routine-component-info-with-completion > .routine-completion {
+  grid-column: 2;
+  grid-row: 3;
+  align-self: start;
+}
+
+/* 작은 화면에서 수정 버튼이 다음 줄로 내려가도 체크는 횟수 줄에 맞춥니다. */
+#appScreen .routine-component-info-with-completion .routine-component-dose-row .routine-component-dose {
+  display: flex;
+  align-items: center;
+  min-height: 26px;
 }
 
 #appScreen .routine-completion-input {
@@ -72,3 +89,4 @@
   outline: 3px solid #f59a57;
   outline-offset: 3px;
 }
+

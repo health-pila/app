@@ -795,9 +795,9 @@
         const completion = window.MemberWorkoutCompletion?.createControl(entry, options);
         if (completion) {
           const tools = element("div", "routine-component-card-tools");
-          tools.append(changeButton, completion);
+          tools.append(changeButton);
           info.classList.add("routine-component-info-with-completion");
-          info.append(tools);
+          info.append(tools, completion);
         } else {
           title.append(changeButton);
         }

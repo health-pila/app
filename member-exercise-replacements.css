@@ -55,6 +55,11 @@
 .member-pattern-add:disabled { opacity: .5; cursor: default; }
 .member-pattern-add:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
 .exercise-replacement-controls .member-pattern-remove { margin-left: auto; color: #697586; }
+.exercise-replacement-controls :is(.exercise-replacement-restore, .member-pattern-remove) {
+  min-height: 30.4px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
 #memberRoutineComponents.is-tutorial .is-personal-exercise .routine-component-actions { grid-template-columns: minmax(0, 1fr); }
 
 /* 종목과 기록 ID는 유지하고 숫자 설정만 수정합니다. */
