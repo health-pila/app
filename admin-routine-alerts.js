@@ -7,13 +7,15 @@
     { kind: "inquiry", prefix: "adminInquiry", storagePrefix: "adminInquiryAlerts:v1:", label: "회원 문의" }
   ].map(section => ({ ...section,
     countLabel: document.getElementById(section.prefix + "AlertCount"),
-    soundButton: document.getElementById(section.prefix + "SoundToggle"),
-    testButton: document.getElementById(section.prefix + "SoundTest"),
-    status: document.getElementById(section.prefix + "AlertStatus"),
     initialized: false, count: 0, sequence: 0, seen: new Set(), storageFailed: false, loadFailed: false
   }));
+  const soundControls = [{
+    soundButton: document.getElementById("adminSoundToggle"),
+    testButton: document.getElementById("adminSoundTest"),
+    status: document.getElementById("adminSoundStatus")
+  }];
   const favicon = document.querySelector('link[rel="icon"]');
-  if (!screen || sections.some(section => !section.countLabel || !section.soundButton || !section.testButton || !section.status)) return;
+  if (!screen || sections.some(section => !section.countLabel) || soundControls.some(control => !control.soundButton || !control.testButton || !control.status)) return;
 
   // 1DAY PT는 별도 버튼 없이 기존 공통 알림음 설정을 사용합니다.
   const oneDayPtAlerts = {
@@ -55,7 +57,7 @@
     } catch (_) { section.storageFailed = true; }
   }
   function renderControls(message = "") {
-    sections.forEach(section => {
+    soundControls.forEach(section => {
       section.soundButton.textContent = soundEnabled ? "알림음 끄기" : "알림음 켜기";
       section.soundButton.setAttribute("aria-pressed", String(soundEnabled));
       section.soundButton.disabled = audioBusy;
@@ -63,8 +65,8 @@
       section.status.textContent = message || (soundEnabled
         ? (audioContext?.state === "running" ? "알림음 켜짐" : "알림음 켜짐 · 소리 활성화 대기")
         : "알림음 꺼짐");
-      if (section.storageFailed || oneDayPtAlerts.storageFailed) section.status.textContent += " 알림 이력을 저장하지 못해 여러 탭에서 소리가 겹칠 수 있어요.";
-      if (section.loadFailed) section.status.textContent += " 문의 알림을 갱신하지 못했어요. 연결 후 다시 확인해 주세요.";
+      if (sections.some(source => source.storageFailed) || oneDayPtAlerts.storageFailed) section.status.textContent += " 알림 이력을 저장하지 못해 여러 탭에서 소리가 겹칠 수 있어요.";
+      if (sections.some(source => source.loadFailed)) section.status.textContent += " 신청·문의 알림을 갱신하지 못했어요. 연결 후 다시 확인해 주세요.";
       if (oneDayPtAlerts.loadFailed) section.status.textContent += " 1DAY PT 알림을 갱신하지 못했어요.";
     });
   }
@@ -133,7 +135,7 @@
     if (!active() || !soundEnabled || audioBusy) return;
     if (event && (!event.isTrusted || event.repeat || event.key === "Escape")) return;
     // 알림음 버튼 자체는 각 핸들러가 처리해 사용자의 켜기·끄기를 존중합니다.
-    if (event && sections.some(section => section.soundButton.contains(event.target) || section.testButton.contains(event.target))) return;
+    if (event && soundControls.some(section => section.soundButton.contains(event.target) || section.testButton.contains(event.target))) return;
     const ticket = generation;
     let context;
     try { context = getAudioContext(); }
@@ -188,10 +190,10 @@
         renderControls("소리를 재생하지 못했어요. 탭 음소거와 PC 볼륨을 확인한 뒤 다시 테스트해 주세요.");
       }
     } finally {
-      if (active(ticket)) { audioBusy = false; sections.forEach(section => { section.soundButton.disabled = false; section.testButton.disabled = false; }); }
+      if (active(ticket)) { audioBusy = false; soundControls.forEach(section => { section.soundButton.disabled = false; section.testButton.disabled = false; }); }
     }
   }
-  sections.forEach(section => {
+  soundControls.forEach(section => {
     section.soundButton.addEventListener("click", () => {
       if (!active()) return;
       if (soundEnabled) { soundEnabled = false; closeAudio(); renderControls(); }
@@ -281,3 +283,4 @@
     .observe(screen, { attributes: true, attributeFilter: ["hidden"] });
   window.AdminRoutineAlerts = Object.freeze({ start, sync, syncInquiries, syncOneDayPt, inquiryError, oneDayPtError, reset });
 })();
+

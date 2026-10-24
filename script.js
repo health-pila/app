@@ -9277,6 +9277,26 @@ async function refreshAdminMembersIfNeeded() {
 
 window.addEventListener("online", refreshAdminMembersIfNeeded);
 
+// 회원 현황은 회원 목록과 같은 조회 결과를 사용합니다. 1,000행 이후도 빠뜨리지 않습니다.
+async function loadAllAdminMemberRows(createQuery, canApply) {
+  const rows = [];
+  const pageSize = 1000;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await createQuery().range(offset, offset + pageSize - 1);
+    if (!canApply()) return [];
+    if (error) throw error;
+    if (!Array.isArray(data)) throw new Error("회원 현황 조회 응답이 올바르지 않습니다.");
+    rows.push(...data);
+    if (data.length < pageSize) return rows;
+  }
+}
+
+function resetAdminMemberStatistics(message = "집계 중…") {
+  document.getElementById("adminTotalMemberCount").textContent = "—";
+  document.getElementById("adminAssignedMemberCount").textContent = "—";
+  document.getElementById("adminMemberStatisticsStatus").textContent = message;
+}
+
 // 자동 갱신은 선택·검색·편집 내용을 유지하고, 기존 수동 갱신은 전체 목록을 표시합니다.
 async function loadAdminMembers(preserveCurrentState = false) {
   if (adminScreen.hidden) return false;
@@ -9286,29 +9306,28 @@ async function loadAdminMembers(preserveCurrentState = false) {
     !adminScreen.hidden && (!preserveCurrentState || canAutoRefreshAdminMembers());
 
   try {
-    const [
-      { data: members, error: membersError },
-      { data: routines, error: routinesError }
-    ] = await Promise.all([
-      supabaseClient
+    const [members, routines] = await Promise.all([
+      loadAllAdminMemberRows(() => supabaseClient
         .from("profiles")
         .select("id, display_name, email, phone_last4, created_at")
         .eq("role", "member")
-        .order("created_at", { ascending: false }),
-
-      supabaseClient
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false }), canApply),
+      loadAllAdminMemberRows(() => supabaseClient
         .from("member_routines")
-        .select(
-          "user_id, routine_name, routine_image_path, is_active, assigned_at"
-        )
+        .select("user_id, routine_name, routine_image_path, is_active, assigned_at")
         .order("assigned_at", { ascending: false })
+        .order("id", { ascending: false }), canApply)
     ]);
 
     if (!canApply()) return false;
-
-    if (membersError || routinesError) {
-      throw membersError || routinesError;
-    }
+    const memberIds = new Set(members.map(member => member.id));
+    const assignedMemberIds = new Set(routines
+      .filter(routine => memberIds.has(routine.user_id))
+      .map(routine => routine.user_id));
+    document.getElementById("adminTotalMemberCount").textContent = memberIds.size.toLocaleString("ko-KR");
+    document.getElementById("adminAssignedMemberCount").textContent = assignedMemberIds.size.toLocaleString("ko-KR");
+    document.getElementById("adminMemberStatisticsStatus").textContent = "";
 
     const routineSummaryByUser = new Map();
 
@@ -9370,6 +9389,7 @@ async function loadAdminMembers(preserveCurrentState = false) {
   } catch (error) {
     if (!canApply()) return false;
     console.error("관리자 회원 정보 불러오기 실패:", error);
+    resetAdminMemberStatistics("회원 현황을 불러오지 못했어요. 새로고침해 주세요.");
     if (!preserveCurrentState) {
       adminMemberOptionCache = [];
       adminMemberSelect.innerHTML =
@@ -9454,10 +9474,11 @@ async function showAdminApp(userId) {
   loginScreen.hidden = true;
   appScreen.hidden = true;
   adminScreen.hidden = false;
+  resetAdminMemberStatistics();
   updateAdminRoutineAlerts("start", userId);
 
   adminRoutineEditor.hidden = true;
-  adminMemberInfo.textContent = "루틴을 관리할 회원을 선택해 주세요.";
+  adminMemberInfo.textContent = "";
   adminMemberSearch.value = "";
 
   await Promise.all([
@@ -9763,7 +9784,7 @@ async function loadSelectedAdminMemberRoutine() {
     adminRoutineEditor.hidden = true;
 
     adminMemberInfo.textContent =
-      "루틴을 관리할 회원을 선택해 주세요.";
+      "";
 
     return;
   }
@@ -10232,7 +10253,7 @@ saveAdminRoutineButton.addEventListener(
         adminMemberSelect.value = "";
         await loadSelectedAdminMemberRoutine();
         adminMemberInfo.textContent =
-          "새 루틴을 배정했습니다. 루틴을 관리할 회원을 선택해 주세요.";
+          "새 루틴을 배정했습니다.";
       }
     } catch (saveError) {
       console.error("루틴 저장 처리 오류:", saveError);
@@ -10376,7 +10397,7 @@ async function applyValidatedAdminRoutine() {
       adminMemberSelect.value = "";
       await loadSelectedAdminMemberRoutine();
       adminMemberInfo.textContent =
-        "새 운동 카드 루틴을 배정했습니다. 루틴을 관리할 회원을 선택해 주세요.";
+        "새 운동 카드 루틴을 배정했습니다.";
     }
   } catch (error) {
     console.error("운동 카드 루틴 저장 실패:", error);
@@ -10570,6 +10591,7 @@ async function handleLogout() {
     signupButton.disabled = false;
 
     // 관리자 화면 상태 초기화
+    resetAdminMemberStatistics();
     adminMemberSearch.value = "";
     adminMemberSelect.innerHTML =
       '<option value="">루틴을 관리할 회원을 선택하세요.</option>';
@@ -10578,7 +10600,7 @@ async function handleLogout() {
     adminRoutineEditor.hidden = true;
 
     adminMemberInfo.textContent =
-      "루틴을 관리할 회원을 선택해 주세요.";
+      "";
 
     adminRoutineName.value = "";
     adminRoutineImage.value = "";
@@ -11208,4 +11230,5 @@ initializeLogin();
   });
   syncVisibility();
 })();
+
 

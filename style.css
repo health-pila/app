@@ -5845,3 +5845,99 @@ textarea.routine-weight-cell {
   line-height: 1.4;
   text-align: right;
 }
+
+
+/* v189: 관리자에게만 표시하는 회원 현황 */
+#adminScreen .admin-member-statistics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin: 14px 0 0;
+  font-size: 13px;
+}
+#adminScreen .admin-member-statistics > div { display: flex; align-items: baseline; gap: 8px; }
+#adminScreen .admin-member-statistics dt { color: #657087; }
+#adminScreen .admin-member-statistics dd { display: flex; align-items: baseline; gap: 3px; margin: 0; }
+#adminScreen .admin-member-statistics strong { color: var(--brand-orange); font-size: 18px; font-weight: 800; }
+#adminScreen .admin-member-statistics-status { margin: 6px 0 0; color: #657087; font-size: 12px; }
+#adminScreen .admin-member-statistics-status:empty { display: none; }
+
+/* v190: 관리자 알림·접수 설정을 압축하고 블록을 구분합니다. */
+#adminScreen .admin-routine-alerts { padding: 7px 14px; margin: 11px 0; }
+#adminScreen .admin-routine-alert-count { padding-top: 2px; padding-bottom: 2px; }
+#adminScreen .admin-routine-alert-actions { margin-top: 4px; }
+#adminScreen .admin-routine-alert-actions button { min-height: 30px; padding-top: 3px; padding-bottom: 3px; }
+#adminScreen .admin-routine-alert-status { margin-top: 4px; line-height: 1.4; }
+#adminScreen .admin-inquiry-setting { padding: 5px 14px; gap: 5px; }
+#adminScreen .admin-inquiry-setting-text { gap: 2px; }
+#adminScreen .admin-inquiry-setting-text strong { line-height: 1.3; }
+#adminScreen .admin-inquiry-setting-text span { line-height: 1.35; }
+#adminScreen .admin-inquiry-toggle-button { min-height: 30px; padding-top: 5px; padding-bottom: 5px; }
+#adminScreen > .admin-block-divider { height: 0; margin: 2px 20px 18px; padding: 0; border: 0; border-top: 1px solid #d9dfe7; }
+
+/* v191: 알림음 설정은 현황 박스 밖 위쪽 오른편에 작게 배치합니다. */
+#adminScreen .admin-sound-settings {
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 0 0 auto;
+  justify-self: end;
+}
+#adminScreen .admin-sound-settings .admin-routine-alert-actions { justify-content: flex-end; gap: 6px; margin-top: 0; }
+#adminScreen .admin-sound-settings .admin-routine-alert-actions button {
+  min-height: 28px;
+  padding: 3px 8px;
+  font-size: 12px;
+  color: #657087;
+  background: #fff;
+  border-color: #dce2eb;
+}
+#adminScreen .admin-sound-settings .admin-routine-alert-status {
+  margin-top: 3px;
+  color: #657087;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+#adminScreen .admin-routine-alerts { margin-top: 0; }
+
+/* v192: 관리자 메뉴 제목의 이모지는 제목 수정 상태에서도 유지합니다. */
+#adminScreen .admin-section-title::after { flex-shrink: 0; font-size: 19px; font-weight: 400; }
+#adminScreen #adminOneDayPtTitle::after { content: "🏋️"; }
+#adminScreen #adminRoutineRequestManagement > .admin-section-title::after { content: "📝"; }
+#adminScreen #adminMemberManagementTitle::after { content: "👥"; }
+#adminScreen #adminRoutineEditorTitle::after { content: "📋"; }
+#adminScreen #adminInquiryManagement > .admin-section-title::after { content: "💬"; }
+#adminScreen #adminCommunityEditorTitle::after { content: "✍️"; }
+#adminScreen #adminCommunityManagement > .admin-section-title::after { content: "📰"; }
+#adminScreen #adminStretchingManagement > .admin-section-title::after { content: "🧘"; }
+#adminScreen #adminMemberInfo:empty { display: none; }
+
+/* v193: 관리자 알림음은 페이지 상단에서 한 번만 설정합니다. */
+#adminScreen > .admin-page-sound-settings {
+  margin: 8px 18px 0 auto;
+  max-width: calc(100% - 36px);
+}
+
+/* v194: 새 요청·대기 상태를 강조하고 공통 알림음을 제목 옆으로 내립니다. */
+#adminScreen .admin-routine-request-select-button,
+#adminScreen .admin-inquiry-status.is-waiting {
+  color: #fff;
+  background: var(--brand-orange);
+  border-color: var(--brand-orange);
+}
+#adminScreen .admin-app-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  align-items: start;
+}
+#adminScreen .admin-app-hero > h1 { grid-column: 1; grid-row: 1; }
+#adminScreen .admin-app-hero > .admin-page-sound-settings { grid-column: 2; grid-row: 1; margin: 0; max-width: 100%; }
+#adminScreen .admin-app-hero > :is(.admin-member-statistics, .admin-member-statistics-status) { grid-column: 1 / -1; }
+@media (max-width: 380px) {
+  #adminScreen .admin-app-hero > h1 { font-size: 20px; }
+  #adminScreen .admin-page-sound-settings .admin-routine-alert-actions { gap: 4px; }
+  #adminScreen .admin-page-sound-settings .admin-routine-alert-actions button { padding-left: 6px; padding-right: 6px; font-size: 11px; }
+}
