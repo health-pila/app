@@ -18,15 +18,13 @@
   };
   const imageUrls = {
     EX001: "images/demo/leg-press.jpg",
-    EX002: "images/demo/lat-pulldown.jpg",
-    EX003: "images/demo/chest-press.jpg"
+    EX002: "images/demo/lat-pulldown.jpg"
   };
   const sample = {
     routineSummary: "운동 루틴을 둘러보는 체험용 예시입니다. 회원가입 후 운동 구성 신청서를 작성하면, 센터가 회원님께 맞는 루틴을 배정해드려요.",
     days: [{ day: 1, exercises: [
       { exerciseId: "EX001", order: 1, sets: 3, reps: 12, restSec: 60 },
-      { exerciseId: "EX002", order: 2, sets: 3, reps: 12, restSec: 60 },
-      { exerciseId: "EX003", order: 3, sets: 3, reps: 10, restSec: 60 }
+      { exerciseId: "EX002", order: 2, sets: 3, reps: 12, restSec: 60 }
     ] }]
   };
   let bodyStyle = null, returnFocus = null, nextAction = "", closing = false;
@@ -44,6 +42,7 @@
     });
     preview.querySelector(".routine-pattern-tabs").remove();
     preview.querySelector(".routine-pattern-caption").remove();
+    preview.querySelector(".routine-component-summary")?.remove();
     const panel = preview.querySelector(".routine-pattern-panel");
     panel.removeAttribute("role");
     panel.removeAttribute("aria-labelledby");
@@ -127,3 +126,4 @@
     if (login.hidden && dialog.open) requestClose();
   }).observe(login, { attributes: true, attributeFilter: ["hidden"] });
 })();
+

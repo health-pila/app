@@ -5821,3 +5821,27 @@ textarea.routine-weight-cell {
   height: 8px;
 }
 
+
+/* v187: 가입 전 미리보기의 지정 안내 문구만 20% 확대합니다. */
+#guestDemoDialog .guest-demo-hero > p:not(.guest-demo-eyebrow) {
+  font-size: 16.8px;
+}
+
+#guestDemoRoutine > .guest-demo-description,
+#guestDemoDiary > .guest-demo-description {
+  font-size: 15.6px;
+}
+
+#guestDemoDiary .guest-demo-diary-date {
+  font-size: 13.2px;
+}
+
+/* v188: 미리보기 운동 카드 위에 예시임을 표시합니다. */
+#guestDemoRoutine > .guest-demo-routine-example-label {
+  margin: -4px 0 8px;
+  color: var(--brand-orange);
+  font-size: 16.8px;
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: right;
+}
