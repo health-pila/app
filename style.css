@@ -5639,7 +5639,7 @@ textarea.routine-weight-cell {
   box-shadow: none;
 }
 
-#appScreen #memberRoutineComponents .routine-component-card {
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards) .routine-component-card {
   margin: 0 -8px 12px;
   padding: 12px 9px;
   background: #fff;
@@ -5648,7 +5648,7 @@ textarea.routine-weight-cell {
 }
 
 /* 기존 35.64px의 85%. 글자 크기와 색은 유지합니다. */
-#appScreen #memberRoutineComponents .routine-component-actions > button {
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards) .routine-component-actions > button {
   height: 30.294px;
   min-height: 30.294px;
   padding: 0 4px;
@@ -5689,17 +5689,17 @@ textarea.routine-weight-cell {
 }
 
 /* v173: 위쪽 두 버튼은 유지하고 PT·세트 기록만 현재 높이에서 15% 키웁니다. */
-#appScreen #memberRoutineComponents .routine-component-actions {
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards) .routine-component-actions {
   grid-auto-rows: auto;
 }
 
-#appScreen #memberRoutineComponents .routine-component-actions > :is(.one-day-pt-add-button, .routine-weight-button) {
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards) .routine-component-actions > :is(.one-day-pt-add-button, .routine-weight-button) {
   height: 34.8381px;
   min-height: 34.8381px;
 }
 
 /* 닫힌 상태만 강조합니다. 펼쳤을 때의 기존 색과 테두리는 그대로 사용합니다. */
-#appScreen #memberRoutineComponents .routine-component-actions > .routine-weight-button:not([aria-expanded="true"]) {
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards) .routine-component-actions > .routine-weight-button:not([aria-expanded="true"]) {
   color: #fff;
   background: var(--brand-orange);
   border-color: var(--brand-orange);
@@ -5745,16 +5745,16 @@ textarea.routine-weight-cell {
 }
 
 /* v183: 정방형 이미지·운동명·종목변경 버튼의 위쪽 시작점을 맞춥니다. */
-#appScreen #memberRoutineComponents .routine-component-main {
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards) .routine-component-main {
   align-items: start;
 }
 
-#appScreen #memberRoutineComponents .routine-component-body-parts,
-#appScreen #memberRoutineComponents .routine-component-rest {
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards) .routine-component-body-parts,
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards) .routine-component-rest {
   margin-top: 0;
 }
 
-#appScreen #memberRoutineComponents .routine-component-image-area {
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards) .routine-component-image-area {
   position: relative;
   height: auto;
   aspect-ratio: 1 / 1;
@@ -5763,9 +5763,41 @@ textarea.routine-weight-cell {
 }
 
 /* 사진의 원본 크기가 행 높이를 밀어내지 않도록 합니다. 확대 기능과 개인 아이콘 크기는 유지합니다. */
-#appScreen #memberRoutineComponents .routine-component-image-area > img {
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards) .routine-component-image-area > img {
   position: absolute;
   inset: 0;
   margin: auto;
   object-fit: contain;
+}
+
+
+/* v184: 가입 전 미리보기도 회원 카드의 공통 디자인을 사용합니다. */
+#guestDemoRoutineCards {
+  margin: 0 -8px;
+  padding: 8px;
+  border-radius: 16px;
+  background: #eef1f5;
+}
+
+#guestDemoRoutineCards .routine-component-card {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+#guestDemoRoutineCards .routine-component-card:last-child {
+  margin-bottom: 0;
+}
+
+#guestDemoDialog #guestDemoRoutineCards .routine-component-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+#guestDemoDialog #guestDemoRoutineCards .routine-component-actions > button {
+  font-size: 13px;
+}
+
+#guestDemoRoutineCards .routine-component-actions > .routine-weight-button {
+  grid-column: 1 / -1;
+  grid-row: auto;
 }
