@@ -588,3 +588,4 @@
     .observe(node, { attributes: true, attributeFilter: ["hidden"] }));
   window.MemberExerciseReplacements = Object.freeze({ startMember, prepare, prepareTutorial, controls, doseControl, addControl, activate, deactivate, reset });
 })();
+

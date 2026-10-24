@@ -44,8 +44,8 @@
   function updateAddButton(button) {
     const added = cart.includes(button.dataset.exerciseId);
     button.textContent = added
-      ? "✓ 1DAY PT 장바구니에 담았어요"
-      : "+ 이 운동을\nPT 희망 종목에 담기";
+      ? "✓ PT 희망 종목에 담김"
+      : "+ PT 희망 종목에 담기";
     button.classList.toggle("is-added", added);
     button.setAttribute("aria-pressed", String(added));
     button.disabled = role !== "member" || submitting || !resolveExercise(button.dataset.exerciseId);
@@ -367,3 +367,4 @@
   });
   window.OneDayPT = Object.freeze({ showMember, showAdmin, reset, createAddButton });
 })();
+

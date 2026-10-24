@@ -297,6 +297,37 @@
     window.scrollTo({ left: left, top: top, behavior: "instant" });
   }
 
+  // 첨부 시안의 문서·재생·연필 아이콘. 펼침 상태와 버튼 이름은 따로 유지합니다.
+  function setActionButtonContent(button, label, kind, expanded) {
+    const paths = {
+      details: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M8 12h8 M8 16h8",
+      video: "M7 3 21 12 7 21Z",
+      weight: "M16 3a2.8 2.8 0 0 1 4 4L8 19l-6 3 2-6Z M14 5l4 4"
+    };
+    function icon(className, pathData, filled) {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", className);
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("fill", filled ? "currentColor" : "none");
+      svg.setAttribute("stroke", filled ? "none" : "currentColor");
+      svg.setAttribute("stroke-width", "1.8");
+      svg.setAttribute("stroke-linecap", "round");
+      svg.setAttribute("stroke-linejoin", "round");
+      svg.setAttribute("aria-hidden", "true");
+      svg.setAttribute("focusable", "false");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", pathData);
+      svg.append(path);
+      return svg;
+    }
+    button.setAttribute("aria-label", label + (expanded ? " 접기" : " 펼치기"));
+    button.replaceChildren(
+      icon("routine-action-icon", paths[kind], kind === "video"),
+      element("span", "routine-action-label", label),
+      icon("routine-action-chevron", expanded ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6", false)
+    );
+  }
+
   // 회원별·운동별 5세트 기록. 이전 텍스트 메모는 별도 키에 그대로 보존합니다.
   function createWeightRecordControls(exerciseId, exerciseName, userId, panelId, recordStorage, captureRecord) {
     const identity = JSON.stringify([userId, exerciseId]);
@@ -322,7 +353,8 @@
       return saved.sets;
     }
 
-    const button = element("button", "routine-weight-button", "▼ 중량 기록");
+    const button = element("button", "routine-weight-button routine-action-with-icon");
+    setActionButtonContent(button, "세트 기록", "weight", false);
     button.type = "button";
     button.setAttribute("aria-expanded", "false");
     button.setAttribute("aria-controls", panelId);
@@ -483,7 +515,7 @@
         if (willOpen) restore();
         panel.hidden = !willOpen;
         button.setAttribute("aria-expanded", String(willOpen));
-        button.textContent = willOpen ? "▲ 중량 기록 접기" : "▼ 중량 기록";
+        setActionButtonContent(button, "세트 기록", "weight", willOpen);
         // 입력칸에 자동 초점을 주지 않아 모바일 자판이 바로 열리지 않습니다.
       });
     });
@@ -595,7 +627,8 @@
     main.append(imageArea, info);
 
     const actions = element("div", "routine-component-actions");
-    const detailsButton = element("button", "", "▼ 상세설명");
+    const detailsButton = element("button", "routine-details-button routine-action-with-icon");
+    setActionButtonContent(detailsButton, "상세설명", "details", false);
     detailsButton.type = "button";
     detailsButton.setAttribute("aria-expanded", "false");
     const details = element("div", "routine-component-details");
@@ -641,11 +674,12 @@
         const willOpen = details.hidden;
         details.hidden = !willOpen;
         detailsButton.setAttribute("aria-expanded", String(willOpen));
-        detailsButton.textContent = willOpen ? "▲ 상세설명 접기" : "▼ 상세설명";
+        setActionButtonContent(detailsButton, "상세설명", "details", willOpen);
       });
     });
 
-    const videoButton = element("button", "", "▼ 영상보기");
+    const videoButton = element("button", "routine-video-button routine-action-with-icon");
+    setActionButtonContent(videoButton, "영상보기", "video", false);
     videoButton.type = "button";
     videoButton.setAttribute("aria-expanded", "false");
     const mediaArea = element("div", "routine-component-media");
@@ -659,7 +693,7 @@
         // iframe 자체를 제거해야 숨긴 뒤에도 소리가 재생되는 일을 막습니다.
         mediaArea.replaceChildren();
         mediaArea.hidden = true;
-        videoButton.textContent = "▼ 영상보기";
+        setActionButtonContent(videoButton, "영상보기", "video", false);
         videoButton.setAttribute("aria-expanded", "false");
         openMedia.delete(media);
         if (openMedia.size === 0 && mediaObserver) {
@@ -727,7 +761,7 @@
         mediaArea.append(element("p", "routine-component-media-message", "아직 준비된 영상이 없습니다."));
       }
       mediaArea.hidden = false;
-      videoButton.textContent = "▲ 영상 닫기";
+      setActionButtonContent(videoButton, "영상보기", "video", true);
       videoButton.setAttribute("aria-expanded", "true");
       openMedia.add(media);
       watchMediaVisibility();
@@ -1055,3 +1089,4 @@
     }
   });
 })();
+

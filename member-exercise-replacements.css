@@ -4,7 +4,7 @@
 .routine-component-title-with-change .routine-component-name { flex: 1; }
 .routine-component-title-with-change .exercise-replacement-change { flex: 0 0 auto; min-height: 32px; margin-left: auto; padding: 5px 8px; white-space: nowrap; }
 .exercise-replacement-change:disabled, .exercise-replacement-controls button:disabled, .exercise-replacement-dialog button:disabled { opacity: .5; cursor: default; }
-.exercise-replacement-badge { color: #a94200; background: #fff0e3; border-radius: 6px; padding: 5px 7px; font-size: 11px; line-height: 1.5; }
+.exercise-replacement-badge { color: var(--brand-orange, #ec6a1a); background: transparent; border: 0; border-radius: 0; padding: 0; font-size: 11px; line-height: 1.5; }
 .exercise-replacement-original { flex-basis: 100%; color: #697586; font-size: 11px; line-height: 1.5; }
 .exercise-replacement-notice { margin: 0 0 12px; padding: 11px; border: 1px solid #e1e6ee; border-radius: 10px; background: #f8fafc; }
 .exercise-replacement-notice p { margin: 0 0 7px; color: #526078; font-size: 13px; line-height: 1.7; }
@@ -63,3 +63,4 @@
 .routine-component-dose-row .exercise-dose-edit { flex: 0 0 auto; width: auto; min-height: 26px; margin: 0; padding: 2px 6px; border: 1px solid #dce2eb; border-radius: 6px; color: #697586; background: #fff; font: inherit; font-size: 11px; font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; }
 .exercise-dose-edit:disabled { opacity: .5; cursor: default; }
 .exercise-dose-edit:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
+

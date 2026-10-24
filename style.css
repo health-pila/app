@@ -5629,3 +5629,115 @@ textarea.routine-weight-cell {
   text-align: center;
   word-break: keep-all;
 }
+
+/* v172: 카드의 바깥 구분만 변경합니다. 이미지·정보·오른쪽 도구의 배치는 유지합니다. */
+#appScreen .member-workout-surface {
+  background: #eef1f5;
+  box-shadow: none;
+}
+
+#appScreen #memberRoutineComponents .routine-component-card {
+  margin: 0 -8px 12px;
+  padding: 12px 9px;
+  background: #fff;
+  border: 1px solid #dfe5ed;
+  border-radius: 16px;
+}
+
+/* 기존 35.64px의 85%. 글자 크기와 색은 유지합니다. */
+#appScreen #memberRoutineComponents .routine-component-actions > button {
+  height: 30.294px;
+  min-height: 30.294px;
+  padding: 0 4px;
+  line-height: 1.05;
+}
+
+.routine-component-actions .routine-action-with-icon {
+  gap: 6px;
+}
+
+.routine-action-icon {
+  display: block;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.routine-action-label {
+  flex: 0 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.routine-action-chevron {
+  display: block;
+  flex: 0 0 12px;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+
+/* 튜토리얼은 기존 3열을 유지하고 작은 화면에서만 장식 간격을 줄입니다. */
+@media (max-width: 360px) {
+  #appScreen #memberRoutineComponents.is-tutorial .routine-component-actions > .routine-action-with-icon { padding-right: 2px; padding-left: 2px; gap: 2px; }
+  #memberRoutineComponents.is-tutorial .routine-action-icon { flex-basis: 14px; width: 14px; height: 14px; }
+  #memberRoutineComponents.is-tutorial .routine-action-chevron { flex-basis: 8px; width: 8px; height: 8px; }
+}
+
+/* v173: 위쪽 두 버튼은 유지하고 PT·세트 기록만 현재 높이에서 15% 키웁니다. */
+#appScreen #memberRoutineComponents .routine-component-actions {
+  grid-auto-rows: auto;
+}
+
+#appScreen #memberRoutineComponents .routine-component-actions > :is(.one-day-pt-add-button, .routine-weight-button) {
+  height: 34.8381px;
+  min-height: 34.8381px;
+}
+
+/* 닫힌 상태만 강조합니다. 펼쳤을 때의 기존 색과 테두리는 그대로 사용합니다. */
+#appScreen #memberRoutineComponents .routine-component-actions > .routine-weight-button:not([aria-expanded="true"]) {
+  color: #fff;
+  background: var(--brand-orange);
+  border-color: var(--brand-orange);
+}
+
+/* 아이콘 때문에 오른쪽 도구 열이 넓어지지 않도록 좌우 여백을 조정합니다. */
+#appScreen #memberRoutineComponents .routine-component-card-tools .exercise-replacement-change {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding-right: 2px;
+  padding-left: 2px;
+}
+
+#appScreen #memberRoutineComponents .routine-component-dose-row .exercise-dose-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding-right: 3px;
+  padding-left: 3px;
+}
+
+#appScreen #memberRoutineComponents :is(.exercise-dose-edit, .exercise-replacement-change)::before {
+  content: "";
+  display: block;
+  flex: 0 0 12px;
+  width: 12px;
+  height: 12px;
+  background: currentColor;
+  pointer-events: none;
+  -webkit-mask: var(--routine-edit-icon) center / contain no-repeat;
+  mask: var(--routine-edit-icon) center / contain no-repeat;
+}
+
+#appScreen #memberRoutineComponents .exercise-dose-edit {
+  --routine-edit-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 3a2.8 2.8 0 0 1 4 4L8 19l-6 3 2-6Z M14 5l4 4'/%3E%3C/svg%3E");
+}
+
+#appScreen #memberRoutineComponents .exercise-replacement-change {
+  --routine-edit-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4'/%3E%3C/svg%3E");
+}
+
