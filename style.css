@@ -5744,9 +5744,9 @@ textarea.routine-weight-cell {
   --routine-edit-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4'/%3E%3C/svg%3E");
 }
 
-/* v182: 정보 줄간격은 유지하고 이미지 영역은 정방형으로 표시합니다. */
+/* v183: 정방형 이미지·운동명·종목변경 버튼의 위쪽 시작점을 맞춥니다. */
 #appScreen #memberRoutineComponents .routine-component-main {
-  align-items: stretch;
+  align-items: start;
 }
 
 #appScreen #memberRoutineComponents .routine-component-body-parts,
@@ -5759,7 +5759,7 @@ textarea.routine-weight-cell {
   height: auto;
   aspect-ratio: 1 / 1;
   min-height: 0;
-  align-self: center;
+  align-self: start;
 }
 
 /* 사진의 원본 크기가 행 높이를 밀어내지 않도록 합니다. 확대 기능과 개인 아이콘 크기는 유지합니다. */
