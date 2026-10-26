@@ -5941,3 +5941,15 @@ textarea.routine-weight-cell {
   #adminScreen .admin-page-sound-settings .admin-routine-alert-actions { gap: 4px; }
   #adminScreen .admin-page-sound-settings .admin-routine-alert-actions button { padding-left: 6px; padding-right: 6px; font-size: 11px; }
 }
+
+
+/* v196: 새 루틴 신청·회원 문의 현황 및 대기 건수 높이 50% 확대 */
+#adminScreen .admin-routine-alerts {
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+#adminScreen .admin-routine-alert-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 27px;
+}
