@@ -349,13 +349,7 @@
 }
 
 
-/* v170: 네이버 사전 검수 완료 전까지 회원용 진입 버튼만 숨깁니다.
-   이메일 로그인, 화면 디자인, 서버 인증 설정과 기존 계정 연결은 유지합니다. */
-#loginScreen .naver-login-entry,
-#appScreen #naverLinkButton,
-#appScreen #naverLinkMessage {
-  display: none !important;
-}
+/* v195: 네이버 검수 승인으로 로그인·기존 회원 계정 연결 진입을 다시 표시합니다. */
 
 #loginScreen .login-welcome-topbar {
   display: flex;
@@ -399,3 +393,4 @@
 /* 설치 버튼이 보일 때와 보이지 않을 때 모두 보안 안내까지의 여백을 30% 줄입니다. */
 #loginScreen .login-footer { margin-top: 16.1px; }
 #loginScreen .login-security-note { margin-top: 9.1px; }
+
