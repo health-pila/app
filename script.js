@@ -5229,6 +5229,45 @@ async function sendAdminInquiryReply(
   }
 }
 
+// 대화를 추가하지 않고 처리 상태만 변경합니다. 새 메시지가 오면 기존 DB 트리거가 대기로 되돌립니다.
+async function completeAdminInquiry(inquiry, completeButton, replyButton, message) {
+  if (completeButton.disabled) return;
+  completeButton.disabled = true;
+  replyButton.disabled = true;
+  completeButton.textContent = "처리 중...";
+  message.textContent = "";
+  try {
+    // 목록을 읽은 후 새 메시지가 도착했다면 완료 처리하지 않습니다.
+    const { data, error } = await supabaseClient
+      .from("member_inquiries")
+      .update({ status: "answered" })
+      .eq("id", inquiry.id)
+      .eq("status", "waiting")
+      .eq("last_message_at", inquiry.last_message_at)
+      .eq("updated_at", inquiry.updated_at)
+      .is("archived_at", null)
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      await loadAdminInquiries(true);
+      adminInquiryListMessage.textContent = "문의 내용이나 처리 상태가 변경됐어요. 최신 대화를 확인한 후 다시 처리해 주세요.";
+      return;
+    }
+    openAdminInquiryId = null;
+    await loadAdminInquiries(true);
+  } catch (error) {
+    console.error("관리자 문의 완료 처리 실패:", error);
+    message.textContent = "완료 처리에 실패했어요. 연결 상태를 확인한 뒤 다시 눌러 주세요.";
+  } finally {
+    if (completeButton.isConnected) {
+      completeButton.disabled = false;
+      replyButton.disabled = false;
+      completeButton.textContent = "답변 완료 처리";
+    }
+  }
+}
+
 // 관리자 문의 보관 또는 복원
 async function updateAdminInquiryArchive(
   inquiryId,
@@ -5541,7 +5580,7 @@ function renderAdminInquiries(inquiries) {
       "admin-inquiry-preview";
 
     inquiryPreview.textContent =
-      inquiry.title;
+      inquiry.latest_member_message?.[0]?.body ?? inquiry.title;
 
     const inquiryMeta =
       document.createElement("span");
@@ -5664,10 +5703,31 @@ function renderAdminInquiries(inquiries) {
       }
     );
 
+    const replyActions = document.createElement("div");
+    replyActions.className = "admin-inquiry-reply-actions";
+    replyActions.append(replyButton);
+
+    if (inquiry.status === "waiting" && !inquiry.archived_at) {
+      const completeButton = document.createElement("button");
+      completeButton.type = "button";
+      completeButton.className = "admin-inquiry-complete-button";
+      completeButton.textContent = "답변 완료 처리";
+      completeButton.title = "답변 메시지를 보내지 않고 완료로 처리합니다.";
+      completeButton.addEventListener("click", function () {
+        if (replyButton.disabled) return;
+        if (replyInput.value.trim()) {
+          replyMessage.textContent = "작성 중인 답변이 있어요. 답변을 보내거나 입력 내용을 지운 후 완료 처리해 주세요.";
+          return;
+        }
+        completeAdminInquiry(inquiry, completeButton, replyButton, replyMessage);
+      });
+      replyActions.append(completeButton);
+    }
+
     replyArea.append(
       replyLabel,
       replyInput,
-      replyButton,
+      replyActions,
       replyMessage
     );
 
@@ -5853,7 +5913,8 @@ async function loadAdminInquiries(
             archived_at,
             created_at,
             updated_at,
-            last_message_at
+            last_message_at,
+            latest_member_message:inquiry_messages(body)
           `,
           {
             count: "exact"
@@ -5886,6 +5947,10 @@ async function loadAdminInquiries(
       error: inquiriesError,
       count: inquiryCount
     } = await inquiryQuery
+      .eq("latest_member_message.sender_role", "member")
+      .order("created_at", { referencedTable: "latest_member_message", ascending: false })
+      .order("id", { referencedTable: "latest_member_message", ascending: false })
+      .limit(1, { referencedTable: "latest_member_message" })
       .order(
         "last_message_at",
         {
@@ -11230,5 +11295,6 @@ initializeLogin();
   });
   syncVisibility();
 })();
+
 
 

@@ -5953,3 +5953,10 @@ textarea.routine-weight-cell {
   align-items: center;
   min-height: 27px;
 }
+
+
+/* v197: 관리자 문의의 답변 전송과 상태 완료 처리를 구분합니다. */
+#adminScreen .admin-inquiry-reply-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+#adminScreen .admin-inquiry-reply-actions button { flex: 1 1 140px; width: auto; min-height: 44px; padding: 8px 12px; }
+#adminScreen .admin-inquiry-reply-actions .admin-inquiry-complete-button { border: 1px solid #cfd8e6; background: #fff; color: #596174; }
+#adminScreen .admin-inquiry-reply-actions button:focus-visible { outline: 2px solid #ff6b00; outline-offset: 3px; }
