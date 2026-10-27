@@ -5008,6 +5008,70 @@ let adminInquiryVisibleCount =
 let selectedAdminInquiryFilter =
   "waiting";
 
+// 검색은 제출한 검색어로만 수행하며, 해제하면 기존 상태 필터로 돌아갑니다.
+const adminInquirySearchForm = document.querySelector("#adminInquirySearchForm");
+const adminInquirySearchInput = document.querySelector("#adminInquirySearchInput");
+const adminInquirySearchClear = document.querySelector("#adminInquirySearchClear");
+const adminInquirySearchStatus = document.querySelector("#adminInquirySearchStatus");
+const adminInquiryFilters = document.querySelector("#adminInquiryFilters");
+let adminInquirySearchTerm = "";
+
+function resetAdminInquirySearch() {
+  adminInquirySearchTerm = "";
+  adminInquirySearchInput.value = "";
+  adminInquirySearchClear.hidden = true;
+  adminInquirySearchStatus.textContent = "";
+  adminInquiryFilters.hidden = false;
+  adminInquiryLoadRequestId += 1;
+}
+
+async function applyAdminInquirySearch(term) {
+  adminInquirySearchTerm = term.trim().slice(0, 80);
+  adminInquirySearchInput.value = adminInquirySearchTerm;
+  adminInquirySearchClear.hidden = !adminInquirySearchTerm;
+  adminInquiryFilters.hidden = Boolean(adminInquirySearchTerm);
+  adminInquiryVisibleCount = ADMIN_INQUIRY_PAGE_SIZE;
+  openAdminInquiryId = null;
+  await loadAdminInquiries();
+}
+
+adminInquirySearchForm.addEventListener("submit", function (event) {
+  event.preventDefault();
+  if (adminScreen.hidden) return;
+  void applyAdminInquirySearch(adminInquirySearchInput.value);
+});
+adminInquirySearchInput.addEventListener("input", function () {
+  adminInquirySearchClear.hidden = !adminInquirySearchInput.value && !adminInquirySearchTerm;
+});
+adminInquirySearchClear.addEventListener("click", function () {
+  if (adminScreen.hidden) return;
+  void applyAdminInquirySearch("");
+  adminInquirySearchInput.focus();
+});
+
+// 일반 목록의 더보기 동작을 유지하면서 검색 결과는 서버에서 필요한 범위만 조회합니다.
+async function loadAdminInquirySearchResults(term, visibleCount, isCurrentRequest) {
+  const inquiries = [];
+  let totalCount = 0;
+  const pageSize = 50;
+  while (inquiries.length < visibleCount) {
+    const { data, error } = await supabaseClient.rpc("admin_search_inquiry_threads", {
+      p_query: term,
+      p_limit: Math.min(pageSize, visibleCount - inquiries.length),
+      p_offset: inquiries.length
+    });
+    if (!isCurrentRequest()) return null;
+    if (error) throw error;
+    if (!data || !Array.isArray(data.inquiries) || !Number.isSafeInteger(data.total_count) || data.total_count < 0) {
+      throw new Error("검색 결과를 확인할 수 없습니다.");
+    }
+    totalCount = data.total_count;
+    inquiries.push(...data.inquiries);
+    if (!data.inquiries.length || inquiries.length >= totalCount) break;
+  }
+  return { inquiries, totalCount };
+}
+
 // 관리자 문의 설정 버튼 표시
 function renderAdminInquirySetting(
   isEnabled
@@ -5514,10 +5578,9 @@ function renderAdminInquiries(inquiries) {
     statusBadge.className =
       `admin-inquiry-status is-${inquiry.status}`;
 
-    statusBadge.textContent =
-      inquiry.status === "answered"
-        ? "답변 완료"
-        : "답변 대기";
+    statusBadge.textContent = inquiry.archived_at
+      ? "보관함"
+      : (inquiry.status === "answered" ? "답변 완료" : "답변 대기");
 
     summaryTop.append(
       memberLabel,
@@ -5833,9 +5896,10 @@ async function loadAdminInquiries(
   const requestId = ++adminInquiryLoadRequestId;
   const visibleCount = adminInquiryVisibleCount;
   const filter = selectedAdminInquiryFilter;
+  const searchTerm = adminInquirySearchTerm;
   function isCurrentRequest() {
     return requestId === adminInquiryLoadRequestId && !adminScreen.hidden &&
-      visibleCount === adminInquiryVisibleCount && filter === selectedAdminInquiryFilter;
+      visibleCount === adminInquiryVisibleCount && filter === selectedAdminInquiryFilter && searchTerm === adminInquirySearchTerm;
   }
   if (!isCurrentRequest()) return;
 
@@ -5848,75 +5912,86 @@ async function loadAdminInquiries(
     loadMoreAdminInquiriesButton.hidden = true;
   }
 
+  adminInquirySearchStatus.textContent = searchTerm ? "보관함 포함 전체 대화 검색 중…" : "";
   loadMoreAdminInquiriesButton.disabled = true;
   const alertRefresh = loadAdminInquiryAlerts();
 
   try {
-    let inquiryQuery =
-      supabaseClient
-        .from("member_inquiries")
-        .select(
-          `
-            id,
-            user_id,
-            title,
-            status,
-            archived_at,
-            created_at,
-            updated_at,
-            last_message_at,
-            latest_member_message:inquiry_messages(body)
-          `,
-          {
-            count: "exact"
-          }
-        );
-
-    if (
-      filter ===
-      "archived"
-    ) {
-      inquiryQuery =
-        inquiryQuery.not(
-          "archived_at",
-          "is",
-          null
-        );
-
+    let inquiries, inquiryCount;
+    if (searchTerm) {
+      const result = await loadAdminInquirySearchResults(searchTerm, visibleCount, isCurrentRequest);
+      if (!result || !isCurrentRequest()) return;
+      inquiries = result.inquiries;
+      inquiryCount = result.totalCount;
     } else {
-      inquiryQuery =
-        inquiryQuery
-          .is("archived_at", null)
-          .eq(
-            "status",
-            filter
+      let inquiryQuery =
+        supabaseClient
+          .from("member_inquiries")
+          .select(
+            `
+              id,
+              user_id,
+              title,
+              status,
+              archived_at,
+              created_at,
+              updated_at,
+              last_message_at,
+              latest_member_message:inquiry_messages(body)
+            `,
+            {
+              count: "exact"
+            }
           );
-    }
 
-    const {
-      data: inquiries,
-      error: inquiriesError,
-      count: inquiryCount
-    } = await inquiryQuery
-      .eq("latest_member_message.sender_role", "member")
-      .order("created_at", { referencedTable: "latest_member_message", ascending: false })
-      .order("id", { referencedTable: "latest_member_message", ascending: false })
-      .limit(1, { referencedTable: "latest_member_message" })
-      .order(
-        "last_message_at",
-        {
-          ascending: false
-        }
-      )
-      .range(
-        0,
-        visibleCount - 1
-      );
+      if (
+        filter ===
+        "archived"
+      ) {
+        inquiryQuery =
+          inquiryQuery.not(
+            "archived_at",
+            "is",
+            null
+          );
 
-    if (!isCurrentRequest()) return;
+      } else {
+        inquiryQuery =
+          inquiryQuery
+            .is("archived_at", null)
+            .eq(
+              "status",
+              filter
+            );
+      }
 
-    if (inquiriesError) {
-      throw inquiriesError;
+      const {
+        data: loadedInquiries,
+        error: inquiriesError,
+        count: loadedInquiryCount
+      } = await inquiryQuery
+        .eq("latest_member_message.sender_role", "member")
+        .order("created_at", { referencedTable: "latest_member_message", ascending: false })
+        .order("id", { referencedTable: "latest_member_message", ascending: false })
+        .limit(1, { referencedTable: "latest_member_message" })
+        .order(
+          "last_message_at",
+          {
+            ascending: false
+          }
+        )
+        .range(
+          0,
+          visibleCount - 1
+        );
+
+      if (!isCurrentRequest()) return;
+
+      if (inquiriesError) {
+        throw inquiriesError;
+      }
+      inquiries = loadedInquiries;
+      inquiryCount = loadedInquiryCount;
     }
 
     const memberIds = [
@@ -5931,7 +6006,7 @@ async function loadAdminInquiries(
 
     let memberProfiles = [];
 
-    if (memberIds.length > 0) {
+    if (!searchTerm && memberIds.length > 0) {
       const {
         data: profiles,
         error: profilesError
@@ -5973,9 +6048,7 @@ async function loadAdminInquiries(
           return {
             ...inquiry,
             memberProfile:
-              profileById.get(
-                inquiry.user_id
-              ) || null
+              (searchTerm ? inquiry.memberProfile : profileById.get(inquiry.user_id)) || null
           };
         }
       );
@@ -5983,6 +6056,11 @@ async function loadAdminInquiries(
     renderAdminInquiries(
       inquiriesWithProfiles
     );
+
+    if (searchTerm) {
+      adminInquirySearchStatus.textContent = `보관함 포함 전체 검색 · ${inquiryCount || 0}건`;
+      if (!inquiriesWithProfiles.length) adminInquiryListMessage.textContent = "검색 결과가 없습니다.";
+    }
 
     const loadedInquiryCount =
       inquiries?.length || 0;
@@ -6011,7 +6089,7 @@ async function loadAdminInquiries(
     loadMoreAdminInquiriesButton.textContent =
       canCollapseInquiryList
         ? "목록 접기"
-        : "이전 문의 더 보기";
+        : (searchTerm ? "검색 결과 더 보기" : "이전 문의 더 보기");
 
   } catch (loadError) {
     if (!isCurrentRequest()) return;
@@ -6020,10 +6098,15 @@ async function loadAdminInquiries(
       loadError
     );
 
+    if (searchTerm) {
+      adminInquirySearchStatus.textContent = "검색 실패 · 검색 버튼을 눌러 다시 시도해 주세요.";
+      adminInquiryListMessage.textContent = "검색하지 못했어요. 연결 상태와 검색 함수 설정을 확인해 주세요.";
+    } else {
     adminInquiryListMessage.textContent =
       `회원 문의를 불러오지 못했습니다: ${loadError.message ||
       "알 수 없는 오류"
       }`;
+    }
 
     loadMoreAdminInquiriesButton.hidden = true;
 
@@ -9477,6 +9560,7 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId) {
+  resetAdminInquirySearch();
   window.WorkoutTextRecords?.reset();
   window.ExerciseContentSync?.start(supabaseClient);
   window.MemberExerciseReplacements?.reset();
@@ -10564,6 +10648,7 @@ async function handleLogout() {
     workoutRecordList.replaceChildren();
     renderWorkoutCalendar();
 
+    resetAdminInquirySearch();
     // 회원·관리자 화면을 숨기고 로그인 화면 표시
     naverAuth?.reset();
     renderMemberAccountEmail();
@@ -11246,6 +11331,7 @@ initializeLogin();
   });
   syncVisibility();
 })();
+
 
 
 
