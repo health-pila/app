@@ -4492,6 +4492,7 @@ const naverAuth = window.NaverLogin?.create({
   returnInfo: naverAuthReturn,
   loginButton: document.querySelector("#naverLoginButton"),
   linkButton: document.querySelector("#naverLinkButton"),
+  menuButton: document.querySelector("#memberMenuToggle"),
   loginMessage: document.querySelector("#naverLoginMessage"),
   linkMessage: document.querySelector("#naverLinkMessage"),
   conflictingButtons: [loginButton, signupButton, showSignupButton, hideSignupButton,
@@ -11331,6 +11332,7 @@ initializeLogin();
   });
   syncVisibility();
 })();
+
 
 
 

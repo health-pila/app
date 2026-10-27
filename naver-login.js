@@ -38,7 +38,7 @@
     return "네이버 인증을 완료하지 못했어요. 다시 시도하거나 기존 이메일로 로그인해 주세요.";
   }
 
-  function create({ client, supabaseUrl, returnInfo, loginButton, linkButton, loginMessage,
+  function create({ client, supabaseUrl, returnInfo, loginButton, linkButton, loginMessage, menuButton,
     linkMessage, conflictingButtons = [], location = window.location,
     storage, history = window.history,
     confirm = message => window.confirm(message), now = () => Date.now() }) {
@@ -46,6 +46,10 @@
     let busy = false;
     let displayedUserId = "";
     let linked = false;
+    let connectionStatus = "unavailable";
+    let statusVersion = 0;
+    let pendingStatus = null;
+    let lastStatusCheck = -Infinity;
     let handledReturn = false;
     let returnAllowed = true;
     let savedDisabled = [];
@@ -65,10 +69,60 @@
       if (loginButton) loginButton.disabled = !ready || busy;
       if (linkButton) {
         linkButton.hidden = !displayedUserId;
-        linkButton.disabled = !ready || busy || linked;
+        linkButton.disabled = !ready || busy || (linked && ["connected", "checking"].includes(connectionStatus));
         const label = linkButton.querySelector("span");
-        if (label) label.textContent = linked ? "네이버 연결됨" : "네이버 계정 연결";
+        const labels = {
+          connected: "네이버 연결됨",
+          needs_consent: "네이버 재동의 필요",
+          registered: "네이버 로그인 등록됨",
+          checking: "네이버 연결 확인 중…",
+          unavailable: "네이버 상태 다시 확인"
+        };
+        if (label) label.textContent = linked ? labels[connectionStatus] : "네이버 계정 연결";
+        linkButton.dataset.connectionState = linked ? connectionStatus : "not_linked";
       }
+    }
+
+    async function readConnectionStatus() {
+      let timer;
+      try {
+        const result = await Promise.race([
+          client.rpc("get_my_naver_connection_status"),
+          new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("timeout")), 6000); })
+        ]);
+        if (result.error || !["not_linked", "registered", "connected", "needs_consent"].includes(result.data?.status)) {
+          throw new Error("status");
+        }
+        return result.data.status;
+      } finally { clearTimeout(timer); }
+    }
+
+    async function refreshConnectionStatus(force = false) {
+      if (!displayedUserId || !linked) return;
+      if (pendingStatus) return pendingStatus;
+      if (!force && now() - lastStatusCheck < 30000) return;
+      const userId = displayedUserId;
+      const version = statusVersion;
+      connectionStatus = "checking";
+      renderButtons();
+      pendingStatus = (async () => {
+        try {
+          const status = await readConnectionStatus();
+          if (version !== statusVersion || userId !== displayedUserId) return;
+          if (status === "not_linked") linked = false;
+          connectionStatus = status;
+        } catch (_) {
+          // An identity row or a failed query never claims that consent is still active.
+          if (version === statusVersion && userId === displayedUserId) connectionStatus = "unavailable";
+        } finally {
+          if (version === statusVersion && userId === displayedUserId) {
+            pendingStatus = null;
+            lastStatusCheck = now();
+            renderButtons();
+          }
+        }
+      })();
+      return pendingStatus;
     }
 
     function setBusy(value) {
@@ -112,14 +166,27 @@
     }
 
     function renderUser(user, role) {
-      displayedUserId = role === "member" ? user?.id || "" : "";
-      linked = Boolean(user?.identities?.some(identity => identity.provider === PROVIDER));
+      const userId = role === "member" ? user?.id || "" : "";
+      const hasIdentity = Boolean(user?.identities?.some(identity => identity.provider === PROVIDER));
+      if (userId !== displayedUserId || hasIdentity !== linked) {
+        statusVersion++;
+        pendingStatus = null;
+        lastStatusCheck = -Infinity;
+        connectionStatus = "unavailable";
+      }
+      displayedUserId = userId;
+      linked = hasIdentity;
       renderButtons();
+      void refreshConnectionStatus();
     }
 
     function reset() {
       displayedUserId = "";
       linked = false;
+      statusVersion++;
+      pendingStatus = null;
+      connectionStatus = "unavailable";
+      lastStatusCheck = -Infinity;
       removeIntent();
       message("");
       message("", "link");
@@ -144,7 +211,12 @@
           }
           if (user.identities?.some(identity => identity.provider === PROVIDER)) {
             linked = true;
-            message("이미 네이버 계정이 연결되어 있어요.", mode);
+            await refreshConnectionStatus(true);
+            message(connectionStatus === "connected"
+              ? "네이버 계정이 연결되어 있어요."
+              : ["registered", "needs_consent"].includes(connectionStatus)
+                ? "동의 상태를 다시 확인하려면 로그아웃한 뒤 같은 네이버 계정으로 로그인해 주세요. 기존 계정과 운동 기록은 유지됩니다."
+                : "네이버 동의 상태를 확인하지 못했어요. 네트워크 연결을 확인하고 다시 눌러 주세요.", mode);
             return;
           }
           const profile = await client.from("profiles").select("role").eq("id", user.id).single();
@@ -228,9 +300,15 @@
           }
           if (!callback.failed && now() - intent.startedAt <= MAX_AGE) {
             const success = user.identities?.some(identity => identity.provider === PROVIDER);
-            message(success
+            let consent = "unavailable";
+            if (success) {
+              try { consent = await readConnectionStatus(); } catch (_) { /* Keep the existing authenticated account. */ }
+            }
+            message(success && consent === "connected"
               ? "네이버 계정이 연결됐어요."
-              : "네이버 연결을 확인하지 못했어요. 연결 버튼을 눌러 다시 시도해 주세요.", "link");
+              : success
+                ? "네이버 로그인 수단은 등록됐지만 동의 상태를 확인하지 못했어요. 메뉴를 다시 열어 확인해 주세요."
+                : "네이버 연결을 확인하지 못했어요. 연결 버튼을 눌러 다시 시도해 주세요.", "link");
           }
         }
         if (callback.failed) {
@@ -256,6 +334,12 @@
 
     loginButton?.addEventListener("click", () => start("login"));
     linkButton?.addEventListener("click", () => start("link"));
+    // Read only this member's state on menu open / app return; no background polling.
+    menuButton?.addEventListener("click", () => { void refreshConnectionStatus(true); });
+    window.addEventListener("focus", () => { void refreshConnectionStatus(true); });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") void refreshConnectionStatus(true);
+    });
     // 인증 화면에서 뒤로 돌아오는 bfcache 복원 시 버튼을 다시 사용할 수 있게 합니다.
     window.addEventListener("pageshow", event => {
       if (event.persisted && busy) {
@@ -269,3 +353,4 @@
 
   window.NaverLogin = Object.freeze({ captureReturn, create });
 })();
+
