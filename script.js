@@ -5441,10 +5441,14 @@ function renderAdminInquiries(inquiries) {
     const memberProfile =
       inquiry.memberProfile || {};
 
-    const memberName =
+    const memberBaseName =
       memberProfile.display_name ||
       memberProfile.email ||
       "회원";
+    const phoneLast4 = String(memberProfile.phone_last4 || "").trim();
+    const memberName = /^\d{4}$/.test(phoneLast4)
+      ? `${memberBaseName} ${phoneLast4}`
+      : memberBaseName;
 
     const memberDetails = [];
 
@@ -11242,6 +11246,7 @@ initializeLogin();
   });
   syncVisibility();
 })();
+
 
 
 
