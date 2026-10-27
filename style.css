@@ -5970,3 +5970,22 @@ textarea.routine-weight-cell {
   margin-left: auto;
   margin-right: 0;
 }
+
+
+/* v200: 회원·관리자 문의를 내용 길이에 맞는 작은 말풍선으로 표시합니다. */
+:is(#appScreen, #adminScreen) .member-inquiry-message-list { gap: 6px; }
+:is(#appScreen, #adminScreen) .member-inquiry-message {
+  width: fit-content;
+  max-width: min(92%, 340px);
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: 12px;
+}
+:is(#appScreen, #adminScreen) .member-inquiry-message-label { margin-bottom: 3px; font-size: 11px; line-height: 1.3; }
+:is(#appScreen, #adminScreen) .member-inquiry-message-body { font-size: 14px; line-height: 1.45; }
+:is(#appScreen, #adminScreen) .member-inquiry-message-date { margin-top: 3px; font-size: 10px; line-height: 1.3; }
+:is(#appScreen, #adminScreen) .inquiry-chat-day { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 8px 0 5px; color: #748094; font-size: 11px; line-height: 1.4; }
+:is(#appScreen, #adminScreen) .inquiry-chat-day:first-child { margin-top: 0; }
+:is(#appScreen, #adminScreen) .inquiry-chat-day::before,
+:is(#appScreen, #adminScreen) .inquiry-chat-day::after { content: ""; height: 1px; flex: 1; background: #dfe5ed; }
+:is(#appScreen, #adminScreen) .inquiry-chat-day > span { flex-shrink: 0; }

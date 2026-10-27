@@ -1138,6 +1138,62 @@ function formatMemberInquiryDate(dateValue) {
   );
 }
 
+// 관리자·회원 대화에서 같은 날짜/발신자 표기를 묶고 말풍선을 간결하게 표시합니다.
+function renderInquiryMessageCards(messages, messageList, memberName = "내 질문") {
+  const dayFormat = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "short"
+  });
+  const timeFormat = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit"
+  });
+  let previousDay = null;
+  let previousSender = null;
+  const fragment = document.createDocumentFragment();
+  messages.forEach(function (message) {
+    const date = message.created_at ? new Date(message.created_at) : null;
+    const validDate = date && Number.isFinite(date.getTime());
+    const day = validDate ? dayFormat.format(date) : null;
+    const newDay = day !== previousDay;
+    if (day && newDay) {
+      const divider = document.createElement("div");
+      divider.className = "inquiry-chat-day";
+      const dateText = document.createElement("span");
+      dateText.textContent = day;
+      divider.append(dateText);
+      fragment.append(divider);
+    }
+    const messageCard = document.createElement("article");
+    messageCard.className = "member-inquiry-message " +
+      (message.sender_role === "admin" ? "is-admin" : "is-member");
+    // 이전과 동일하게 메시지마다 카드를 하나씩 유지해 답변 읽음 배지가 정확히 연결되게 합니다.
+    const sender = message.sender_role === "admin" ? "센터 답변" : memberName;
+    messageCard.setAttribute("aria-label", sender);
+    if (newDay || previousSender !== message.sender_role) {
+      const label = document.createElement("strong");
+      label.className = "member-inquiry-message-label";
+      label.textContent = sender;
+      messageCard.append(label);
+    }
+    const body = document.createElement("p");
+    body.className = "member-inquiry-message-body";
+    body.textContent = message.body;
+    messageCard.append(body);
+    if (validDate) {
+      const time = document.createElement("time");
+      time.className = "member-inquiry-message-date";
+      time.dateTime = message.created_at;
+      time.textContent = timeFormat.format(date);
+      time.title = day + " " + time.textContent;
+      time.setAttribute("aria-label", time.title);
+      messageCard.append(time);
+    }
+    fragment.append(messageCard);
+    previousDay = day;
+    previousSender = message.sender_role;
+  });
+  messageList.append(fragment);
+}
+
 // 기존 문의방에 회원의 추가 질문 저장
 async function sendMemberInquiryReply(
   inquiryId,
@@ -1282,57 +1338,7 @@ async function loadMemberInquiryMessages(
       return;
     }
 
-    messages.forEach(function (message) {
-      const messageCard =
-        document.createElement("article");
-
-      messageCard.className =
-        message.sender_role === "admin"
-          ? "member-inquiry-message is-admin"
-          : "member-inquiry-message is-member";
-
-      const messageLabel =
-        document.createElement("strong");
-
-      messageLabel.className =
-        "member-inquiry-message-label";
-
-      messageLabel.textContent =
-        message.sender_role === "admin"
-          ? "센터 답변"
-          : "내 질문";
-
-      const messageBody =
-        document.createElement("p");
-
-      messageBody.className =
-        "member-inquiry-message-body";
-
-      messageBody.textContent =
-        message.body;
-
-      const messageDate =
-        document.createElement("time");
-
-      messageDate.className =
-        "member-inquiry-message-date";
-
-      messageDate.dateTime =
-        message.created_at || "";
-
-      messageDate.textContent =
-        formatMemberInquiryDate(
-          message.created_at
-        );
-
-      messageCard.append(
-        messageLabel,
-        messageBody,
-        messageDate
-      );
-
-      messageList.append(messageCard);
-    });
+    renderInquiryMessageCards(messages, messageList);
 
     messageList.dataset.loaded = "true";
     updateMemberCommunityBadges("observeReplies", inquiryId, messages, messageList);
@@ -5393,57 +5399,7 @@ async function loadAdminInquiryMessages(
       return;
     }
 
-    messages.forEach(function (message) {
-      const messageCard =
-        document.createElement("div");
-
-      messageCard.className =
-        message.sender_role === "admin"
-          ? "member-inquiry-message is-admin"
-          : "member-inquiry-message is-member";
-
-      const messageLabel =
-        document.createElement("strong");
-
-      messageLabel.className =
-        "member-inquiry-message-label";
-
-      messageLabel.textContent =
-        message.sender_role === "admin"
-          ? "센터 답변"
-          : memberName;
-
-      const messageBody =
-        document.createElement("p");
-
-      messageBody.className =
-        "member-inquiry-message-body";
-
-      messageBody.textContent =
-        message.body;
-
-      const messageDate =
-        document.createElement("time");
-
-      messageDate.className =
-        "member-inquiry-message-date";
-
-      messageDate.dateTime =
-        message.created_at || "";
-
-      messageDate.textContent =
-        formatMemberInquiryDate(
-          message.created_at
-        );
-
-      messageCard.append(
-        messageLabel,
-        messageBody,
-        messageDate
-      );
-
-      messageList.append(messageCard);
-    });
+    renderInquiryMessageCards(messages, messageList, memberName);
 
     messageList.dataset.loaded = "true";
 
@@ -11286,6 +11242,7 @@ initializeLogin();
   });
   syncVisibility();
 })();
+
 
 
 
