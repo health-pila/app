@@ -5275,15 +5275,6 @@ async function updateAdminInquiryArchive(
   archiveButton,
   archiveMessage
 ) {
-  if (
-    shouldArchive &&
-    !window.confirm(
-      "이 문의를 보관함으로 옮길까요?"
-    )
-  ) {
-    return;
-  }
-
   archiveButton.disabled = true;
 
   archiveButton.textContent =
@@ -11295,6 +11286,7 @@ initializeLogin();
   });
   syncVisibility();
 })();
+
 
 
 

@@ -5960,3 +5960,13 @@ textarea.routine-weight-cell {
 #adminScreen .admin-inquiry-reply-actions button { flex: 1 1 140px; width: auto; min-height: 44px; padding: 8px 12px; }
 #adminScreen .admin-inquiry-reply-actions .admin-inquiry-complete-button { border: 1px solid #cfd8e6; background: #fff; color: #596174; }
 #adminScreen .admin-inquiry-reply-actions button:focus-visible { outline: 2px solid #ff6b00; outline-offset: 3px; }
+
+/* v199: 관리자 기준으로 회원 메시지는 왼쪽, 센터 답변은 오른쪽에 배치합니다. */
+#adminScreen .admin-inquiry-message-list .member-inquiry-message.is-member {
+  margin-left: 0;
+  margin-right: auto;
+}
+#adminScreen .admin-inquiry-message-list .member-inquiry-message.is-admin {
+  margin-left: auto;
+  margin-right: 0;
+}
