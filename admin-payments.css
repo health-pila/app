@@ -25,3 +25,5 @@
 .admin-payment-note { margin: 10px 0 0; font-size: 12px; line-height: 1.6; color: #a64a04; }
 #adminPayments .admin-payments-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 16px; }
 #adminPaymentsPage { color: #697586; font-size: 13px; }
+
+.admin-payment-options { margin: 0 0 8px; color: #a64a04; font-size: 13px; line-height: 1.6; font-weight: 700; }

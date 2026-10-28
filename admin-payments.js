@@ -46,6 +46,8 @@
       member.append(textNode('span', 'admin-payment-phone', /^\d{4}$/.test(entry.phone_last4 || '') ? `연락처 끝 ${entry.phone_last4}` : '연락처 끝자리 미등록'));
       heading.append(member, textNode('span', `admin-payment-state is-${entry.payment_state}`, labels[entry.payment_state] || '상태 확인 필요'));
       card.append(heading, textNode('h3', 'admin-payment-product', entry.product_name));
+      const options = [entry.options?.clothing && '운동복 대여', entry.options?.locker && '개인락커 이용'].filter(Boolean);
+      card.append(textNode('p', 'admin-payment-options', options.length ? '추가 옵션: ' + options.join(' · ') : '추가 옵션 없음'));
       const amount = Number(entry.amount);
       const amountLabel = entry.payment_state === 'paid' ? '결제 금액' : '원 주문 금액';
       card.append(textNode('p', 'admin-payment-amount', `${amountLabel} ${Number.isSafeInteger(amount) && amount >= 0 ? amount.toLocaleString('ko-KR') + '원' : '확인 필요'}`));
