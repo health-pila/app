@@ -100,7 +100,8 @@
       button.disabled = disabled;
       button.setAttribute("aria-pressed", String(picked));
       button.classList.toggle("is-picked", picked);
-      button.textContent = pickBusyId === button.dataset.videoId ? "저장 중…" : picked ? "★ Pick" : "☆ Pick";
+      button.textContent = picked ? "★ Pick" : "☆ Pick";
+      button.setAttribute("aria-busy", String(pickBusyId === button.dataset.videoId));
       button.setAttribute("aria-label", `${button.dataset.videoTitle} Pick ${picked ? "해제" : "선택"}`);
     });
     memberRefresh.disabled = memberLoading || picksLoading || Boolean(pickBusyId);
@@ -146,7 +147,7 @@
     if (role !== "member" || !client || picksLoading || pickBusyId ||
       (!force && picksReady && Date.now() - picksLoadedAt < 60000)) return;
     const token = generation, request = ++pickRequest, activeClient = client, activeUserId = userId;
-    picksLoading = true; pickControls(); status(pickStatus, "Pick 목록을 불러오고 있어요.");
+    picksLoading = true; pickControls(); status(pickStatus, "");
     try {
       const ids = new Set(), size = 500;
       for (let offset = 0; ; offset += size) {
@@ -173,7 +174,7 @@
     if (!isMemberVisible() || !picksReady || picksLoading || pickBusyId || !memberRows.some(item => item.id === row.id)) return;
     const token = generation, activeClient = client, activeUserId = userId;
     const nextPicked = !picks.has(row.id);
-    pickBusyId = row.id; pickControls(); status(pickStatus, "Pick을 저장하고 있어요.");
+    pickBusyId = row.id; pickControls(); status(pickStatus, "");
     try {
       const { data: authData, error: authError } = await activeClient.auth.getUser();
       if (!isCurrent(token)) return;
@@ -195,7 +196,7 @@
       if (error) { picksReady = false; throw error; }
       if (data) picks.add(row.id); else picks.delete(row.id);
       if (Boolean(data) !== nextPicked) throw writeError || new Error("Pick was not saved");
-      status(pickStatus, nextPicked ? "Pick에 담았어요." : "Pick을 해제했어요.");
+      status(pickStatus, "");
     } catch (error) {
       if (!isCurrent(token)) return;
       if (!error?.code || missingTable(error)) picksReady = false;

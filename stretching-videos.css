@@ -12,7 +12,7 @@
 .stretching-card-play { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 28px; height: 28px; padding-left: 2px; border: 1px solid #ffffff70; border-radius: 50%; background: #0004; color: #fff; font-size: 11px; }
 .stretching-card { cursor: default; }
 .stretching-card-open { position: absolute; inset: 0; display: block; box-sizing: border-box; width: 100%; height: 100%; min-width: 0; margin: 0; padding: 0; overflow: hidden; border: 0; border-radius: inherit; background: transparent; color: inherit; text-align: left; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.stretching-pick-button { position: absolute; z-index: 2; top: 8px; left: 8px; box-sizing: border-box; width: auto; min-width: 64px; min-height: 44px; margin: 0; padding: 8px; border: 1px solid #ffffffb0; border-radius: 11px; background: #17233ee6; color: #fff; font: inherit; font-size: 13px; font-weight: 700; line-height: 1.4; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.stretching-pick-button { position: absolute; z-index: 2; top: 8px; left: 8px; display: grid; place-items: center; box-sizing: border-box; width: 54.4px; min-width: 54.4px; height: 30.8px; min-height: 30.8px; margin: 0; padding: 4px 2px; border: 1px solid #ffffffb0; border-radius: 11px; background: #17233ee6; color: #fff; font: inherit; font-size: 13px; font-weight: 700; line-height: 1.4; white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .stretching-pick-button.is-picked { border-color: #ec6a1a; background: #ec6a1a; }
 .stretching-pick-button:disabled { cursor: default; }
 .stretching-picks-filter.is-active { border-color: #ec6a1a; background: #fff5ec; color: #a94200; }
