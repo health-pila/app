@@ -1,0 +1,27 @@
+/* 페이앱 상품과 결제창에만 적용합니다. */
+.payapp-product { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 20px; padding: 20px 16px; border: 1px solid #f3d4be; border-radius: 16px; background: linear-gradient(135deg,#fff7ef,#fff); }
+.payapp-product > div { min-width: 0; }
+.payapp-product-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; background: #ffead9; color: #ac4600; font-size: 12px; font-weight: 700; }
+.payapp-product h3 { margin: 10px 0 8px; color: #17233e; font-size: 17px; line-height: 1.5; word-break: keep-all; }
+.payapp-product-price { margin: 0; color: #17233e; font-size: 29px; line-height: 1.3; font-weight: 800; }
+.payapp-product-price span { margin-left: 3px; font-size: 16px; }
+.payapp-product > button, .payapp-dialog .payapp-primary { width: auto; min-height: 46px; margin: 0; padding: 11px 16px; border: 0; border-radius: 11px; background: #ec6a1a; color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.payapp-product > button { flex-shrink: 0; }
+.payapp-product > button:disabled, .payapp-dialog button:disabled { opacity: .5; cursor: default; }
+.payapp-dialog { box-sizing: border-box; width: min(430px,calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 20px; border: 0; border-radius: 20px; overflow-y: auto; background: #fff; color: #17233e; font-family: inherit; }
+.payapp-dialog::backdrop { background: #101827b3; }
+.payapp-dialog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.payapp-dialog-heading h2 { margin: 0; font-size: 18px; line-height: 1.5; word-break: keep-all; }
+.payapp-dialog-heading button { flex-shrink: 0; width: auto; min-height: 40px; margin: -5px -5px 0 0; padding: 8px; border: 0; border-radius: 8px; background: #f3f5f8; color: #43516a; font: inherit; font-size: 13px; cursor: pointer; }
+.payapp-dialog-price { margin: 14px 0 22px; font-size: 27px; font-weight: 800; }
+.payapp-dialog label { display: block; margin: 0 0 8px; font-size: 14px; font-weight: 700; }
+.payapp-dialog input { box-sizing: border-box; width: 100%; min-height: 48px; margin: 0; padding: 11px; border: 1px solid #dce2eb; border-radius: 10px; color: #17233e; background: #fff; font: inherit; font-size: 16px; }
+.payapp-help { margin: 8px 0 16px; color: #697586; font-size: 12px; line-height: 1.6; }
+.payapp-status { margin: 14px 0; color: #43516a; font-size: 14px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
+.payapp-status:empty { display: none; }
+.payapp-status.is-error { color: #b43529; }
+.payapp-dialog .payapp-primary { width: 100%; }
+.payapp-dialog .payapp-secondary { width: 100%; min-height: 44px; margin: 10px 0 0; padding: 10px; border: 1px solid #dce2eb; border-radius: 11px; background: #fff; color: #43516a; font: inherit; font-size: 14px; cursor: pointer; }
+.payapp-dialog [hidden] { display: none !important; }
+.payapp-product button:focus-visible, .payapp-dialog button:focus-visible, .payapp-dialog input:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
+@media (max-width:360px) { .payapp-product { align-items: stretch; flex-direction: column; padding: 16px 14px; } .payapp-product > button { width: 100%; } .payapp-dialog { padding: 16px; } }

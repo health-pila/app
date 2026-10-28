@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "207";
+const APP_VERSION = "208";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}`;
@@ -9,6 +9,10 @@ const APP_FILES = [
   "./",
   "./index.html",
   "./reset-password.html",
+  "./payapp-return.html",
+  `./payapp-return.js?v=${APP_VERSION}`,
+  `./payapp-checkout.js?v=${APP_VERSION}`,
+  `./payapp-checkout.css?v=${APP_VERSION}`,
   `./password-reset.js?v=${APP_VERSION}`,
   `./style.css?v=${APP_VERSION}`,
   `./naver-login.css?v=${APP_VERSION}`,
@@ -114,6 +118,8 @@ async function findCurrentCachedResponse(request) {
       const target = new URL(request.url);
       const resetPageUrl = new URL("reset-password.html", APP_SCOPE);
       if (target.pathname === resetPageUrl.pathname) return await cache.match(resetPageUrl.href);
+      const paymentReturnUrl = new URL("payapp-return.html", APP_SCOPE);
+      if (target.pathname === paymentReturnUrl.pathname) return await cache.match(paymentReturnUrl.href);
       return await cache.match(APP_SHELL_URL);
     }
   } catch (error) {

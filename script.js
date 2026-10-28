@@ -8992,6 +8992,8 @@ async function showWorkoutApp(userId) {
   );
   resetWorkoutCalendar();
 
+  window.PayAppCheckout?.start(supabaseClient, userId, () => showMemberTab("services"));
+
   memberInquiryVisibleCount =
     MEMBER_INQUIRY_PAGE_SIZE;
 
@@ -9601,6 +9603,7 @@ async function showAdminApp(userId) {
   loginScreen.hidden = true;
   appScreen.hidden = true;
   adminScreen.hidden = false;
+  window.PayAppCheckout?.reset();
   resetAdminMemberStatistics();
   updateAdminRoutineAlerts("start", userId);
 
@@ -10657,6 +10660,7 @@ async function handleLogout() {
     workoutCaptureBadge.reset();
     window.MemberCardioPrograms?.reset();
     window.StretchingVideos?.reset();
+    window.PayAppCheckout?.reset();
     window.MemberExerciseReplacements?.reset();
     window.ExerciseContentSync?.stop();
     updateAdminRoutineAlerts("reset");
