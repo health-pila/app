@@ -170,6 +170,6 @@
 }
 
 /* 페이앱 상품과 네이버 페이 상품 구분 */
-.member-services-naver-divider { margin: 0 0 16px; }
-.member-services-naver-divider hr { margin: 0 0 16px; border: 0; border-top: 1px solid #dce4ee; }
-.member-services-naver-divider h3 { margin: 0; color: #28734a; font-size: 14px; font-weight: 800; line-height: 1.6; text-align: center; }
+.member-services-naver-divider { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; }
+.member-services-naver-divider::before, .member-services-naver-divider::after { content: ""; flex: 1; min-width: 12px; border-top: 1px solid #dce4ee; }
+.member-services-naver-divider h3 { flex: 0 0 auto; margin: 0; white-space: nowrap; color: #28734a; font-size: 14px; font-weight: 800; line-height: 1.6; text-align: center; }
