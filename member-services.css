@@ -52,14 +52,14 @@
   display: grid;
   place-items: center;
   min-width: 0;
-  aspect-ratio: 1.14;
+  aspect-ratio: 1.425;
   overflow: hidden;
   background: linear-gradient(135deg, #f3f6fa, #f8fafc);
 }
 
 .member-service-card img {
   display: block;
-  width: 84%;
+  width: 67.2%;
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
@@ -74,8 +74,8 @@
   justify-content: space-between;
   gap: 6px;
   min-width: 0;
-  min-height: 44px;
-  padding: 10px 12px;
+  min-height: 35.2px;
+  padding: 4px 9.6px;
   border-top: 1px solid #e5ebf2;
   background: #fff;
   color: var(--brand-navy);
@@ -168,3 +168,8 @@
 @media (prefers-reduced-motion: reduce) {
   .member-service-card { transition: none; }
 }
+
+/* 페이앱 상품과 네이버 페이 상품 구분 */
+.member-services-naver-divider { margin: 0 0 16px; }
+.member-services-naver-divider hr { margin: 0 0 16px; border: 0; border-top: 1px solid #dce4ee; }
+.member-services-naver-divider h3 { margin: 0; color: #28734a; font-size: 14px; font-weight: 800; line-height: 1.6; text-align: center; }
