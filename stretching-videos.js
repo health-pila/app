@@ -5,6 +5,7 @@
   const app = byId("appScreen"), admin = byId("adminScreen"), routine = byId("routineTabPanel");
   const panel = byId("memberStretchingPanel"), grid = byId("memberStretchingGrid");
   const memberStatus = byId("memberStretchingStatus"), memberRefresh = byId("refreshStretchingVideos");
+  const pickStatus = byId("memberStretchingPickStatus"), pickFilter = byId("toggleStretchingPicks");
   const form = byId("adminStretchingForm"), list = byId("adminStretchingList");
   const titleInput = byId("adminStretchingTitle"), urlInput = byId("adminStretchingUrl");
   const orderInput = byId("adminStretchingOrder"), publishedInput = byId("adminStretchingPublished");
@@ -14,21 +15,26 @@
   const dialog = byId("stretchingPlayerDialog"), stage = byId("stretchingPlayerStage");
   const playerTitle = byId("stretchingPlayerTitle"), closeButton = byId("closeStretchingPlayer");
   const youtubeLink = byId("stretchingYouTubeLink");
-  if (![app, admin, routine, panel, grid, memberStatus, memberRefresh, form, list, titleInput, urlInput,
+  if (![app, admin, routine, panel, grid, memberStatus, memberRefresh, pickStatus, pickFilter, form, list, titleInput, urlInput,
     orderInput, publishedInput, saveButton, cancelEdit, formStatus, listStatus, adminRefresh,
     dialog, stage, playerTitle, closeButton, youtubeLink].every(Boolean)) return;
 
   const TABLE = "stretching_videos";
+  const PICKS_TABLE = "stretching_video_picks";
   const FIELDS = "id,title,video_id,sort_order,is_published,created_at,updated_at";
   const ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
   const HISTORY_KEY = "stretchingPlayer";
   let client = null, userId = "", role = "", generation = 0, selected = false;
   let memberRows = [], adminRows = [], memberLoadedAt = 0, memberLoading = false;
   let memberRenderNeeded = false;
+  let memberListFailure = null;
   let adminLoading = false, adminReady = false, busy = false, editing = null;
   let memberRequest = 0, adminRequest = 0;
   let returnFocus = null, returnScroll = null, previousOverflow = null;
   let historyToken = "", historyPending = false;
+  let picks = new Set(), picksReady = false, picksLoading = false, pickBusyId = "", onlyPicks = false;
+  let pickRequest = 0;
+  let picksLoadedAt = 0;
 
   function element(tag, className, text) {
     const node = document.createElement(tag);
@@ -83,10 +89,30 @@
     image.addEventListener("error", () => { image.hidden = true; }, { once: true });
     return image;
   }
-  function renderMember() {
+  function pickControls() {
+    const disabled = role !== "member" || !picksReady || picksLoading || Boolean(pickBusyId);
+    pickFilter.disabled = disabled;
+    pickFilter.setAttribute("aria-pressed", String(onlyPicks));
+    pickFilter.textContent = onlyPicks ? "전체 영상 보기" : "Pick 영상만 모아보기";
+    pickFilter.classList.toggle("is-active", onlyPicks);
+    grid.querySelectorAll(".stretching-pick-button").forEach(button => {
+      const picked = picks.has(button.dataset.videoId);
+      button.disabled = disabled;
+      button.setAttribute("aria-pressed", String(picked));
+      button.classList.toggle("is-picked", picked);
+      button.textContent = pickBusyId === button.dataset.videoId ? "저장 중…" : picked ? "★ Pick" : "☆ Pick";
+      button.setAttribute("aria-label", `${button.dataset.videoTitle} Pick ${picked ? "해제" : "선택"}`);
+    });
+    memberRefresh.disabled = memberLoading || picksLoading || Boolean(pickBusyId);
+  }
+  function renderMember(focusId = "") {
+    const visibleRows = onlyPicks ? memberRows.filter(row => picks.has(row.id)) : memberRows;
+    const previousButtons = [...grid.querySelectorAll(".stretching-pick-button")];
+    const oldFocusIndex = previousButtons.findIndex(button => button.dataset.videoId === focusId);
     const fragment = document.createDocumentFragment();
-    memberRows.forEach(row => {
-      const card = element("button", "stretching-card");
+    visibleRows.forEach(row => {
+      const wrapper = element("article", "stretching-card");
+      const card = element("button", "stretching-card-open");
       card.type = "button";
       card.setAttribute("aria-label", `${row.title} 재생`);
       card.setAttribute("aria-haspopup", "dialog");
@@ -97,16 +123,96 @@
       caption.append(element("strong", "", row.title));
       card.append(thumbnail(row), play, caption);
       card.addEventListener("click", () => openPlayer(row, card));
-      fragment.append(card);
+      const pick = element("button", "stretching-pick-button");
+      pick.type = "button";
+      pick.dataset.videoId = row.id; pick.dataset.videoTitle = row.title;
+      pick.addEventListener("click", () => { void togglePick(row); });
+      wrapper.append(card, pick);
+      fragment.append(wrapper);
     });
     grid.replaceChildren(fragment);
     memberRenderNeeded = false;
+    pickControls();
+    status(memberStatus, memberListFailure?.text || (!memberRows.length ? "스트레칭 영상을 준비 중이에요." :
+      onlyPicks && !visibleRows.length ? "Pick한 영상이 없어요. 전체 영상에서 Pick을 눌러보세요." : ""), Boolean(memberListFailure?.error));
+    if (focusId && isMemberVisible()) {
+      const buttons = [...grid.querySelectorAll(".stretching-pick-button")];
+      const target = buttons.find(button => button.dataset.videoId === focusId) ||
+        buttons[Math.min(Math.max(oldFocusIndex, 0), buttons.length - 1)] || pickFilter;
+      target.focus({ preventScroll: true });
+    }
+  }
+  async function loadPicks(force = false) {
+    if (role !== "member" || !client || picksLoading || pickBusyId ||
+      (!force && picksReady && Date.now() - picksLoadedAt < 60000)) return;
+    const token = generation, request = ++pickRequest, activeClient = client, activeUserId = userId;
+    picksLoading = true; pickControls(); status(pickStatus, "Pick 목록을 불러오고 있어요.");
+    try {
+      const ids = new Set(), size = 500;
+      for (let offset = 0; ; offset += size) {
+        const { data, error } = await activeClient.from(PICKS_TABLE).select("stretching_video_id")
+          .eq("user_id", activeUserId).order("stretching_video_id", { ascending: true }).range(offset, offset + size - 1);
+        if (!isCurrent(token) || request !== pickRequest) return;
+        if (error) throw error;
+        if (!Array.isArray(data)) throw new Error("Invalid Pick response");
+        data.forEach(row => { if (typeof row.stretching_video_id === "string") ids.add(row.stretching_video_id); });
+        if (data.length < size) break;
+      }
+      picks = ids; picksReady = true; picksLoadedAt = Date.now(); status(pickStatus, "");
+      if (isMemberVisible()) renderMember(); else memberRenderNeeded = true;
+    } catch (error) {
+      if (!isCurrent(token) || request !== pickRequest) return;
+      picksReady = false;
+      status(pickStatus, missingTable(error) ? "Pick 기능을 준비 중이에요. 일반 영상은 계속 볼 수 있어요." :
+        "Pick 목록을 확인하지 못했어요. 아래 새로고침으로 다시 확인해 주세요.", !missingTable(error));
+    } finally {
+      if (isCurrent(token) && request === pickRequest) { picksLoading = false; pickControls(); }
+    }
+  }
+  async function togglePick(row) {
+    if (!isMemberVisible() || !picksReady || picksLoading || pickBusyId || !memberRows.some(item => item.id === row.id)) return;
+    const token = generation, activeClient = client, activeUserId = userId;
+    const nextPicked = !picks.has(row.id);
+    pickBusyId = row.id; pickControls(); status(pickStatus, "Pick을 저장하고 있어요.");
+    try {
+      const { data: authData, error: authError } = await activeClient.auth.getUser();
+      if (!isCurrent(token)) return;
+      if (authError || authData?.user?.id !== activeUserId) throw { code: "SESSION_CHANGED" };
+      let writeError;
+      try {
+        const query = nextPicked ? activeClient.from(PICKS_TABLE).upsert(
+          { user_id: activeUserId, stretching_video_id: row.id },
+          { onConflict: "user_id,stretching_video_id", ignoreDuplicates: true }
+        ) : activeClient.from(PICKS_TABLE).delete().eq("user_id", activeUserId).eq("stretching_video_id", row.id);
+        const result = await query;
+        writeError = result.error;
+      } catch (error) { writeError = error; }
+      if (!isCurrent(token)) return;
+      // 응답 유실도 정확한 회원/영상으로 재조회해 확인합니다. 확인 전에는 성공 표시하지 않습니다.
+      const { data, error } = await activeClient.from(PICKS_TABLE).select("stretching_video_id")
+        .eq("user_id", activeUserId).eq("stretching_video_id", row.id).maybeSingle();
+      if (!isCurrent(token)) return;
+      if (error) { picksReady = false; throw error; }
+      if (data) picks.add(row.id); else picks.delete(row.id);
+      if (Boolean(data) !== nextPicked) throw writeError || new Error("Pick was not saved");
+      status(pickStatus, nextPicked ? "Pick에 담았어요." : "Pick을 해제했어요.");
+    } catch (error) {
+      if (!isCurrent(token)) return;
+      if (!error?.code || missingTable(error)) picksReady = false;
+      status(pickStatus, error?.code === "SESSION_CHANGED" ? "로그인 상태를 확인한 뒤 다시 시도해 주세요." :
+        "Pick 저장을 확인하지 못했어요. 아래 새로고침으로 확인해 주세요.", true);
+    } finally {
+      if (isCurrent(token)) {
+        pickBusyId = "";
+        if (isMemberVisible()) renderMember(row.id); else { memberRenderNeeded = true; pickControls(); }
+      }
+    }
   }
   async function loadMember(force = false) {
-    if (!isMemberVisible() || memberLoading) return;
+    if (!isMemberVisible() || memberLoading || pickBusyId) return;
     if (!force && memberLoadedAt && Date.now() - memberLoadedAt < 60000) {
       if (memberRenderNeeded) renderMember();
-      status(memberStatus, memberRows.length ? "" : "스트레칭 영상을 준비 중이에요.");
+      void loadPicks();
       return;
     }
     const token = generation, request = ++memberRequest;
@@ -118,15 +224,17 @@
         .order("id", { ascending: true }).limit(500);
       if (!isCurrent(token) || request !== memberRequest) return;
       if (error) throw error;
+      memberListFailure = null;
       memberRows = normalizeRows(data); memberLoadedAt = Date.now(); memberRenderNeeded = true;
       if (isMemberVisible()) renderMember();
-      status(memberStatus, memberRows.length ? "" : "스트레칭 영상을 준비 중이에요.");
     } catch (error) {
       if (!isCurrent(token) || request !== memberRequest) return;
-      status(memberStatus, missingTable(error) ? "스트레칭 영상을 준비 중이에요." : "영상을 불러오지 못했어요. 새로고침을 눌러 다시 시도해 주세요.", !missingTable(error));
+      memberListFailure = { text: missingTable(error) ? "스트레칭 영상을 준비 중이에요." : "영상을 불러오지 못했어요. 새로고침을 눌러 다시 시도해 주세요.", error: !missingTable(error) };
+      status(memberStatus, memberListFailure.text, memberListFailure.error);
     } finally {
-      if (isCurrent(token) && request === memberRequest) { memberLoading = false; memberRefresh.disabled = false; }
+      if (isCurrent(token) && request === memberRequest) { memberLoading = false; pickControls(); }
     }
+    if (isCurrent(token) && isMemberVisible()) await loadPicks(force);
   }
 
   function clearHistoryMarker() {
@@ -329,6 +437,10 @@
   cancelEdit.addEventListener("click", () => { resetForm(); status(formStatus, ""); });
   adminRefresh.addEventListener("click", () => { void loadAdmin(); });
   memberRefresh.addEventListener("click", () => { void loadMember(true); });
+  pickFilter.addEventListener("click", () => {
+    if (pickFilter.disabled || !isMemberVisible()) return;
+    onlyPicks = !onlyPicks; renderMember();
+  });
 
   function syncVisibility() {
     if (isMemberVisible()) void loadMember();
@@ -339,14 +451,17 @@
     syncVisibility();
   }
   function reset() {
-    generation++; memberRequest++; adminRequest++;
+    generation++; memberRequest++; adminRequest++; pickRequest++;
     closePlayer({ restore: false });
     client = null; userId = ""; role = ""; selected = false;
     memberRows = []; adminRows = []; memberLoadedAt = 0; memberRenderNeeded = false;
+    memberListFailure = null;
     memberLoading = false; adminLoading = false; adminReady = false; busy = false;
+    picks = new Set(); picksReady = false; picksLoading = false; pickBusyId = ""; onlyPicks = false;
+    picksLoadedAt = 0;
     grid.replaceChildren(); list.replaceChildren(); resetForm();
-    status(memberStatus, ""); status(formStatus, ""); status(listStatus, "");
-    memberRefresh.disabled = false; controls();
+    status(memberStatus, ""); status(pickStatus, ""); status(formStatus, ""); status(listStatus, "");
+    pickControls(); controls();
   }
   function startMember(nextClient, nextUserId) {
     reset(); client = nextClient; userId = String(nextUserId); role = "member";
