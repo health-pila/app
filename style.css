@@ -27,6 +27,16 @@
 .workout-text-dialog .workout-text-save { flex: 0 0 auto; min-height: 44px; margin: 0; padding: 7px 14px; border-color: #ec6a1a; color: #fff; background: #ec6a1a; font-weight: 700; }
 .workout-text-dialog button:disabled { opacity: .5; cursor: default; }
 
+/* 사진·시간 기록에 공통으로 사용하는 운동 날짜 선택 */
+.workout-record-date-field { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; }
+.workout-record-date-field label,
+.workout-text-dialog .workout-record-date-field label { flex: 0 0 auto; margin: 0; color: #526078; font-size: 13px; font-weight: 700; }
+.workout-record-date-field input[type="date"] { display: block; flex: 1 1 auto; min-width: 0; width: 100%; min-height: 44px; margin: 0; padding: 8px 10px; border: 1px solid #dce2eb; border-radius: 10px; background: #fff; color: #17233e; color-scheme: light; font: inherit; font-size: 16px; line-height: 1.5; }
+.workout-record-date-field input:focus-visible { outline: 2px solid #ec6a1a; outline-offset: 2px; }
+.workout-record-date-field input:disabled { opacity: .65; }
+.workout-record-dates { flex: 1 1 180px; min-width: 0; display: grid; gap: 4px; }
+.workout-record-created-date { display: block; color: #858070; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+
 /* 웹페이지 전체 */
 /* 세로 경계에서 당겨서 새로고침만 막습니다. 일반/가로 스크롤은 유지합니다. */
 html, body {
@@ -1541,6 +1551,7 @@ body {
 /* 운동 기록 날짜와 삭제 버튼 영역 */
 .workout-record-footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -6001,3 +6012,4 @@ textarea.routine-weight-cell {
 #adminScreen .admin-inquiry-search-row :focus-visible { outline: 2px solid #ff6b00; outline-offset: 2px; }
 #adminScreen .admin-inquiry-search-status { margin: 6px 0 0; color: #657087; font-size: 12px; }
 #adminScreen .admin-inquiry-search-status:empty, #adminInquiryFilters[hidden], #adminInquirySearchClear[hidden] { display: none; }
+

@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "203";
+const APP_VERSION = "204";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}`;
@@ -31,6 +31,7 @@ const APP_FILES = [
   `./member-routine-tutorial.js?v=${APP_VERSION}`,
   `./member-exercise-replacements.js?v=${APP_VERSION}`,
   `./member-exercise-replacements.css?v=${APP_VERSION}`,
+  `./workout-record-dates.js?v=${APP_VERSION}`,
   `./workout-text-records.js?v=${APP_VERSION}`,
   `./script.js?v=${APP_VERSION}`,
   `./admin-routine-alerts.js?v=${APP_VERSION}`,
@@ -159,6 +160,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(responsePromise);
   event.waitUntil(responsePromise.then(() => cacheWrite));
 });
+
 
 
 

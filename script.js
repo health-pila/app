@@ -3000,6 +3000,11 @@ function rememberWorkoutPhotoUrl(path, url, expiresAt) {
 
 // 사용자가 선택한 날짜
 let selectedWorkoutDate = "";
+// 최근 기록 자동 선택과 회원이 직접 고른 날짜를 구분합니다.
+let workoutEntrySelectedDate = "";
+function preferredWorkoutEntryDate() {
+  return selectedWorkoutDate === workoutEntrySelectedDate ? selectedWorkoutDate : "";
+}
 
 // 처음 들어올 때 최근 운동 기록 날짜를 자동 선택
 let shouldSelectLatestWorkoutDate = true;
@@ -3188,13 +3193,19 @@ function renderWorkoutRecords() {
     recordDate.dateTime = record.taken_at;
 
     recordDate.textContent =
-      new Intl.DateTimeFormat("ko-KR", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      }).format(new Date(record.taken_at));
+      `운동 날짜: ${window.WorkoutRecordDates.formatDay(record.taken_at)}`;
+
+    const recordDates = document.createElement("div");
+    recordDates.className = "workout-record-dates";
+    recordDates.append(recordDate);
+    const createdLabel = window.WorkoutRecordDates.formatTime(record.created_at);
+    if (createdLabel) {
+      const createdDate = document.createElement("time");
+      createdDate.className = "workout-record-created-date";
+      createdDate.dateTime = record.created_at;
+      createdDate.textContent = `실제 입력한 날짜: ${createdLabel}`;
+      recordDates.append(createdDate);
+    }
 
     const captionEditor =
       document.createElement("textarea");
@@ -3330,7 +3341,7 @@ function renderWorkoutRecords() {
     );
 
     recordFooter.append(
-      recordDate,
+      recordDates,
       recordButtons
     );
 
@@ -3391,7 +3402,7 @@ async function loadWorkoutRecords(userId) {
   } = await supabaseClient
     .from("workout_records")
     .select(
-      "id, photo_path, caption, taken_at"
+      "id, photo_path, caption, taken_at, created_at"
     )
     .eq("user_id", userId)
     .order("taken_at", {
@@ -3682,6 +3693,7 @@ function renderWorkoutCalendar() {
         selectedWorkoutDate === dateKey
           ? ""
           : dateKey;
+      workoutEntrySelectedDate = selectedWorkoutDate;
 
       renderWorkoutCalendar();
       renderWorkoutRecords();
@@ -3735,6 +3747,7 @@ function resetWorkoutCalendar() {
   visibleWorkoutMonth = new Date();
   visibleWorkoutMonth.setDate(1);
   selectedWorkoutDate = "";
+  workoutEntrySelectedDate = "";
   shouldSelectLatestWorkoutDate = true;
 
   renderWorkoutCalendar();
@@ -3786,6 +3799,19 @@ const workoutPhotoPreview =
 
 const workoutPhotoDate =
   document.querySelector("#workoutPhotoDate");
+const workoutPhotoDayInput = document.querySelector("#workoutPhotoDay");
+
+function updateWorkoutPhotoDate() {
+  const date = window.WorkoutRecordDates.read(workoutPhotoDayInput, workoutPhotoTakenAt || new Date());
+  workoutPhotoDate.textContent = date
+    ? `운동 날짜: ${window.WorkoutRecordDates.formatDay(date)}` : "";
+  if (date) workoutPhotoDate.dateTime = date.toISOString();
+}
+
+workoutPhotoDayInput.addEventListener("input", () => {
+  workoutPhotoDayInput.setCustomValidity("");
+});
+workoutPhotoDayInput.addEventListener("change", updateWorkoutPhotoDate);
 
 const retakeWorkoutPhotoButton =
   document.querySelector("#retakeWorkoutPhotoButton");
@@ -3814,6 +3840,9 @@ function clearCapturedWorkoutPhoto() {
   workoutPhotoPreview.removeAttribute("src");
   workoutPhotoCaption.value = "";
   workoutPhotoDate.textContent = "";
+  workoutPhotoDayInput.disabled = false;
+  workoutPhotoCaption.readOnly = false;
+  workoutPhotoDayInput.setCustomValidity("");
   workoutRecordSaveMessage.textContent = "";
 
   saveWorkoutRecordButton.disabled = false;
@@ -3932,6 +3961,7 @@ async function startWorkoutCamera() {
 
 // 카메라 화면 열기
 async function openWorkoutCamera() {
+  window.WorkoutRecordDates.prepare(workoutPhotoDayInput, preferredWorkoutEntryDate());
   workoutCameraModal.hidden = false;
   workoutCameraView.hidden = false;
   workoutPhotoComposer.hidden = true;
@@ -4181,14 +4211,8 @@ async function captureWorkoutPhoto() {
     workoutPhotoPreview.src =
       workoutPhotoPreviewUrl;
 
-    workoutPhotoDate.textContent =
-      new Intl.DateTimeFormat("ko-KR", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      }).format(workoutPhotoTakenAt);
+    if (!workoutPhotoDayInput.value) window.WorkoutRecordDates.prepare(workoutPhotoDayInput, preferredWorkoutEntryDate());
+    updateWorkoutPhotoDate();
 
     stopWorkoutCamera();
 
@@ -4215,6 +4239,7 @@ function retakeWorkoutPhoto() {
   workoutNativeCameraInput.click();
 }
 async function saveWorkoutRecord() {
+  if (saveWorkoutRecordButton.disabled) return;
   if (
     !capturedWorkoutPhotoBlob ||
     !workoutPhotoTakenAt
@@ -4224,6 +4249,11 @@ async function saveWorkoutRecord() {
     return;
   }
 
+  const recordTakenAt = window.WorkoutRecordDates.read(workoutPhotoDayInput, workoutPhotoTakenAt);
+  if (!recordTakenAt) return;
+  const recordCaption = workoutPhotoCaption.value.trim();
+  workoutPhotoDayInput.disabled = true;
+  workoutPhotoCaption.readOnly = true;
   saveWorkoutRecordButton.disabled = true;
   saveWorkoutRecordButton.textContent = "저장 중...";
   workoutRecordSaveMessage.textContent =
@@ -4287,10 +4317,8 @@ async function saveWorkoutRecord() {
         .insert({
           user_id: user.id,
           photo_path: uploadedPhotoPath,
-          caption:
-            workoutPhotoCaption.value.trim(),
-          taken_at:
-            workoutPhotoTakenAt.toISOString()
+          caption: recordCaption,
+          taken_at: recordTakenAt.toISOString()
         });
 
     if (recordError) {
@@ -4311,10 +4339,11 @@ async function saveWorkoutRecord() {
 
     // 저장한 날짜의 달력과 기록 목록 새로고침
     visibleWorkoutMonth =
-      new Date(workoutPhotoTakenAt);
+      new Date(recordTakenAt);
 
     visibleWorkoutMonth.setDate(1);
-    selectedWorkoutDate = "";
+    selectedWorkoutDate = getWorkoutRecordDateKey(recordTakenAt);
+    shouldSelectLatestWorkoutDate = false;
 
     await loadWorkoutRecords(user.id);
     workoutRecordSaveMessage.textContent =
@@ -4337,6 +4366,8 @@ async function saveWorkoutRecord() {
       `저장 실패: ${saveError.message || "알 수 없는 오류"}`;
 
     saveWorkoutRecordButton.disabled = false;
+    workoutPhotoDayInput.disabled = false;
+    workoutPhotoCaption.readOnly = false;
     saveWorkoutRecordButton.textContent =
       "기록 저장";
   }
@@ -4359,6 +4390,7 @@ const saveWeightRecordCapture = window.WeightRecordCapture?.createSaver({
 openWorkoutCameraButton.addEventListener(
   "click",
   function () {
+    window.WorkoutRecordDates.prepare(workoutPhotoDayInput, preferredWorkoutEntryDate());
     workoutNativeCameraInput.value = "";
     workoutNativeCameraInput.click();
   }
@@ -4400,14 +4432,8 @@ workoutNativeCameraInput.addEventListener(
       workoutPhotoPreview.src =
         workoutPhotoPreviewUrl;
 
-      workoutPhotoDate.textContent =
-        new Intl.DateTimeFormat("ko-KR", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        }).format(workoutPhotoTakenAt);
+      if (!workoutPhotoDayInput.value) window.WorkoutRecordDates.prepare(workoutPhotoDayInput, preferredWorkoutEntryDate());
+      updateWorkoutPhotoDate();
 
       workoutCameraModal.hidden = false;
       workoutCameraView.hidden = true;
@@ -8948,7 +8974,7 @@ async function showWorkoutApp(userId) {
     await loadWorkoutRecords(userId);
     return !appScreen.hidden && workoutRecordsUserId === userId &&
       workoutRecords.some(item => String(item.id) === String(record.id));
-  });
+  }, preferredWorkoutEntryDate);
 
   workoutCaptureBadge.start(userId);
   const memberTabBeforeRefresh =
@@ -11332,6 +11358,7 @@ initializeLogin();
   });
   syncVisibility();
 })();
+
 
 
 

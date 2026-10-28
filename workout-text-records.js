@@ -3,21 +3,25 @@
   "use strict";
   const app = document.getElementById("appScreen"), tab = document.getElementById("workoutLogTabPanel");
   const trigger = document.getElementById("openWorkoutTextButton");
-  if (!app || !tab || !trigger) return;
+  const dates = window.WorkoutRecordDates;
+  if (!app || !tab || !trigger || !dates) return;
   const template = "근력운동 시간: \n유산소운동 시간: \n필라테스 시간: ";
   const dialog = document.createElement("dialog");
   dialog.id = "workoutTextDialog"; dialog.className = "workout-text-dialog";
   dialog.setAttribute("aria-labelledby", "workoutTextTitle");
-  dialog.innerHTML = `<form><div class="workout-text-heading"><h2 id="workoutTextTitle">기록만 입력하기</h2><button type="button" data-text-close>닫기</button></div>
+  dialog.innerHTML = `<form><div class="workout-text-heading"><h2 id="workoutTextTitle">운동 시간만 기록하기</h2><button type="button" data-text-close>닫기</button></div>
+    <div class="workout-record-date-field"><label for="workoutTextDay">운동 날짜</label><input id="workoutTextDay" name="day" type="date" required></div>
     <div class="workout-text-tools"><label for="workoutTextBody">운동 기록</label><button type="submit" class="workout-text-save">기록 저장</button></div>
     <textarea id="workoutTextBody" name="body" rows="6" maxlength="120" required aria-describedby="workoutTextHelp"></textarea>
-    <p id="workoutTextHelp">시간과 오늘의 운동을 자유롭게 적어 주세요. 미리 적힌 문구도 지울 수 있어요.</p>
+    <p id="workoutTextHelp">시간과 그날의 운동을 자유롭게 적어 주세요. 미리 적힌 문구도 지울 수 있어요.</p>
     <p data-text-status role="status"></p><button type="button" data-text-check hidden>저장 상태 다시 확인</button></form>`;
   document.body.append(dialog);
   const form = dialog.querySelector("form"), input = form.elements.body;
+  const dateInput = form.elements.day;
   const closeButton = dialog.querySelector("[data-text-close]"), saveButton = dialog.querySelector(".workout-text-save");
   const checkButton = dialog.querySelector("[data-text-check]"), status = dialog.querySelector("[data-text-status]");
   let client = null, owner = "", generation = 0, onSaved = null, draft = null, busy = false, previousOverflow = null;
+  let getSelectedDate = () => "";
   const current = (token, userId) => token === generation && owner === userId && !app.hidden;
   // 이 입력창만 키보드를 제외한 실제 표시 영역 안에 맞춥니다.
   function syncDialogViewport() {
@@ -31,20 +35,22 @@
   function setBusy(value) {
     busy = value; saveButton.disabled = value || Boolean(draft?.saved) || Boolean(draft?.uncertain);
     input.readOnly = value || Boolean(draft?.saved) || Boolean(draft?.uncertain);
+    dateInput.disabled = value || Boolean(draft?.saved) || Boolean(draft?.uncertain);
     closeButton.disabled = value; checkButton.disabled = value;
   }
   function close(restoreFocus = true) {
     if (dialog.open) dialog.close();
     if (previousOverflow !== null) document.body.style.overflow = previousOverflow;
-    previousOverflow = null; draft = null; input.value = ""; status.textContent = "";
+    previousOverflow = null; draft = null; input.value = ""; dateInput.value = ""; dateInput.setCustomValidity(""); status.textContent = "";
     checkButton.hidden = true; setBusy(false);
     if (restoreFocus && trigger.isConnected && !app.hidden && !tab.hidden) trigger.focus({ preventScroll: true });
   }
   function reset() {
-    generation++; close(false); client = null; owner = ""; onSaved = null; trigger.disabled = true;
+    generation++; close(false); client = null; owner = ""; onSaved = null; getSelectedDate = () => ""; trigger.disabled = true;
   }
-  function start(nextClient, userId, afterSave) {
+  function start(nextClient, userId, afterSave, selectedDate = () => "") {
     reset(); client = nextClient; owner = String(userId); onSaved = afterSave; trigger.disabled = false;
+    getSelectedDate = selectedDate;
   }
   async function finish(record, token, userId) {
     if (!current(token, userId) || !draft) return;
@@ -61,6 +67,9 @@
     const body = input.value.trim();
     if (!body || body.length > 120) { status.textContent = "운동 기록을 1 ~ 120자로 입력해 주세요."; return; }
     const state = draft, token = state.token, userId = state.owner;
+    const takenAt = dates.read(dateInput, state.openedAt);
+    if (!takenAt) return;
+    state.takenAt = takenAt.toISOString();
     const payload = { user_id: userId, photo_path: null, caption: body, taken_at: state.takenAt };
     setBusy(true); status.textContent = "운동 기록을 저장하고 있어요."; checkButton.hidden = true;
     let sent = false;
@@ -70,7 +79,7 @@
       if (authError || data?.user?.id !== userId) throw new Error("로그인 정보를 확인한 뒤 다시 시도해 주세요.");
       state.payload = payload; sent = true;
       const { data: saved, error } = await client.from("workout_records").insert(payload)
-        .select("id, photo_path, caption, taken_at, user_id").single();
+        .select("id, photo_path, caption, taken_at, created_at, user_id").single();
       if (!current(token, userId) || draft !== state) return;
       if (error) {
         // 서버가 거절한 요청은 수정 후 다시 저장할 수 있습니다.
@@ -98,7 +107,7 @@
       if (!current(token, userId) || draft !== state) return;
       if (authError || auth?.user?.id !== userId) throw new Error("LOGIN_REQUIRED");
       const { data: rows, error } = await client.from("workout_records")
-        .select("id, photo_path, caption, taken_at, user_id").eq("user_id", userId).eq("taken_at", state.takenAt).is("photo_path", null);
+        .select("id, photo_path, caption, taken_at, created_at, user_id").eq("user_id", userId).eq("taken_at", state.takenAt).is("photo_path", null);
       if (!current(token, userId) || draft !== state) return;
       if (error || !Array.isArray(rows)) throw error || new Error("INVALID_RESPONSE");
       if (rows.length === 1 && rows[0].user_id === userId && rows[0].caption === state.payload.caption) await finish(rows[0], token, userId);
@@ -110,13 +119,16 @@
   });
   trigger.addEventListener("click", () => {
     if (!client || !owner || app.hidden || tab.hidden || dialog.open) return;
-    draft = { token: generation, owner, takenAt: new Date().toISOString(), saved: false, uncertain: false };
+    const openedAt = new Date().toISOString();
+    draft = { token: generation, owner, openedAt, takenAt: openedAt, saved: false, uncertain: false };
+    dates.prepare(dateInput, getSelectedDate());
     input.value = template; status.textContent = ""; checkButton.hidden = true; setBusy(false);
     previousOverflow = document.body.style.overflow;
     dialog.showModal(); document.body.style.overflow = "hidden"; syncDialogViewport();
     input.focus({ preventScroll: true }); input.setSelectionRange(template.indexOf("\n"), template.indexOf("\n"));
   });
   closeButton.addEventListener("click", () => close());
+  dateInput.addEventListener("input", () => dateInput.setCustomValidity(""));
   dialog.addEventListener("cancel", event => { event.preventDefault(); if (!busy) close(); });
   form.addEventListener("submit", submit);
   new MutationObserver(() => { if (app.hidden) reset(); else if (tab.hidden) close(false); })
@@ -127,3 +139,4 @@
   window.visualViewport?.addEventListener("scroll", syncDialogViewport, { passive: true });
   window.WorkoutTextRecords = Object.freeze({ start, reset });
 })();
+
