@@ -41,6 +41,30 @@
   const status = (text, error = false) => { message.textContent = text; message.classList.toggle('is-error', error); };
   const safeUrl = value => { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password && !u.port &&
     (u.hostname === 'payapp.kr' || u.hostname.endsWith('.payapp.kr')) ? u.href : ''; } catch (_) { return ''; } };
+  let viewportFrame = null;
+  function syncPaymentViewport() {
+    viewportFrame = null;
+    if (!dialog.open) return;
+    const viewport = window.visualViewport;
+    const height = viewport?.height || window.innerHeight;
+    const width = viewport?.width || window.innerWidth;
+    dialog.style.setProperty('--payapp-viewport-height', height + 'px');
+    dialog.style.setProperty('--payapp-viewport-width', width + 'px');
+    dialog.style.setProperty('--payapp-viewport-top', (viewport?.offsetTop || 0) + 'px');
+    dialog.style.setProperty('--payapp-viewport-left', (viewport?.offsetLeft || 0) + 'px');
+    dialog.classList.toggle('is-compact', height < 560);
+    dialog.classList.toggle('is-typing', height < 560 && document.activeElement === phone);
+    if (document.activeElement === phone && !phoneField.hidden) {
+      const body = dialog.querySelector('.payapp-dialog-body');
+      const bounds = body.getBoundingClientRect(), input = phone.getBoundingClientRect();
+      if (input.bottom > bounds.bottom - 8) body.scrollTop += input.bottom - bounds.bottom + 8;
+      else if (input.top < bounds.top + 8) body.scrollTop -= bounds.top + 8 - input.top;
+    }
+  }
+  function queuePaymentViewport() {
+    if (!dialog.open || viewportFrame !== null) return;
+    viewportFrame = requestAnimationFrame(syncPaymentViewport);
+  }
   function savePending() { if (!userId) return; try { sessionStorage.setItem(key(), JSON.stringify(pending)); } catch (_) {} }
   function readPending() { try { const v = JSON.parse(sessionStorage.getItem(key()) || 'null');
     return v && UUID.test(v.requestId || '') && (!v.orderId || UUID.test(v.orderId)) ? v : null; } catch (_) { return null; } }
@@ -68,6 +92,7 @@
     recheck.disabled = busy || checking;
     openButton.disabled = !active();
     form.setAttribute('aria-busy', String(busy || checking));
+    queuePaymentViewport();
   }
   function displayOrder(order, allowEdit = false) {
     if (!order || !UUID.test(order.id || '') || order.product_name !== '가을이벤트) 헬스 6개월') throw new Error('BAD_ORDER');
@@ -131,7 +156,7 @@
       (current?.request_status === 'failed' && !['paid','partial_refund'].includes(current.payment_state))) {
       pending = null; current = null; editing = false; clothing.checked = false; locker.checked = false; savePending();
     }
-    if (!dialog.open) dialog.showModal(); render();
+    if (!dialog.open) dialog.showModal(); syncPaymentViewport(); render();
     if (pending) void check(); else { status(''); byId('payAppClothing').focus(); }
   }
   function close() { stopPolling(); if (dialog.open) dialog.close(); if (focusReturn?.isConnected) focusReturn.focus({ preventScroll: true }); }
@@ -206,7 +231,12 @@
   }
   openButton.addEventListener('click', open); closeButton.addEventListener('click', close);
   dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
-  dialog.addEventListener('close', stopPolling);
+  dialog.addEventListener('close', () => { stopPolling(); cancelAnimationFrame(viewportFrame); viewportFrame = null; });
+  window.visualViewport?.addEventListener('resize', queuePaymentViewport);
+  window.visualViewport?.addEventListener('scroll', queuePaymentViewport);
+  window.addEventListener('resize', queuePaymentViewport);
+  phone.addEventListener('focus', queuePaymentViewport);
+  phone.addEventListener('blur', queuePaymentViewport);
   form.addEventListener('submit', event => { void purchase(event); });
   clothing.addEventListener('change', render); locker.addEventListener('change', render);
   phone.addEventListener('input', () => phone.setCustomValidity(''));
