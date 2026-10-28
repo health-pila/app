@@ -8992,6 +8992,7 @@ async function showWorkoutApp(userId) {
   );
   resetWorkoutCalendar();
 
+  window.AdminPayments?.reset();
   window.PayAppCheckout?.start(supabaseClient, userId, () => showMemberTab("services"));
 
   memberInquiryVisibleCount =
@@ -9612,6 +9613,7 @@ async function showAdminApp(userId) {
   adminMemberSearch.value = "";
 
   await Promise.all([
+    window.AdminPayments?.start(supabaseClient, userId),
     window.OneDayPT.showAdmin(supabaseClient, userId),
     window.StretchingVideos?.startAdmin(supabaseClient, userId),
     loadAdminRoutineRequests(),
@@ -10661,6 +10663,7 @@ async function handleLogout() {
     window.MemberCardioPrograms?.reset();
     window.StretchingVideos?.reset();
     window.PayAppCheckout?.reset();
+    window.AdminPayments?.reset();
     window.MemberExerciseReplacements?.reset();
     window.ExerciseContentSync?.stop();
     updateAdminRoutineAlerts("reset");

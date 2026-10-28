@@ -16,6 +16,8 @@
 .payapp-dialog-price { margin: 14px 0 22px; font-size: 27px; font-weight: 800; }
 .payapp-dialog label { display: block; margin: 0 0 8px; font-size: 14px; font-weight: 700; }
 .payapp-dialog input { box-sizing: border-box; width: 100%; min-height: 48px; margin: 0; padding: 11px; border: 1px solid #dce2eb; border-radius: 10px; color: #17233e; background: #fff; font: inherit; font-size: 16px; }
+.payapp-start-notice { margin: 0 0 20px; color: #c6530c; font-size: 14px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
+.payapp-start-notice strong { font-weight: 800; }
 .payapp-help { margin: 8px 0 16px; color: #697586; font-size: 12px; line-height: 1.6; }
 .payapp-status { margin: 14px 0; color: #43516a; font-size: 14px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
 .payapp-status:empty { display: none; }

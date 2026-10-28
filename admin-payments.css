@@ -1,0 +1,27 @@
+/* 관리자 앱 결제 내역에만 적용합니다. */
+#adminPayments .admin-payments-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 16px 0 10px; }
+#adminPayments .admin-payments-toolbar label { margin: 0; font-size: 14px; font-weight: 700; }
+#adminPayments .admin-payments-toolbar select { width: auto; flex: 1; min-width: 120px; margin: 0; padding: 10px 12px; border: 1px solid #dce2eb; border-radius: 10px; background: #fff; color: #17233e; font: inherit; font-size: 14px; }
+#adminPayments button { width: auto; min-height: 42px; margin: 0; padding: 9px 13px; border: 1px solid #dce2eb; border-radius: 10px; background: #fff; color: #43516a; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+#adminPayments button:disabled { opacity: .45; cursor: default; }
+#adminPayments button:focus-visible, #adminPayments select:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
+#adminPaymentsMessage { margin: 10px 0; color: #697586; font-size: 13px; line-height: 1.6; }
+#adminPaymentsMessage:empty { display: none; }
+#adminPaymentsMessage.is-error { color: #b43529; }
+.admin-payments-list { display: grid; gap: 12px; }
+.admin-payment-card { min-width: 0; padding: 16px; border: 1px solid #e2e7ee; border-radius: 14px; background: #fff; color: #17233e; overflow-wrap: anywhere; }
+.admin-payment-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.admin-payment-member { display: grid; gap: 5px; min-width: 0; }
+.admin-payment-name { font-size: 16px; }
+.admin-payment-phone { color: #697586; font-size: 13px; }
+.admin-payment-state { flex-shrink: 0; padding: 4px 8px; border-radius: 6px; background: #eff2f6; color: #43516a; font-size: 12px; font-weight: 700; }
+.admin-payment-state.is-paid { background: #e8f6ed; color: #23603b; }
+.admin-payment-state.is-partial_refund { background: #fff0de; color: #a64a04; }
+.admin-payment-product { margin: 16px 0 7px; font-size: 15px; line-height: 1.6; }
+.admin-payment-amount { margin: 0 0 14px; font-size: 17px; font-weight: 800; }
+.admin-payment-dates { display: grid; gap: 5px; margin: 0; font-size: 12px; line-height: 1.6; color: #697586; }
+.admin-payment-dates > div { display: flex; flex-wrap: wrap; gap: 5px 12px; }
+.admin-payment-dates dt, .admin-payment-dates dd { margin: 0; }
+.admin-payment-note { margin: 10px 0 0; font-size: 12px; line-height: 1.6; color: #a64a04; }
+#adminPayments .admin-payments-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 16px; }
+#adminPaymentsPage { color: #697586; font-size: 13px; }
