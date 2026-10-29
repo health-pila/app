@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "221";
+const APP_VERSION = "222";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}`;
@@ -30,6 +30,7 @@ const APP_FILES = [
   `./exercise-data.js?v=${APP_VERSION}`,
   `./member-custom-exercises.js?v=${APP_VERSION}`,
   `./exercise-content-sync.js?v=${APP_VERSION}`,
+  `./workout-exercise-history.js?v=${APP_VERSION}`,
   `./weight-record-capture.js?v=${APP_VERSION}`,
   `./routine-components.js?v=${APP_VERSION}`,
   `./member-workout-completion.js?v=${APP_VERSION}`,

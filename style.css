@@ -6088,3 +6088,26 @@ textarea.routine-weight-cell {
 
 /* v220: 모바일 브라우저의 넓은 터치 강조만 끕니다. 키보드 초점과 텍스트 선택은 유지합니다. */
 :root { -webkit-tap-highlight-color: transparent; }
+
+/* v222: 권장 휴식 안내를 상세설명 버튼과 같은 색으로 표시합니다. */
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-expanded .routine-component-rest { color: #526078; }
+
+.workout-exercise-history { margin-top: 14px; border-top: 1px solid #e3e7ed; padding-top: 12px; }
+.workout-exercise-history-toggle, .workout-exercise-history-more {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-sizing: border-box; width: 100%; min-height: 42px; margin: 0; padding: 9px 10px;
+  border: 1px solid #dce2eb; border-radius: 9px; background: #f5f7fa; color: #526078;
+  font: inherit; font-size: 13px; font-weight: 700; line-height: 1.5; cursor: pointer;
+}
+.workout-exercise-history-toggle::after { content: ""; width: 7px; height: 7px; margin-left: 3px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+.workout-exercise-history-toggle[aria-expanded="true"]::after { transform: translateY(2px) rotate(225deg); }
+.workout-exercise-history-panel { min-width: 0; padding-top: 10px; }
+.workout-exercise-history-status { margin: 0 0 10px; color: #526078; font-size: 12px; line-height: 1.6; }
+.workout-exercise-history-list { display: grid; gap: 12px; }
+.workout-exercise-history-item { min-width: 0; margin: 0; padding: 10px; border: 1px solid #e2e7ef; border-radius: 10px; background: #fff; }
+.workout-exercise-history-date { display: block; margin-bottom: 8px; color: #526078; font-size: 12px; font-weight: 700; line-height: 1.6; }
+.workout-exercise-history-item .workout-record-photo-area { margin-bottom: 0; }
+.workout-exercise-history-item .workout-record-photo { margin-bottom: 0; }
+.workout-exercise-history-caption { margin: 8px 0 0; color: #657087; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.workout-exercise-history-more { margin-top: 10px; background: #fff; }
+.workout-exercise-history-toggle:focus-visible, .workout-exercise-history-more:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }

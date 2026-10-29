@@ -218,7 +218,9 @@
       let attempt = attempts.get(key);
       if (!attempt) {
         const id = typeof crypto.randomUUID === "function" ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(16).slice(2);
-        attempt = { record, path: record.userId + "/weight-" + id + ".png", uncertain: false, promise: null };
+        // 운동 식별자는 수정 가능한 메모와 분리해 사진 경로에 보존합니다. 기존 경로는 바꾸지 않습니다.
+        const path = window.WorkoutExerciseHistory.createPhotoPath(record.userId, record.exerciseId, id);
+        attempt = { record, path, uncertain: false, promise: null };
         attempts.set(key, attempt);
       }
       if (!attempt.promise) {

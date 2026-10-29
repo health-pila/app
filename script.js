@@ -3134,9 +3134,47 @@ function createWorkoutRecordPhoto(record, isFirstPhoto = false) {
   return area;
 }
 
+// 같은 운동 기록 조회는 목록을 그릴 때의 회원과 조회 번호에 묶습니다.
+function createWorkoutExerciseHistoryContext() {
+  const ownerId = workoutRecordsUserId;
+  const requestId = workoutRecordsRequestId;
+  let pending = null;
+  const isCurrent = () => Boolean(ownerId) && !appScreen.hidden &&
+    ownerId === workoutRecordsUserId && requestId === workoutRecordsRequestId;
+  return {
+    userId: ownerId, isCurrent, createPhoto: createWorkoutRecordPhoto,
+    formatDay: value => window.WorkoutRecordDates.formatDay(value),
+    loadRecords() {
+      if (!isCurrent()) return Promise.reject(new Error("로그인 상태가 변경됐어요."));
+      if (pending) return pending;
+      pending = (async () => {
+        const { data, error } = await supabaseClient.auth.getUser();
+        if (error || data?.user?.id !== ownerId || !isCurrent()) throw new Error("로그인 상태가 변경됐어요.");
+        const result = new Map();
+        // 일반 사진·텍스트 기록은 조회하지 않고 본인의 자동 저장 기록만 읽습니다.
+        // 서버의 기본 행 수 제한 때문에 오래된 기록이 빠지지 않도록 나눠 읽습니다.
+        for (let offset = 0; ; offset += 200) {
+          if (!isCurrent()) throw new Error("로그인 상태가 변경됐어요.");
+          const response = await supabaseClient.from("workout_records")
+            .select("id, photo_path, caption, taken_at, created_at")
+            .eq("user_id", ownerId).like("photo_path", ownerId + "/weight-%")
+            .order("taken_at", { ascending: false }).order("id", { ascending: false })
+            .range(offset, offset + 199);
+          if (!isCurrent()) throw new Error("로그인 상태가 변경됐어요.");
+          if (response.error || !Array.isArray(response.data)) throw new Error("기록을 불러오지 못했어요. 다시 시도해주세요.");
+          response.data.forEach(record => { if (record?.id) result.set(record.id, record); });
+          if (response.data.length < 200) return [...result.values()];
+        }
+      })().catch(error => { pending = null; throw error; });
+      return pending;
+    }
+  };
+}
+
 // 저장된 운동 기록 목록 표시
 function renderWorkoutRecords() {
   workoutRecordList.innerHTML = "";
+  const exerciseHistoryContext = createWorkoutExerciseHistoryContext();
 
   showAllWorkoutRecordsButton.hidden =
     !selectedWorkoutDate ||
@@ -3352,6 +3390,8 @@ function renderWorkoutRecords() {
       editActions,
       recordFooter
     );
+    const exerciseHistory = window.WorkoutExerciseHistory?.createControl(record, exerciseHistoryContext);
+    if (exerciseHistory) recordCard.append(exerciseHistory);
 
     if (recordIndex > 0) {
       const recordSeparator =
