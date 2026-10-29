@@ -54,7 +54,7 @@
   const price = (value, item = product) => item.amount + item.months * 5000 * (Number(value.clothing) + Number(value.locker));
   const money = value => value.toLocaleString('ko-KR') + '원';
   let client = null, userId = '', generation = 0, busy = false, checking = false, current = null;
-  let editing = false;
+  let editing = false, choiceBlocked = false;
   let pending = null, popup = null, timer = null, pollCount = 0, focusReturn = null, showServices = null;
   const key = () => `centerPayapp:v1:${userId}`;
   const live = token => token === generation && client && userId;
@@ -126,7 +126,7 @@
     byId('payAppLockerBreakdown').hidden = !locker.checked;
     const amount = order ? order.amount : price(selection());
     byId('payAppTotal').textContent = money(amount);
-    submit.disabled = busy || checking || Boolean(pending && !order && !editing) || !active();
+    submit.disabled = choiceBlocked || busy || checking || Boolean(pending && !order && !editing) || !active();
     submit.textContent = order ? '결제창 다시 열기' : money(amount) + ' 결제하기';
     recheck.hidden = !pending;
     recheck.disabled = busy || checking;
@@ -134,7 +134,7 @@
     form.setAttribute('aria-busy', String(busy || checking));
     queuePaymentViewport();
   }
-  function displayOrder(order, allowEdit = false) {
+  function readOrder(order) {
     const orderProduct = order && (order.product_code === undefined
       ? PRODUCTS.find(item => item.name === order.product_name) : productByCode(order.product_code));
     if (!order || !UUID.test(order.id || '') || !orderProduct || order.product_name !== orderProduct.name) throw new Error('BAD_ORDER');
@@ -142,7 +142,38 @@
     if (!selected || typeof selected.clothing !== 'boolean' || typeof selected.locker !== 'boolean' || order.amount !== price(selected, orderProduct)) throw new Error('BAD_ORDER');
     const orderPT = orderProduct.cartOnly ? validatePT(order.pt_exercises) : [];
     if (orderProduct.cartOnly && (selected.clothing || selected.locker)) throw new Error('BAD_ORDER');
-    const canEdit = allowEdit && order.payment_state === 'requested' && order.request_status === 'ready';
+    return { orderProduct, selected, orderPT };
+  }
+  function matchesChoice(order, chosen, selected, exercises) {
+    const info = readOrder(order);
+    return info.orderProduct.code === chosen.code && info.selected.clothing === selected.clothing && info.selected.locker === selected.locker && (!chosen.cartOnly || samePT(info.orderPT, exercises));
+  }
+  function displayOrder(order, allowEdit = false) {
+    const { orderProduct, selected, orderPT } = readOrder(order);
+    if (orderProduct.cartOnly && order.payment_state === 'paid' && !paidNotices.has(order.id)) {
+      paidNotices.add(order.id);
+      window.dispatchEvent(new CustomEvent('centerpayappptpaid', { detail: { userId, orderId: order.id, exercises: orderPT } }));
+    }
+    const differentChoice = wantedProduct && (wantedProduct.code !== orderProduct.code ||
+      (wantedProduct.cartOnly && wantedPT && !samePT(wantedPT, orderPT)));
+    choiceBlocked = false;
+    if (differentChoice && (['paid','cancelled','partial_refund'].includes(order.payment_state) || order.request_status === 'failed')) {
+      // 이전 상품의 종료된 주문은 서버에 남기고 새로 선택한 상품의 화면을 유지합니다.
+      product = wantedProduct; ptSelection = product.cartOnly ? (wantedPT || []) : [];
+      pending = null; current = null; editing = false; choiceBlocked = false; clothing.checked = false; locker.checked = false; savePending();
+      status(orderProduct.name + '의 이전 결제 상태를 확인했어요. 선택한 ' + product.name + '의 금액을 확인한 뒤 결제해 주세요.');
+      render(); return;
+    }
+    if (differentChoice && !(order.payment_state === 'requested' && order.request_status === 'ready')) {
+      // 입금 대기/생성 중/통신 불명확 주문은 취소하거나 다른 상품으로 표시하지 않습니다.
+      product = wantedProduct; ptSelection = product.cartOnly ? (wantedPT || []) : [];
+      current = { ...order, product_code: orderProduct.code, options: selected };
+      pending.orderId = order.id; pending.productCode = orderProduct.code; pending.ptExercises = orderPT; savePending();
+      editing = true; choiceBlocked = true;
+      status(orderProduct.name + (order.payment_state === 'pending' ? '의 입금 또는 승인을 기다리고 있어요. 이전 결제를 확인한 뒤 다시 진행해 주세요.' : '의 이전 결제 요청을 확인 중이에요. 결제 결과 다시 확인을 눌러 주세요.'), true);
+      render(); return;
+    }
+    const canEdit = (allowEdit || differentChoice) && order.payment_state === 'requested' && order.request_status === 'ready';
     if (canEdit) {
       const nextProduct = wantedProduct || orderProduct;
       if (!editing || product.code !== nextProduct.code) { clothing.checked = false; locker.checked = false; phone.value = ''; }
@@ -156,10 +187,6 @@
     }
     current = { ...order, product_code: orderProduct.code, options: selected }; pending.orderId = order.id; pending.productCode = orderProduct.code; savePending();
     pending.ptExercises = orderPT; savePending();
-    if (orderProduct.cartOnly && order.payment_state === 'paid' && !paidNotices.has(order.id)) {
-      paidNotices.add(order.id);
-      window.dispatchEvent(new CustomEvent('centerpayappptpaid', { detail: { userId, orderId: order.id, exercises: orderPT } }));
-    }
     const text = { paid: '결제가 완료됐어요.', cancelled: '결제 취소가 확인됐어요.', partial_refund: '일부 금액이 취소된 결제예요.',
       pending: '입금 또는 결제 승인을 기다리고 있어요.', requested: '결제창에서 결제를 진행해 주세요. 창을 닫은 것만으로 결제가 취소되지는 않아요.' };
     if (['paid','cancelled','partial_refund'].includes(order.payment_state)) status(text[order.payment_state]);
@@ -201,7 +228,7 @@
     } catch (error) {
       if (!live(token)) return;
       if (error.code === 'ORDER_NOT_FOUND') {
-        pending = null; savePending(); current = null; editing = false;
+        pending = null; savePending(); current = null; editing = false; choiceBlocked = false;
         if (wantedProduct) product = wantedProduct;
         clothing.checked = false; locker.checked = false; phone.value = '';
         status('이 계정에서 확인할 수 있는 결제가 없어요.');
@@ -216,11 +243,13 @@
     if (chosen) wantedProduct = chosen;
     if ((chosen && ['paid','cancelled','partial_refund'].includes(current?.payment_state)) || current?.payment_state === 'cancelled' ||
       (current?.request_status === 'failed' && !['paid','partial_refund'].includes(current.payment_state))) {
-      pending = null; current = null; editing = false; clothing.checked = false; locker.checked = false; savePending();
+      pending = null; current = null; editing = false; choiceBlocked = false; clothing.checked = false; locker.checked = false; savePending();
     }
-    if (chosen && (!pending || editing)) {
+    if (chosen) {
+      if (pending && product.code !== chosen.code) { editing = true; choiceBlocked = true; }
       if (product.code !== chosen.code) { clothing.checked = false; locker.checked = false; phone.value = ''; }
       product = chosen;
+      if (!chosen.cartOnly) { ptSelection = []; wantedPT = null; }
     }
     if (!dialog.open) dialog.showModal(); syncPaymentViewport(); render();
     if (pending) void check(); else { status(''); (product.cartOnly ? closeButton : clothing).focus({ preventScroll: true }); }
@@ -237,13 +266,17 @@
   }
   async function purchase(event) {
     event.preventDefault();
-    if (!active() || busy || checking) return;
-    if (current && !editing) { if (safeUrl(current.pay_url)) { popup = reserveWindow(); navigate(current.pay_url); pollCount = 0; poll(); } return; }
+    if (!active() || busy || checking || choiceBlocked) return;
+    if (current && !editing) {
+      if (!matchesChoice(current, product, selection(), ptSelection)) { displayOrder(current, true); return; }
+      if (safeUrl(current.pay_url)) { popup = reserveWindow(); navigate(current.pay_url); pollCount = 0; poll(); } return;
+    }
     const value = phone.value.replace(/[\s-]/g, '');
     if (!/^(010\d{8}|01[16789]\d{7,8})$/.test(value)) { phone.setCustomValidity('휴대전화번호를 정확히 입력해 주세요.'); phone.reportValidity(); return; }
     phone.setCustomValidity('');
     // 사용자 클릭 안에서 먼저 창을 확보하여 모바일 팝업 차단을 줄입니다.
     const selected = selection(), selectedProduct = product, selectedPT = selectedProduct.cartOnly ? validatePT(ptSelection) : [];
+    wantedProduct = selectedProduct; wantedPT = selectedProduct.cartOnly ? selectedPT : null;
     popup = reserveWindow();
     if (!editing) { pending ||= { requestId: crypto.randomUUID(), orderId: null, productCode: selectedProduct.code }; savePending(); }
     const token = generation; busy = true; render(); status('결제창을 준비하고 있어요.');
@@ -253,7 +286,7 @@
         const previous = await api({ action: 'cancel_request', order_id: current.id });
         if (!live(token)) return;
         if (previous.payment_state !== 'cancelled') {
-          displayOrder(previous);
+          displayOrder(previous, true);
           if (popup && !popup.closed) popup.close();
           return;
         }
@@ -262,16 +295,35 @@
         status('결제창을 준비하고 있어요.');
       }
       pending.ptExercises = selectedPT; savePending();
-      const order = await api({ action: 'create', product_code: selectedProduct.code, request_id: pending.requestId, phone: value, options: selected, ...(selectedProduct.cartOnly ? { pt_exercises: selectedPT } : {}) });
-      if (!live(token)) return;
-      displayOrder(order); phone.value = '';
-      const sameOptions = current.product_code === selectedProduct.code && current.options.clothing === selected.clothing && current.options.locker === selected.locker && (!selectedProduct.cartOnly || samePT(order.pt_exercises, selectedPT));
-      if (safeUrl(order.pay_url) && sameOptions) navigate(order.pay_url);
-      else if (safeUrl(order.pay_url)) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const order = await api({ action: 'create', product_code: selectedProduct.code, request_id: pending.requestId, phone: value, options: selected, ...(selectedProduct.cartOnly ? { pt_exercises: selectedPT } : {}) });
+        if (!live(token)) return;
+        if (matchesChoice(order, selectedProduct, selected, selectedPT)) {
+          displayOrder(order); phone.value = '';
+          if (safeUrl(order.pay_url)) navigate(order.pay_url);
+          else if (popup && !popup.closed) popup.close();
+          break;
+        }
+        // 다른 탭이나 이전 세션의 주문이 반환돼도 선택한 상품 화면을 유지합니다.
+        displayOrder(order, true);
+        if (attempt === 0 && order.payment_state === 'requested' && order.request_status === 'ready') {
+          status('이전 미결제 요청을 정리하고 있어요.');
+          const previous = await api({ action: 'cancel_request', order_id: order.id });
+          if (!live(token)) return;
+          readOrder(previous);
+          if (previous.payment_state === 'cancelled') {
+            current = null; editing = false; choiceBlocked = false;
+            pending = { requestId: crypto.randomUUID(), orderId: null, productCode: selectedProduct.code, ptExercises: selectedPT }; savePending();
+            status('선택한 상품의 결제창을 준비하고 있어요.');
+            continue;
+          }
+          displayOrder(previous, true);
+        } else if (order.payment_state === 'requested' && order.request_status === 'ready') {
+          status('다른 창에서 만든 미결제 요청을 확인했어요. 선택한 상품을 확인한 뒤 다시 결제해 주세요.', true);
+        }
         if (popup && !popup.closed) popup.close();
-        status('진행 중인 기존 주문이 있어요. 표시된 상품과 옵션, 금액을 확인한 뒤 결제창을 다시 열어 주세요.');
+        break;
       }
-      else if (popup && !popup.closed) popup.close();
     } catch (error) {
       if (!live(token)) return;
       if (popup && !popup.closed) popup.close(); status(failureText(error), true);
@@ -284,7 +336,7 @@
     popup = null; close(); client = null; userId = ''; showServices = null;
     product = PRODUCTS[0]; wantedProduct = null;
     ptSelection = []; wantedPT = null; paidNotices.clear();
-    busy = false; checking = false; pending = null; current = null; editing = false; clothing.checked = false; locker.checked = false; phone.value = ''; phone.setCustomValidity(''); status(''); render();
+    busy = false; checking = false; pending = null; current = null; editing = false; choiceBlocked = false; clothing.checked = false; locker.checked = false; phone.value = ''; phone.setCustomValidity(''); status(''); render();
   }
   function start(nextClient, nextUserId, openServices) {
     if (client === nextClient && userId === String(nextUserId)) { showServices = openServices; render(); return; }
