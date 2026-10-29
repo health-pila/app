@@ -4463,7 +4463,7 @@ body.camera-open {
 .member-routine-hero h2 {
   margin: 0 0 4px;
   color: var(--brand-orange);
-  font-size: 26px;
+  font-size: 23px;
   font-weight: 800;
   line-height: 1.35;
   letter-spacing: -0.8px;
@@ -4807,7 +4807,7 @@ body.camera-open {
   }
 
   .member-routine-hero h2 {
-    font-size: 24px;
+    font-size: 21px;
   }
 
   .member-workout-surface {
@@ -6013,3 +6013,12 @@ textarea.routine-weight-cell {
 #adminScreen .admin-inquiry-search-status { margin: 6px 0 0; color: #657087; font-size: 12px; }
 #adminScreen .admin-inquiry-search-status:empty, #adminInquiryFilters[hidden], #adminInquirySearchClear[hidden] { display: none; }
 
+
+/* v216: 루틴 제목·배정일·구분과 안내 블록 대비만 조정합니다. */
+#memberWorkoutTitle.is-personalized { font-size: 19px; word-break: keep-all; overflow-wrap: anywhere; }
+.member-workout-surface > .member-assigned-routine { margin: 0 2px 10px; }
+.member-routine-divider { height: 0; margin: 0 20px 16px; padding: 0; border: 0; border-top: 1px solid #dfe5ed; }
+#appScreen #memberRoutineSummary .routine-component-summary { background: #d8e1ee; }
+
+#memberOneDayPtEntry[hidden] + .member-routine-divider { display: none; }
+@media (max-width: 360px) { .member-routine-divider { margin-left: 16px; margin-right: 16px; } }

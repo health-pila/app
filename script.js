@@ -8225,6 +8225,22 @@ routineCarousel.insertAdjacentElement("afterend", memberRoutineComponents);
 let memberRoutineComponentsKey = null;
 let memberTutorialLoadId = 0;
 let memberRoutineAssignmentKey = null;
+let memberRoutineIdentity = { userId: "", name: "" };
+
+function formatMemberRoutineTitle(userId) {
+  const name = memberRoutineIdentity.userId === userId ? memberRoutineIdentity.name : "";
+  return name ? `${name}회원님께 최적화된 루틴입니다.` : "회원님께 최적화된 루틴입니다.";
+}
+
+function formatMemberRoutineAssignedDate(value) {
+  if (!value) return "배정일 확인 필요";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "배정일 확인 필요";
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit"
+  }).format(date);
+}
+
 const memberRoutineSummary = document.querySelector("#memberRoutineSummary");
 const memberWorkoutTitle = document.querySelector("#memberWorkoutTitle");
 const memberRoutinePlaceholder = document.querySelector("#memberRoutinePlaceholder");
@@ -8251,6 +8267,7 @@ function resetMemberRoutineComponents() {
   memberRoutineComponentsKey = null;
   memberRoutineSummary.replaceChildren();
   memberRoutineSummary.hidden = true;
+  memberWorkoutTitle.classList.remove("is-personalized");
   memberWorkoutTitle.textContent = "나의 운동 구성";
   memberRoutinePlaceholder.textContent = "운동 구성을 불러오고 있어요.";
   memberRoutinePlaceholder.hidden = false;
@@ -8261,6 +8278,7 @@ function showUnassignedMemberRoutine() {
   resetMemberRoutineComponents();
   renderRoutineDescription("");
   routineDescription.dataset.sourceText = "";
+  memberAssignedRoutineLabel.hidden = true;
   assignedRoutineName.textContent = "배정된 루틴이 없습니다.";
   memberRoutinePlaceholder.textContent = "아직 배정된 운동 루틴이 없어요.\n새 운동 루틴을 신청해 주세요.";
 }
@@ -8291,6 +8309,7 @@ async function syncMemberRoutineTutorial(state) {
   memberRoutineComponents.hidden = false;
   memberRoutineTutorialNotice.hidden = false;
   memberAssignedRoutineLabel.hidden = true;
+  memberWorkoutTitle.classList.remove("is-personalized");
   memberWorkoutTitle.textContent = "튜토리얼 루틴";
   memberRoutinePlaceholder.hidden = true;
   memberOneDayPtEntry.hidden = true;
@@ -8341,7 +8360,8 @@ function showMemberRoutineComponents(prepared) {
   }
   memberRoutineComponents.hidden = false;
   memberRoutineSummary.hidden = false;
-  memberWorkoutTitle.textContent = "하루에 한 패턴씩 운동하면 됩니다";
+  memberWorkoutTitle.textContent = formatMemberRoutineTitle(routineChangeState.userId);
+  memberWorkoutTitle.classList.add("is-personalized");
   memberRoutinePlaceholder.hidden = true;
 }
 
@@ -8901,13 +8921,14 @@ async function loadMemberRoutine(
     }
     showMemberRoutineComponents(preparedComponents);
     if (!hasRoutineComponents) {
+      memberWorkoutTitle.classList.remove("is-personalized");
       memberWorkoutTitle.textContent = "나의 운동 구성";
       memberRoutinePlaceholder.hidden = imageItems.length > 0;
       memberRoutinePlaceholder.textContent = "등록된 운동 이미지가 없습니다.";
     }
 
-    assignedRoutineName.textContent =
-      data.routine_name;
+    assignedRoutineName.textContent = formatMemberRoutineAssignedDate(data.assigned_at);
+    memberAssignedRoutineLabel.hidden = false;
 
     // 이미지 캡션과 별개인 기존 설명·링크 영역
     if (
@@ -8949,7 +8970,8 @@ async function loadMemberRoutine(
 }
 
 // 일반 회원 화면 표시
-async function showWorkoutApp(userId) {
+async function showWorkoutApp(userId, displayName = "") {
+  memberRoutineIdentity = { userId, name: typeof displayName === "string" ? displayName.trim() : "" };
   window.ExerciseContentSync?.start(supabaseClient);
   updateAdminRoutineAlerts("reset");
   updateMemberCommunityBadges("start", userId, supabaseClient);
@@ -9590,6 +9612,7 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId) {
+  memberRoutineIdentity = { userId: "", name: "" };
   resetAdminInquirySearch();
   window.WorkoutTextRecords?.reset();
   window.ExerciseContentSync?.start(supabaseClient);
@@ -9648,7 +9671,7 @@ async function showScreenForCurrentUser() {
 
   const { data: profile, error: profileError } = await supabaseClient
     .from("profiles")
-    .select("role,email")
+    .select("role,email,display_name")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -9670,7 +9693,7 @@ async function showScreenForCurrentUser() {
 
   naverAuth?.renderUser(user, profile.role);
   renderMemberAccountEmail(user.email || profile.email);
-  await showWorkoutApp(user.id);
+  await showWorkoutApp(user.id, profile.display_name);
 }
 
 // 기존 단일 이미지와 새 이미지 목록을 같은 형태로 정리
@@ -10657,6 +10680,7 @@ async function handleLogout() {
       return;
     }
 
+    memberRoutineIdentity = { userId: "", name: "" };
     window.OneDayPT.reset();
     window.WorkoutTextRecords?.reset();
     workoutCaptureBadge.reset();
