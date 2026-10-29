@@ -323,13 +323,13 @@
     button.setAttribute("aria-label", label + (expanded ? " 접기" : " 펼치기"));
     button.replaceChildren(
       icon("routine-action-icon", paths[kind], kind === "video"),
-      element("span", "routine-action-label", label),
-      icon("routine-action-chevron", expanded ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6", false)
+      element("span", "routine-action-label", label)
     );
+    if (kind !== "weight") button.append(icon("routine-action-chevron", expanded ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6", false));
   }
 
   // 회원별·운동별 5세트 기록. 이전 텍스트 메모는 별도 키에 그대로 보존합니다.
-  function createWeightRecordControls(exerciseId, exerciseName, userId, panelId, recordStorage, captureRecord) {
+  function createWeightRecordControls(exerciseId, exerciseName, userId, panelId, recordStorage, captureRecord, entry, options) {
     const identity = JSON.stringify([userId, exerciseId]);
     const storageKey = "exerciseWeightSets:" + identity;
     const legacyKey = "exerciseWeightNote:" + identity;
@@ -340,6 +340,7 @@
     ];
     const pendingChanges = new Map();
     const inputs = [];
+    const completionInputs = [];
     const emptySets = () => Array.from({ length: 5 }, () => ({ weight: "", reps: "", comment: "" }));
 
     function readSets() {
@@ -383,8 +384,13 @@
     corner.scope = "col";
     headingRow.append(corner);
     for (let index = 0; index < 5; index++) {
-      const heading = element("th", "", (index + 1) + "세트");
+      const heading = element("th");
       heading.scope = "col";
+      const completion = window.MemberWorkoutCompletion?.createSetControl(entry, options, index, (index + 1) + "세트");
+      if (completion) {
+        heading.append(completion);
+        completionInputs.push(completion.querySelector("input"));
+      } else heading.textContent = (index + 1) + "세트";
       headingRow.append(heading);
     }
     head.append(headingRow);
@@ -428,9 +434,6 @@
     });
     table.append(head, body);
     scroll.append(table);
-    const captureHint = element("p", "routine-weight-save-hint", "저장 버튼을 누르면 현재 기록이 '운동 기록' 탭에 사진으로 저장돼요.");
-    captureHint.id = panelId + "-save-hint";
-    captureHint.hidden = true;
     const legacy = element("details", "routine-weight-legacy");
     legacy.hidden = true;
     const legacyText = element("p");
@@ -442,18 +445,18 @@
     if (!recordStorage && typeof captureRecord === "function") {
       const capture = element("button", "routine-weight-capture", "운동 기록에 저장");
       capture.type = "button";
-      captureHint.hidden = false;
-      capture.setAttribute("aria-describedby", captureHint.id);
       capture.setAttribute("aria-label", exerciseName + " 세트별 기록을 운동 기록에 사진으로 저장");
       toolbarActions.append(capture);
       let capturing = false;
       capture.addEventListener("click", async () => {
         if (capturing) return;
         const sets = emptySets();
+        window.MemberWorkoutCompletion?.refresh();
         // 저장소 대신 현재 입력칸을 읽어 아직 저장하지 못한 입력도 함께 담습니다.
         inputs.forEach(({ input, index, key }) => { sets[index][key] = input.value; });
-        if (!sets.some(set => fields.some(field => set[field.key].trim()))) {
-          status.textContent = "중량, 횟수 또는 코멘트를 먼저 입력해주세요.";
+        completionInputs.forEach((input, index) => { sets[index].completed = input.checked; });
+        if (!sets.some(set => set.completed || fields.some(field => set[field.key].trim()))) {
+          status.textContent = "세트 완료를 체크하거나 중량, 횟수 또는 코멘트를 먼저 입력해주세요.";
           return;
         }
         const snapshot = { userId, exerciseId, exerciseName, sets, takenAt: new Date() };
@@ -461,6 +464,7 @@
         capture.disabled = true;
         reset.disabled = true;
         inputs.forEach(({ input }) => { input.readOnly = true; });
+        completionInputs.forEach(input => { input.disabled = true; });
         capture.textContent = "저장 중…";
         panel.setAttribute("aria-busy", "true");
         status.textContent = "기록표를 사진으로 저장하고 있어요.";
@@ -473,6 +477,7 @@
           capture.disabled = false;
           reset.disabled = false;
           inputs.forEach(({ input }) => { input.readOnly = false; });
+          completionInputs.forEach(input => { input.disabled = false; });
           capture.textContent = "운동 기록에 저장";
           panel.setAttribute("aria-busy", "false");
         }
@@ -480,6 +485,7 @@
     }
 
     function restore() {
+      window.MemberWorkoutCompletion?.refresh();
       if (pendingChanges.size) return; // 저장에 실패한 입력은 접었다 펼쳐도 유지합니다.
       try {
         const sets = readSets();
@@ -502,6 +508,7 @@
         (recordStorage || localStorage).removeItem(storageKey);
         pendingChanges.clear();
         inputs.forEach(({ input }) => { input.value = ""; });
+        window.MemberWorkoutCompletion?.clearControls(completionInputs);
         status.textContent = "";
       } catch (error) {
         status.textContent = "초기화하지 못했어요. 기록은 그대로 유지됩니다.";
@@ -518,7 +525,7 @@
         // 입력칸에 자동 초점을 주지 않아 모바일 자판이 바로 열리지 않습니다.
       });
     });
-    panel.append(toolbar, captureHint, scroll, legacy, status);
+    panel.append(toolbar, scroll, legacy, status);
     return { button, panel };
   }
 
@@ -528,7 +535,7 @@
     const personal = exercise?.personal === true;
     if (!exercise) throw new Error("운동DB에 없는 운동ID입니다: " + entry.exerciseId);
 
-    const card = element("article", "routine-component-card");
+    const card = element("article", "routine-component-card routine-card-disclosure");
     card.dataset.exerciseId = entry.exerciseId;
     if (options?.addedRow) card.dataset.addedCardId = options.addedRow.id;
     card.classList.toggle("is-personal-exercise", personal);
@@ -609,21 +616,36 @@
     const info = element("div", "routine-component-info");
     const title = element("div", "routine-component-title");
     title.append(number, element("h5", "routine-component-name", exercise.name));
-    let dose = element("p", "routine-component-dose", entry.reps + "회 × " + entry.sets + "세트");
+    const dose = element("p", "routine-component-dose", entry.reps + "회 × " + entry.sets + "세트");
+    let doseButton = null;
     if (options?.exerciseReplacementContext && window.MemberExerciseReplacements?.doseControl) {
-      const row = element("div", "routine-component-dose-row");
-      row.append(dose, window.MemberExerciseReplacements.doseControl(
+      doseButton = window.MemberExerciseReplacements.doseControl(
         options.exerciseReplacementContext, options.patternDay, entry, options.addedRow
-      ));
-      dose = row;
+      );
+      doseButton.textContent = "목표횟수×세트 수정";
     }
+    const doseRow = element("div", "routine-card-dose-record");
+    doseRow.append(dose);
     info.append(
       title,
       element("p", "routine-component-body-parts", exercise.bodyParts.join(" · ")),
-      dose,
-      element("p", "routine-component-rest", "휴식 " + entry.restSec + "초")
+      doseRow
     );
     main.append(imageArea, info);
+    const expanded = element("div", "routine-card-expanded");
+    expanded.id = "routine-card-expanded-" + (++detailsSequence);
+    expanded.hidden = true;
+    const toggle = element("button", "routine-card-toggle");
+    toggle.type = "button";
+    toggle.setAttribute("aria-controls", expanded.id);
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", exercise.name + " 더 보기");
+    const toggleMark = element("span");
+    toggleMark.setAttribute("aria-hidden", "true");
+    toggle.append(toggleMark);
+    main.append(toggle);
+    expanded.append(element("p", "routine-component-rest", "세트간 휴식 " + entry.restSec + "초"));
+    const tools = element("div", "routine-card-edit-actions");
 
     const actions = element("div", "routine-component-actions");
     const detailsButton = element("button", "routine-details-button routine-action-with-icon");
@@ -778,32 +800,44 @@
       actions.append(window.OneDayPT.createAddButton(entry.exerciseId));
     }
 
-    card.append(main, actions, details, mediaArea);
+    card.append(main);
     if (options?.userId) {
       const weight = createWeightRecordControls(
         entry.exerciseId, exercise.name, options.userId, details.id + "-weight", options.weightStorage,
-        options.captureWeightRecord
+        options.captureWeightRecord, entry, options
       );
-      actions.append(weight.button);
+      doseRow.append(weight.button);
       card.append(weight.panel);
     }
     if (options?.exerciseReplacementContext && window.MemberExerciseReplacements) {
       const replacementControls = window.MemberExerciseReplacements.controls(options.exerciseReplacementContext, options.patternDay, entry, options.addedRow);
       const changeButton = replacementControls.querySelector(".exercise-replacement-change");
-      if (changeButton) {
-        title.classList.add("routine-component-title-with-change");
-        const completion = window.MemberWorkoutCompletion?.createControl(entry, options);
-        if (completion) {
-          const tools = element("div", "routine-component-card-tools");
-          tools.append(changeButton);
-          info.classList.add("routine-component-info-with-completion");
-          info.append(tools, completion);
-        } else {
-          title.append(changeButton);
-        }
-      }
-      if (replacementControls.childElementCount) card.append(replacementControls);
+      if (changeButton) tools.append(changeButton);
+      if (doseButton) tools.append(doseButton);
+      if (tools.childElementCount) expanded.append(tools);
+      expanded.append(actions, details, mediaArea);
+      if (replacementControls.childElementCount) expanded.append(replacementControls);
+    } else {
+      expanded.append(actions, details, mediaArea);
     }
+    card.append(expanded);
+    function toggleCard() {
+      preservePagePosition(function () {
+        const willOpen = expanded.hidden;
+        if (!willOpen) media.close();
+        expanded.hidden = !willOpen;
+        card.classList.toggle("is-expanded", willOpen);
+        toggle.setAttribute("aria-expanded", String(willOpen));
+        toggle.setAttribute("aria-label", exercise.name + (willOpen ? " 접기" : " 더 보기"));
+      });
+    }
+    toggle.addEventListener("click", toggleCard);
+    card.addEventListener("click", function (event) {
+      // 버튼 내부 아이콘이 클릭 처리 중 교체되어도 원래 버튼 클릭 경로를 확인합니다.
+      if (event.composedPath().some(node => node instanceof Element && node.matches("button, a, input, textarea, select, label, summary, .routine-component-image-area, .routine-weight-panel, .routine-component-details, .routine-component-media"))) return;
+      if (window.getSelection()?.toString()) return;
+      toggleCard();
+    });
     if (!personal) contentRefreshers.set(card,function () {
       exercise = window.ExerciseDB.getExerciseById(entry.exerciseId);
       refreshDetails();

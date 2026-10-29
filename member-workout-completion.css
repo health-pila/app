@@ -1,92 +1,17 @@
-/* 종목변경은 운동명 옆, 수행완료는 횟수·세트 옆에 배치합니다. */
-#appScreen .routine-component-info-with-completion {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: 7px;
-  align-content: start;
+/* v217: 각 세트 제목 뒤의 완료 체크. 종목 전체의 수행완료 UI는 사용하지 않습니다. */
+.routine-set-completion {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-height: 32px; margin: 0; font: inherit; font-weight: 700;
+  white-space: nowrap; cursor: pointer; user-select: none;
 }
-
-#appScreen .routine-component-info-with-completion > :not(.routine-component-card-tools) {
-  grid-column: 1;
+.routine-set-completion-input {
+  appearance: none; -webkit-appearance: none; box-sizing: border-box;
+  flex: 0 0 19px; width: 19px; height: 19px; margin: 0; padding: 0;
+  border: 2px solid #2baa57; border-radius: 4px; background: #fff; cursor: pointer;
 }
-
-#appScreen .routine-component-card-tools {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  align-self: start;
-  gap: 3px;
+.routine-set-completion-input:checked {
+  background: #2baa57 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='m4 10 4 4 8-8' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 19px 19px no-repeat;
 }
-
-#appScreen .routine-component-card-tools .exercise-replacement-change {
-  min-height: 32px;
-  margin: 0;
-  padding: 5px 8px;
-  white-space: nowrap;
-}
-
-#appScreen .routine-completion {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-height: 26px;
-  margin: 0;
-  padding: 0 2px;
-  color: #526078;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.4;
-  white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-#appScreen .routine-component-info-with-completion > .routine-component-title { grid-row: 1; }
-#appScreen .routine-component-info-with-completion > .routine-component-body-parts { grid-row: 2; }
-#appScreen .routine-component-info-with-completion > .routine-component-dose-row { grid-row: 3; align-content: flex-start; }
-#appScreen .routine-component-info-with-completion > .routine-component-rest { grid-row: 4; }
-#appScreen .routine-component-info-with-completion > .routine-completion {
-  grid-column: 2;
-  grid-row: 3;
-  align-self: start;
-}
-
-/* 작은 화면에서 수정 버튼이 다음 줄로 내려가도 체크는 횟수 줄에 맞춥니다. */
-#appScreen .routine-component-info-with-completion .routine-component-dose-row .routine-component-dose {
-  display: flex;
-  align-items: center;
-  min-height: 26px;
-}
-
-#appScreen .routine-completion-input {
-  appearance: none;
-  -webkit-appearance: none;
-  box-sizing: border-box;
-  flex: 0 0 19px;
-  width: 19px;
-  height: 19px;
-  margin: 0;
-  padding: 0;
-  border: 2px solid #2baa57;
-  border-radius: 2px;
-  background: #fff;
-  cursor: pointer;
-}
-
-#appScreen .routine-completion-input:checked {
-  background-color: #2baa57;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='m4 10 4 4 8-8' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-position: center;
-  background-size: 19px 19px;
-}
-
-#appScreen .routine-completion-input:focus-visible {
-  outline: 3px solid #f59a57;
-  outline-offset: 3px;
-}
-
+.routine-set-completion-input:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
+.routine-set-completion-input:disabled { opacity: .6; cursor: wait; }
+.routine-weight-table th.is-set-complete { background: #e9f5ed; color: #236244; }

@@ -22,10 +22,11 @@
         }
         clean[field.key] = set[field.key].trim();
       });
+      clean.completed = set.completed === true;
       return clean;
     });
-    if (!sets.some(set => fields.some(field => set[field.key]))) {
-      throw new Error("중량, 횟수 또는 코멘트를 먼저 입력해주세요.");
+    if (!sets.some(set => set.completed || fields.some(field => set[field.key]))) {
+      throw new Error("세트 완료를 체크하거나 중량, 횟수 또는 코멘트를 먼저 입력해주세요.");
     }
     const takenAt = new Date(snapshot.takenAt);
     if (!Number.isFinite(takenAt.getTime())) throw new Error("저장 날짜를 확인할 수 없어요.");
@@ -101,7 +102,21 @@
       const x = padding + (index ? labelWidth + (index - 1) * cellWidth : 0);
       const cellW = index ? cellWidth : labelWidth;
       cell(x, tableTop, cellW, 46, "#fff3e8");
-      centered(index ? index + "세트" : "항목", x, tableTop, cellW, 46, 17, true);
+      const done = index > 0 && record.sets[index - 1].completed;
+      if (index) {
+        centered(index + "세트", x - 11, tableTop, cellW, 46, 17, true);
+        // 글꼴의 체크 문자 지원과 관계없이 완료 여부를 벡터로 그립니다.
+        const checkX = x + cellW - 24, checkY = tableTop + 15;
+        context.fillStyle = done ? "#2baa57" : "#fff";
+        context.fillRect(checkX, checkY, 16, 16);
+        context.strokeStyle = "#2baa57"; context.lineWidth = 1.5;
+        context.strokeRect(checkX, checkY, 16, 16);
+        if (done) {
+          context.beginPath(); context.moveTo(checkX + 3, checkY + 8);
+          context.lineTo(checkX + 7, checkY + 12); context.lineTo(checkX + 13, checkY + 4);
+          context.strokeStyle = "#fff"; context.lineWidth = 2; context.stroke();
+        }
+      } else centered("항목", x, tableTop, cellW, 46, 17, true);
     }
     let y = tableTop + 46;
     rows.forEach(row => {

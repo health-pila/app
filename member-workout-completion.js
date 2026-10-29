@@ -1,125 +1,97 @@
-/* 수행완료는 이 브라우저의 회원별 일일 체크입니다. 루틴·중량 기록은 수정하지 않습니다. */
+/* 세트 완료는 이 기기의 회원·루틴·패턴·카드별 일일 체크입니다. 기존 기록 키는 보존합니다. */
 (() => {
   "use strict";
-  const PREFIX = "memberWorkoutCompletion:v1:";
-  const DAY_MS = 86400000;
-  const KOREA_OFFSET = 9 * 60 * 60 * 1000;
-  const memory = new Map();
-  const volatileUsers = new Set();
-  const controls = new WeakMap();
+  const PREFIX = "memberWorkoutSetCompletion:v1:";
+  const DAY_MS = 86400000, KOREA_OFFSET = 9 * 60 * 60 * 1000;
+  const stores = new WeakMap(), controls = new WeakMap();
   let resetTimer = 0;
-
-  // 센터 기준인 한국 시간 자정에 날짜를 바꿉니다. 체크한 시점부터 24시간이 아닙니다.
   const dateKey = () => new Date(Date.now() + KOREA_OFFSET).toISOString().slice(0, 10);
-  const storageKey = userId => PREFIX + userId;
-
-  function save(userId, state) {
-    memory.set(userId, state);
-    if (volatileUsers.has(userId)) return;
-    try {
-      localStorage.setItem(storageKey(userId), JSON.stringify({
-        version: 1, date: state.date, completed: [...state.completed]
-      }));
-    } catch (_) {
-      // 저장소가 차단되거나 가득 차도 현재 앱에서 체크/해제는 사용할 수 있습니다.
-      volatileUsers.add(userId);
-    }
+  function cache(storage) {
+    if (!stores.has(storage)) stores.set(storage, { memory: new Map(), volatile: new Set() });
+    return stores.get(storage);
   }
-
-  function read(userId) {
-    const date = dateKey();
-    let state = memory.get(userId);
-    if (volatileUsers.has(userId)) {
-      if (!state || state.date !== date) state = { date, completed: new Set() };
-    } else {
+  function read(storage, userId) {
+    const date = dateKey(), store = cache(storage);
+    let state = store.memory.get(userId);
+    if (!store.volatile.has(userId)) {
       try {
-        const raw = localStorage.getItem(storageKey(userId));
-        const value = raw ? JSON.parse(raw) : null;
+        const raw = storage.getItem(PREFIX + userId), value = raw ? JSON.parse(raw) : null;
         state = { date, completed: new Set() };
         if (value?.version === 1 && value.date === date && Array.isArray(value.completed)) {
-          value.completed.forEach(key => { if (typeof key === "string") state.completed.add(key); });
-        } else if (raw) {
-          // 지난 날짜의 체크만 비웁니다. 다른 저장 키에는 접근하지 않습니다.
-          save(userId, state);
+          value.completed.forEach(token => { if (typeof token === "string") state.completed.add(token); });
         }
-      } catch (_) {
-        volatileUsers.add(userId);
-        if (!state || state.date !== date) state = { date, completed: new Set() };
-      }
+      } catch (_) { store.volatile.add(userId); }
     }
-    memory.set(userId, state);
+    if (!state || state.date !== date) state = { date, completed: new Set() };
+    store.memory.set(userId, state);
     return state;
   }
-
-  function scheduleReset() {
-    clearTimeout(resetTimer);
-    resetTimer = setTimeout(() => {
-      resetTimer = 0;
-      refresh();
-    }, DAY_MS - ((Date.now() + KOREA_OFFSET) % DAY_MS) + 50);
+  function save(control, state) {
+    const store = cache(control.storage);
+    store.memory.set(control.userId, state);
+    if (store.volatile.has(control.userId)) return;
+    try {
+      control.storage.setItem(PREFIX + control.userId, JSON.stringify({ version: 1, date: state.date, completed: [...state.completed] }));
+    } catch (_) { store.volatile.add(control.userId); }
   }
-
   function refresh() {
-    const states = new Map();
-    const inputs = document.querySelectorAll("#appScreen .routine-completion-input");
+    const inputs = document.querySelectorAll(".routine-set-completion-input");
     inputs.forEach(input => {
       const control = controls.get(input);
       if (!control) return;
-      if (!states.has(control.userId)) states.set(control.userId, read(control.userId));
-      const state = states.get(control.userId);
+      const state = read(control.storage, control.userId);
       input.checked = state.completed.has(control.token);
+      input.closest("th")?.classList.toggle("is-set-complete", input.checked);
       control.date = state.date;
     });
-    if (inputs.length) scheduleReset();
+    clearTimeout(resetTimer);
+    if (inputs.length) resetTimer = setTimeout(refresh, DAY_MS - ((Date.now() + KOREA_OFFSET) % DAY_MS) + 50);
   }
-
-  function createControl(entry, options) {
-    const context = options?.exerciseReplacementContext;
-    const userId = String(options?.userId || "");
-    if (!userId || context?.userId !== userId || !context.routineId || !context.revision ||
-        !["assigned", "tutorial"].includes(context.sourceKind)) return null;
-
-    // 원본 위치는 entry.order로, 추가 카드는 독립된 UUID로 구분합니다.
-    // 같은 종목이어도 패턴과 카드가 다르면 체크를 공유하지 않습니다.
+  function createSetControl(entry, options, setIndex, text) {
+    const context = options?.exerciseReplacementContext, userId = String(options?.userId || "");
+    if (!userId || !Number.isInteger(setIndex) || setIndex < 0 || setIndex > 4) return null;
+    const validContext = context?.userId === userId && context.routineId && context.revision && ["assigned", "tutorial"].includes(context.sourceKind);
+    if (!validContext && !options.weightStorage) return null;
+    let storage;
+    try { storage = options.weightStorage || localStorage; } catch (_) {
+      // localStorage가 완전히 차단되어도 현재 페이지에서는 체크할 수 있습니다.
+      storage = blockedStorage;
+    }
     const token = JSON.stringify([
-      context.sourceKind, context.routineId, context.revision, options.patternDay,
-      options.addedRow ? ["added", options.addedRow.id] : ["original", entry.order],
-      entry.exerciseId
+      validContext ? context.sourceKind : "preview", validContext ? context.routineId : "preview",
+      validContext ? context.revision : "preview", options.patternDay,
+      options.addedRow ? ["added", options.addedRow.id] : ["original", entry.order], entry.exerciseId, setIndex
     ]);
-    const state = read(userId);
-    const label = document.createElement("label");
-    label.className = "routine-completion";
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.className = "routine-completion-input";
+    const state = read(storage, userId), label = document.createElement("label"), input = document.createElement("input");
+    label.className = "routine-set-completion";
+    const caption = document.createElement("span"); caption.textContent = text;
+    input.type = "checkbox"; input.className = "routine-set-completion-input";
+    input.setAttribute("aria-label", (window.MemberCustomExercises?.getExerciseById(entry.exerciseId) || window.ExerciseDB?.getExerciseById(entry.exerciseId))?.name + " " + text + " 완료");
     input.checked = state.completed.has(token);
-    const text = document.createElement("span");
-    text.textContent = "수행완료";
-    label.append(input, text);
-    const control = { userId, token, date: state.date };
-    controls.set(input, control);
+    label.append(caption, input);
+    const control = { userId, token, storage, date: state.date }; controls.set(input, control);
     input.addEventListener("change", () => {
-      const app = label.closest("#appScreen");
-      if (!label.isConnected || !app || app.hidden) return;
-      const next = read(userId);
-      // 잠든 탭이 자정 뒤 처음 눌린 경우에도 새 날짜의 첫 체크로 처리합니다.
+      if (!label.isConnected || label.closest("#appScreen")?.hidden || input.disabled) return;
+      const next = read(storage, userId);
       const checked = control.date !== next.date ? true : input.checked;
-      if (checked) next.completed.add(token);
-      else next.completed.delete(token);
-      save(userId, next);
-      refresh();
+      if (checked) next.completed.add(token); else next.completed.delete(token);
+      save(control, next); refresh();
     });
-    scheduleReset();
+    // 연결 전에도 자정 갱신을 예약합니다. 다음 refresh부터 연결된 체크만 갱신합니다.
+    clearTimeout(resetTimer);
+    resetTimer = setTimeout(refresh, DAY_MS - ((Date.now() + KOREA_OFFSET) % DAY_MS) + 50);
     return label;
   }
-
-  window.addEventListener("storage", event => {
-    if (event.key === null || event.key.startsWith(PREFIX)) refresh();
-  });
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") refresh();
-  });
-  window.addEventListener("focus", refresh);
-  window.addEventListener("pageshow", refresh);
-  window.MemberWorkoutCompletion = Object.freeze({ createControl });
+  const blockedStorage = { getItem() { throw new Error("Storage blocked"); }, setItem() { throw new Error("Storage blocked"); } };
+  function clearControls(inputs) {
+    inputs.forEach(input => {
+      const control = controls.get(input); if (!control) return;
+      const state = read(control.storage, control.userId); state.completed.delete(control.token); save(control, state);
+    });
+    refresh();
+  }
+  window.addEventListener("storage", event => { if (event.key === null || event.key.startsWith(PREFIX)) refresh(); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
+  window.addEventListener("focus", refresh); window.addEventListener("pageshow", refresh);
+  window.MemberWorkoutCompletion = Object.freeze({ createSetControl, refresh, clearControls });
 })();
