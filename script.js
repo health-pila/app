@@ -2945,6 +2945,11 @@ const emptyWorkoutRecordMessage =
 // 서버에서 불러온 운동 기록
 let workoutRecords = [];
 
+// 표시할 기록 종류만 바꿉니다. 저장된 사진·운동 시간·세트 기록은 그대로 둡니다.
+let workoutRecordTypeFilter = "all";
+const showPhotoWorkoutRecordsButton = document.querySelector("#showPhotoWorkoutRecordsButton");
+const showTextWorkoutRecordsButton = document.querySelector("#showTextWorkoutRecordsButton");
+
 // 현재 기록을 조회하는 회원
 let workoutRecordsUserId = "";
 
@@ -3177,23 +3182,27 @@ function renderWorkoutRecords() {
   const exerciseHistoryContext = createWorkoutExerciseHistoryContext();
 
   showAllWorkoutRecordsButton.hidden =
-    !selectedWorkoutDate ||
+    (!selectedWorkoutDate && workoutRecordTypeFilter === "all") ||
     workoutRecords.length === 0;
 
-  const recordsToShow = selectedWorkoutDate
-    ? workoutRecords.filter((record) => {
-      return (
-        getWorkoutRecordDateKey(record.taken_at) ===
-        selectedWorkoutDate
-      );
-    })
-    : workoutRecords;
+  showPhotoWorkoutRecordsButton.setAttribute("aria-pressed", String(workoutRecordTypeFilter === "photo"));
+  showTextWorkoutRecordsButton.setAttribute("aria-pressed", String(workoutRecordTypeFilter === "text"));
+
+  const recordsToShow = workoutRecords.filter(record => {
+    if (selectedWorkoutDate && getWorkoutRecordDateKey(record.taken_at) !== selectedWorkoutDate) return false;
+    if (workoutRecordTypeFilter === "text") return record.photo_path === null;
+    if (workoutRecordTypeFilter === "photo") {
+      return typeof record.photo_path === "string" && record.photo_path.length > 0 &&
+        !window.WorkoutExerciseHistory.isCapturePhoto(record, workoutRecordsUserId);
+    }
+    return true;
+  });
 
   if (recordsToShow.length === 0) {
-    emptyWorkoutRecordMessage.textContent =
-      selectedWorkoutDate
-        ? "선택한 날짜에는 저장된 운동 기록이 없습니다."
-        : "아직 저장된 운동 기록이 없습니다.";
+    const kind = workoutRecordTypeFilter === "photo" ? "사진 기록" : workoutRecordTypeFilter === "text" ? "운동 시간 기록" : "운동 기록";
+    emptyWorkoutRecordMessage.textContent = selectedWorkoutDate
+      ? `선택한 날짜에는 저장된 ${kind}이 없습니다.`
+      : `아직 저장된 ${kind}이 없습니다.`;
 
     workoutRecordList.append(
       emptyWorkoutRecordMessage
@@ -3429,6 +3438,7 @@ async function loadWorkoutRecords(userId) {
     ++workoutRecordsRequestId;
 
   if (workoutRecordsUserId !== userId) {
+    workoutRecordTypeFilter = "all";
     workoutRecordsUserId = userId;
     restoreWorkoutPhotoUrlCache(userId);
     workoutRecords = [];
@@ -3445,18 +3455,24 @@ async function loadWorkoutRecords(userId) {
     emptyWorkoutRecordMessage
   );
 
-  const {
-    data: records,
-    error: recordsError
-  } = await supabaseClient
-    .from("workout_records")
-    .select(
-      "id, photo_path, caption, taken_at, created_at"
-    )
-    .eq("user_id", userId)
-    .order("taken_at", {
-      ascending: false
-    });
+  // 오래된 사진·시간 기록도 빠지지 않도록 서버의 기본 1,000행 제한을 나눠 조회합니다.
+  const collected = new Map();
+  let recordsError = null;
+  for (let offset = 0; ; offset += 200) {
+    const result = await supabaseClient
+      .from("workout_records")
+      .select("id, photo_path, caption, taken_at, created_at")
+      .eq("user_id", userId)
+      .order("taken_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(offset, offset + 199);
+    if (currentRequestId !== workoutRecordsRequestId || workoutRecordsUserId !== userId) return;
+    if (result.error) { recordsError = result.error; break; }
+    const page = result.data || [];
+    page.forEach(record => collected.set(record.id, record));
+    if (page.length < 200) break;
+  }
+  const records = [...collected.values()];
 
   if (
     currentRequestId !==
@@ -3785,11 +3801,22 @@ showAllWorkoutRecordsButton.addEventListener(
   "click",
   function () {
     selectedWorkoutDate = "";
+    workoutRecordTypeFilter = "all";
 
     renderWorkoutCalendar();
     renderWorkoutRecords();
   }
 );
+
+function toggleWorkoutRecordTypeFilter(type) {
+  workoutRecordTypeFilter = workoutRecordTypeFilter === type ? "all" : type;
+  selectedWorkoutDate = "";
+  shouldSelectLatestWorkoutDate = false;
+  renderWorkoutCalendar();
+  renderWorkoutRecords();
+}
+showPhotoWorkoutRecordsButton.addEventListener("click", () => toggleWorkoutRecordTypeFilter("photo"));
+showTextWorkoutRecordsButton.addEventListener("click", () => toggleWorkoutRecordTypeFilter("text"));
 
 // 로그인할 때 이번 달로 초기화
 function resetWorkoutCalendar() {
@@ -3798,6 +3825,7 @@ function resetWorkoutCalendar() {
   selectedWorkoutDate = "";
   workoutEntrySelectedDate = "";
   shouldSelectLatestWorkoutDate = true;
+  workoutRecordTypeFilter = "all";
 
   renderWorkoutCalendar();
 }
@@ -4393,6 +4421,7 @@ async function saveWorkoutRecord() {
     visibleWorkoutMonth.setDate(1);
     selectedWorkoutDate = getWorkoutRecordDateKey(recordTakenAt);
     shouldSelectLatestWorkoutDate = false;
+    workoutRecordTypeFilter = "all";
 
     await loadWorkoutRecords(user.id);
     workoutRecordSaveMessage.textContent =
@@ -4431,6 +4460,7 @@ const saveWeightRecordCapture = window.WeightRecordCapture?.createSaver({
     visibleWorkoutMonth = new Date(record.takenAt.getFullYear(), record.takenAt.getMonth(), 1);
     selectedWorkoutDate = getWorkoutRecordDateKey(record.takenAt);
     shouldSelectLatestWorkoutDate = false;
+    workoutRecordTypeFilter = "all";
     await loadWorkoutRecords(record.userId);
   }
 }) || (() => Promise.reject(new Error("캡처 기능을 불러오지 못했어요. 앱을 새로고침한 뒤 다시 시도해주세요.")));
@@ -8275,10 +8305,37 @@ let memberRoutineComponentsKey = null;
 let memberTutorialLoadId = 0;
 let memberRoutineAssignmentKey = null;
 let memberRoutineIdentity = { userId: "", name: "" };
+let memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
 
 function formatMemberRoutineTitle(userId) {
   const name = memberRoutineIdentity.userId === userId ? memberRoutineIdentity.name : "";
+  const goals = memberRoutineGoalState.userId === userId &&
+    memberRoutineGoalState.routineId === String(routineChangeState.activeId)
+    ? memberRoutineGoalState.goals : [];
+  if (goals.length) {
+    return `${name ? name + "회원님의" : "회원님의"} ${goals.join(" · ")} 목적에 최적화된 루틴입니다.`;
+  }
   return name ? `${name}회원님께 최적화된 루틴입니다.` : "회원님께 최적화된 루틴입니다.";
+}
+
+async function updateMemberRoutineGoals(routine, userId, requestId) {
+  const scope = memberRoutineGoalState.scope;
+  const current = () => requestId === memberRoutineLoadRequestId && !appScreen.hidden &&
+    routineChangeState.userId === userId && memberRoutineDisplayedUserId === userId &&
+    String(memberRoutineDisplayedId) === String(routine.id) && memberRoutineGoalState.scope === scope;
+  if (!current()) return;
+  try {
+    const { data, error } = await supabaseClient.rpc("get_member_routine_goals", { p_routine_id: String(routine.id) });
+    if (!current() || error || !data || String(data.routine_id) !== String(routine.id) ||
+      !Number.isFinite(Date.parse(routine.assigned_at)) || Date.parse(data.assigned_at) !== Date.parse(routine.assigned_at) ||
+      !Array.isArray(data.goals) || data.goals.length > 5 || data.goals.some(goal =>
+        typeof goal !== "string" || !goal.trim() || goal.trim().length > 100 || /[\u0000-\u001f\u007f]/.test(goal))) return;
+    memberRoutineGoalState = { scope, userId, routineId: String(routine.id),
+      goals: [...new Set(data.goals.map(goal => goal.normalize("NFC").trim()))] };
+    if (memberWorkoutTitle.classList.contains("is-personalized")) {
+      memberWorkoutTitle.textContent = formatMemberRoutineTitle(userId);
+    }
+  } catch (_) { /* 목적 조회가 실패해도 배정 루틴과 입력 중인 기록은 그대로 유지합니다. */ }
 }
 
 function formatMemberRoutineAssignedDate(value) {
@@ -8307,6 +8364,7 @@ function clearMemberTutorialDecoration() {
 
 function resetMemberRoutineComponents() {
   memberTutorialLoadId++;
+  memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
   clearMemberTutorialDecoration();
   memberOneDayPtEntry.hidden = true;
   window.MemberExerciseReplacements?.deactivate();
@@ -8901,6 +8959,10 @@ async function loadMemberRoutine(
       replacedTutorial = true;
     }
 
+    const goalScope = JSON.stringify([userId, String(data.id), data.assigned_at]);
+    if (memberRoutineGoalState.scope !== goalScope) {
+      memberRoutineGoalState = { scope: goalScope, userId, routineId: String(data.id), goals: [] };
+    }
     const preparedComponents = await prepareMemberRoutineComponents(data, userId);
     if (!isCurrentRequest()) return;
     const hasRoutineComponents = preparedComponents.key !== null;
@@ -8994,6 +9056,7 @@ async function loadMemberRoutine(
     memberRoutineDisplayedUserId = userId;
     memberRoutineDisplayedId = data.id;
     memberOneDayPtEntry.hidden = false;
+    if (hasRoutineComponents) void updateMemberRoutineGoals(data, userId, requestId);
 
     updateRoutineRequestStatus(
       userId,
@@ -9021,6 +9084,7 @@ async function loadMemberRoutine(
 // 일반 회원 화면 표시
 async function showWorkoutApp(userId, displayName = "") {
   memberRoutineIdentity = { userId, name: typeof displayName === "string" ? displayName.trim() : "" };
+  memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
   window.ExerciseContentSync?.start(supabaseClient);
   updateAdminRoutineAlerts("reset");
   updateMemberCommunityBadges("start", userId, supabaseClient);
@@ -9042,6 +9106,7 @@ async function showWorkoutApp(userId, displayName = "") {
     visibleWorkoutMonth = new Date(takenAt.getFullYear(), takenAt.getMonth(), 1);
     selectedWorkoutDate = getWorkoutRecordDateKey(record.taken_at);
     shouldSelectLatestWorkoutDate = false;
+    workoutRecordTypeFilter = "all";
     await loadWorkoutRecords(userId);
     return !appScreen.hidden && workoutRecordsUserId === userId &&
       workoutRecords.some(item => String(item.id) === String(record.id));
@@ -9662,6 +9727,7 @@ adminMemberSearch.addEventListener("input", function () {
 // 관리자 화면 표시
 async function showAdminApp(userId) {
   memberRoutineIdentity = { userId: "", name: "" };
+  memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
   resetAdminInquirySearch();
   window.WorkoutTextRecords?.reset();
   window.ExerciseContentSync?.start(supabaseClient);
@@ -10730,6 +10796,7 @@ async function handleLogout() {
     }
 
     memberRoutineIdentity = { userId: "", name: "" };
+  memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
     window.OneDayPT.reset();
     window.WorkoutTextRecords?.reset();
     workoutCaptureBadge.reset();
@@ -10751,6 +10818,7 @@ async function handleLogout() {
     workoutPhotoUrlCache.clear();
     try { sessionStorage.removeItem(WORKOUT_PHOTO_URL_CACHE_KEY); } catch (error) {}
     workoutRecords = [];
+    workoutRecordTypeFilter = "all";
     workoutRecordDates = new Set();
     workoutRecordList.replaceChildren();
     renderWorkoutCalendar();

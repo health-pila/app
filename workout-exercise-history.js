@@ -28,6 +28,12 @@
     }
     return userId + "/weight-sets-v1_" + exerciseId.replace(":", "_") + "_" + fileToken + ".png";
   }
+  function isCapturePhoto(record, userId) {
+    if (!record || !ownerPattern.test(userId) || typeof record.photo_path !== "string") return false;
+    const parts = record.photo_path.split("/");
+    return parts.length === 2 && parts[0] === userId &&
+      (typedFile.test(parts[1]) || legacyFile.test(parts[1]));
+  }
   function matchingRecords(record, records, userId) {
     const source = identify(record, userId);
     if (!source) return { rows: [], ambiguous: false };
@@ -135,5 +141,5 @@
     more.addEventListener("click", appendPage);
     return root;
   }
-  window.WorkoutExerciseHistory = Object.freeze({ createPhotoPath, createControl });
+  window.WorkoutExerciseHistory = Object.freeze({ createPhotoPath, createControl, isCapturePhoto });
 })();
