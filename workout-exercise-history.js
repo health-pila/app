@@ -66,11 +66,11 @@
     if (text !== undefined) result.textContent = text;
     return result;
   }
-  function createControl(record, context) {
+  function createControl(record, context, actions) {
     const identity = identify(record, context.userId);
     if (!identity) return null;
     const root = node("section", "workout-exercise-history");
-    const toggle = node("button", "workout-exercise-history-toggle", "이 운동의 기록만 모아보기");
+    const toggle = node("button", "workout-exercise-history-toggle", "이 운동의 기록 모아보기");
     toggle.type = "button"; toggle.setAttribute("aria-expanded", "false");
     const panel = node("div", "workout-exercise-history-panel");
     panel.id = "workout-exercise-history-" + (++sequence); panel.hidden = true;
@@ -81,7 +81,12 @@
     retry.type = "button"; retry.hidden = true;
     const more = node("button", "workout-exercise-history-more", "이전 기록 더 보기");
     more.type = "button"; more.hidden = true;
-    panel.append(status, list, retry, more); root.append(toggle, panel);
+    panel.append(status, list, retry, more);
+    if (actions) {
+      actions.append(toggle);
+      root.hidden = true;
+    } else root.append(toggle);
+    root.append(panel);
     let rows = null, count = 0, loading = false;
     const current = () => root.isConnected && context.isCurrent();
     function appendPage() {
@@ -119,7 +124,8 @@
       if (!current()) return;
       const opening = panel.hidden;
       panel.hidden = !opening; toggle.setAttribute("aria-expanded", String(opening));
-      toggle.textContent = opening ? "모아본 기록 접기" : "이 운동의 기록만 모아보기";
+      if (actions) root.hidden = !opening;
+      toggle.textContent = opening ? "모아본 기록 접기" : "이 운동의 기록 모아보기";
       if (opening) {
         if (rows === null) void load();
         else if (count === 0) appendPage();

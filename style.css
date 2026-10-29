@@ -6111,3 +6111,28 @@ textarea.routine-weight-cell {
 .workout-exercise-history-caption { margin: 8px 0 0; color: #657087; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
 .workout-exercise-history-more { margin-top: 10px; background: #fff; }
 .workout-exercise-history-toggle:focus-visible, .workout-exercise-history-more:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
+
+/* v223: 세트 기록의 날짜는 표 바로 아래, 기록 모아보기는 수정·삭제와 같은 줄에 둡니다. */
+.workout-record-card.is-set-record .workout-record-photo-area { margin-bottom: 0; }
+.workout-record-media > .workout-record-date {
+  position: relative; margin: 0 4%; font-size: 11px; line-height: 1.4; text-align: right;
+}
+/* 자동 저장 PNG의 흰 하단 여백(600px 중 24px)에 날짜를 배치합니다. 사진 파일은 그대로 보존합니다. */
+.workout-record-media > .workout-record-photo-area:not(.is-loading):not(.is-error) + .workout-record-date { margin-top: -4%; }
+.workout-record-card.is-set-record > .workout-record-caption {
+  min-height: 0; padding-top: 4px; padding-bottom: 2.5px;
+}
+.workout-record-card.is-set-record .workout-record-footer { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.workout-record-card.is-set-record .workout-record-buttons { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 6px; }
+.workout-record-card.is-set-record .workout-record-buttons > button {
+  min-width: 0; min-height: 36px; margin: 0; padding: 7px 8px; font-size: 12px; line-height: 1.4; white-space: nowrap;
+}
+.workout-record-buttons > .workout-exercise-history-toggle { gap: 4px; }
+.workout-record-buttons > .workout-exercise-history-toggle::after { flex: 0 0 auto; width: 6px; height: 6px; margin-left: 0; }
+.workout-record-card.is-set-record > .workout-exercise-history { margin-top: 10px; padding-top: 10px; }
+.workout-record-dates[hidden], .workout-exercise-history[hidden] { display: none; }
+@media (max-width: 360px) {
+  .workout-record-card.is-set-record .workout-record-buttons { gap: 4px; }
+  .workout-record-card.is-set-record .workout-record-buttons > button { padding-right: 5px; padding-left: 5px; font-size: 11px; }
+  .workout-record-buttons > .workout-exercise-history-toggle { gap: 3px; }
+}

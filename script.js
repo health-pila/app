@@ -3378,19 +3378,28 @@ function renderWorkoutRecords() {
       deleteButton
     );
 
+    const exerciseHistory = window.WorkoutExerciseHistory?.createControl(record, exerciseHistoryContext, recordButtons);
+    recordCard.classList.toggle("is-set-record", Boolean(exerciseHistory));
+
     recordFooter.append(
       recordDates,
       recordButtons
     );
 
-    if (recordPhotoArea) recordCard.append(recordPhotoArea);
+    if (exerciseHistory && recordPhotoArea) {
+      const recordMedia = document.createElement("div");
+      recordMedia.className = "workout-record-media";
+      // 날짜만 표 아래로 옮깁니다. 기존 사진과 저장된 날짜는 변경하지 않습니다.
+      recordMedia.append(recordPhotoArea, recordDate);
+      recordCard.append(recordMedia);
+      recordDates.hidden = recordDates.childElementCount === 0;
+    } else if (recordPhotoArea) recordCard.append(recordPhotoArea);
     recordCard.append(
       recordCaption,
       captionEditor,
       editActions,
       recordFooter
     );
-    const exerciseHistory = window.WorkoutExerciseHistory?.createControl(record, exerciseHistoryContext);
     if (exerciseHistory) recordCard.append(exerciseHistory);
 
     if (recordIndex > 0) {
