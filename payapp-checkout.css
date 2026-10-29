@@ -59,3 +59,13 @@
 .payapp-dialog.is-compact .payapp-total strong { font-size: 21px; }
 .payapp-dialog.is-compact .payapp-primary { min-height: 44px; padding-top: 9px; padding-bottom: 9px; }
 .payapp-dialog.is-typing #checkPayAppCheckout { display: none; }
+
+/* 일반 3·12개월 상품은 이벤트 카드의 약 80% 높이. 무이자 표식은 그대로 유지합니다. */
+.payapp-product-compact { gap: 11.2px; padding-top: 5.9px; padding-bottom: 5.9px; }
+.payapp-product-compact h3 { margin-top: 4.8px; margin-bottom: 4px; font-size: 13.6px; }
+.payapp-product-compact .payapp-product-price { font-size: 23.2px; }
+.payapp-product-compact .payapp-product-price span { font-size: 12.8px; }
+.payapp-product-compact > button { min-height: 36.8px; padding: 8.8px 12.8px; border-radius: 8.8px; font-size: 11.2px; }
+@media (max-width: 360px) {
+  .payapp-product-compact { gap: 4.32px; padding-top: 3px; padding-bottom: 3px; }
+}

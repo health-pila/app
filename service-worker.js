@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "223";
+const APP_VERSION = "224";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}`;
@@ -20,6 +20,7 @@ const APP_FILES = [
   `./naver-login.css?v=${APP_VERSION}`,
   `./naver-login.js?v=${APP_VERSION}`,
   "./images/naver-login-icon.png",
+  "./images/logo_navergr_small.svg",
   `./pull-to-refresh-guard.js?v=${APP_VERSION}`,
   `./cardio-programs.css?v=${APP_VERSION}`,
   `./member-services.css?v=${APP_VERSION}`,

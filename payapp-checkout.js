@@ -4,8 +4,14 @@
   const host = document.getElementById('payAppProduct');
   if (!host) return;
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const PRODUCT = 'autumn-gym-6m';
-  host.innerHTML = `<article class="payapp-product"><div><span class="payapp-product-badge">무이자할부 전용</span><h3>가을이벤트) 헬스 6개월</h3><p class="payapp-product-price">180,000<span>원</span></p></div><button id="openPayAppCheckout" type="button" disabled>결제하기</button></article>`;
+  const PRODUCTS = Object.freeze([
+    Object.freeze({ code: 'autumn-gym-6m', name: '가을이벤트) 헬스 6개월', label: '헬스 6개월', amount: 180000, months: 6, compact: false }),
+    Object.freeze({ code: 'gym-3m', name: '헬스 3개월', label: '헬스 3개월', amount: 115000, months: 3, compact: true }),
+    Object.freeze({ code: 'gym-12m', name: '헬스 12개월', label: '헬스 12개월', amount: 330000, months: 12, compact: true })
+  ]);
+  const productByCode = code => PRODUCTS.find(item => item.code === code);
+  let product = PRODUCTS[0], wantedProduct = null;
+  host.innerHTML = PRODUCTS.map((item, index) => `<article class="payapp-product${item.compact ? ' payapp-product-compact' : ''}" data-product-code="${item.code}"><div><span class="payapp-product-badge">무이자할부 전용</span><h3>${item.name}</h3><p class="payapp-product-price">${item.amount.toLocaleString('ko-KR')}<span>원</span></p></div><button id="${index === 0 ? 'openPayAppCheckout' : 'openPayAppCheckout-' + item.code}" data-payapp-product="${item.code}" type="button" aria-label="${item.name} 결제하기" disabled>결제하기</button></article>`).join('');
   const dialog = document.createElement('dialog'); dialog.id = 'payAppCheckoutDialog'; dialog.className = 'payapp-dialog';
   dialog.setAttribute('aria-labelledby', 'payAppCheckoutTitle');
   dialog.innerHTML = `<form id="payAppCheckoutForm">
@@ -25,12 +31,12 @@
 </form>`;
   document.body.append(dialog);
   const byId = id => document.getElementById(id);
-  const openButton = byId('openPayAppCheckout'), closeButton = byId('closePayAppCheckout');
+  const openButtons = [...host.querySelectorAll('[data-payapp-product]')], closeButton = byId('closePayAppCheckout');
   const form = byId('payAppCheckoutForm'), phone = byId('payAppBuyerPhone'), phoneField = byId('payAppPhoneField');
   const submit = byId('submitPayAppCheckout'), recheck = byId('checkPayAppCheckout'), message = byId('payAppCheckoutStatus');
   const clothing = byId('payAppClothing'), locker = byId('payAppLocker'), optionFields = byId('payAppOptions');
   const selection = () => ({ clothing: clothing.checked, locker: locker.checked });
-  const price = value => 180000 + (value.clothing ? 30000 : 0) + (value.locker ? 30000 : 0);
+  const price = (value, item = product) => item.amount + item.months * 5000 * (Number(value.clothing) + Number(value.locker));
   const money = value => value.toLocaleString('ko-KR') + '원';
   let client = null, userId = '', generation = 0, busy = false, checking = false, current = null;
   let editing = false;
@@ -73,6 +79,14 @@
     ['paid','cancelled','partial_refund'].includes(current?.payment_state)) return;
     timer = setTimeout(() => { pollCount++; void check(); }, 4000); }
   function render() {
+    byId('payAppCheckoutTitle').textContent = product.name;
+    dialog.querySelector('.payapp-dialog-price').textContent = money(product.amount);
+    dialog.querySelectorAll('.payapp-option-copy > span').forEach(node => { node.textContent = '월 5,000원 × ' + product.months + '개월'; });
+    dialog.querySelectorAll('.payapp-option-price').forEach(node => { node.textContent = '+' + money(product.months * 5000); });
+    const base = dialog.querySelector('.payapp-breakdown > div');
+    base.querySelector('dt').textContent = product.label; base.querySelector('dd').textContent = money(product.amount);
+    byId('payAppClothingBreakdown').querySelector('dd').textContent = money(product.months * 5000);
+    byId('payAppLockerBreakdown').querySelector('dd').textContent = money(product.months * 5000);
     const order = editing ? null : current;
     const terminal = ['paid','cancelled','partial_refund'].includes(order?.payment_state);
     phoneField.hidden = Boolean(order);
@@ -90,22 +104,27 @@
     submit.textContent = order ? '결제창 다시 열기' : money(amount) + ' 결제하기';
     recheck.hidden = !pending;
     recheck.disabled = busy || checking;
-    openButton.disabled = !active();
+    openButtons.forEach(button => { button.disabled = !active() || busy || checking; });
     form.setAttribute('aria-busy', String(busy || checking));
     queuePaymentViewport();
   }
   function displayOrder(order, allowEdit = false) {
-    if (!order || !UUID.test(order.id || '') || order.product_name !== '가을이벤트) 헬스 6개월') throw new Error('BAD_ORDER');
-    const selected = order.options === undefined && order.amount === 180000 ? { clothing: false, locker: false } : order.options;
-    if (!selected || typeof selected.clothing !== 'boolean' || typeof selected.locker !== 'boolean' || order.amount !== price(selected)) throw new Error('BAD_ORDER');
+    const orderProduct = order && (order.product_code === undefined
+      ? PRODUCTS.find(item => item.name === order.product_name) : productByCode(order.product_code));
+    if (!order || !UUID.test(order.id || '') || !orderProduct || order.product_name !== orderProduct.name) throw new Error('BAD_ORDER');
+    const selected = order.options === undefined && order.amount === orderProduct.amount ? { clothing: false, locker: false } : order.options;
+    if (!selected || typeof selected.clothing !== 'boolean' || typeof selected.locker !== 'boolean' || order.amount !== price(selected, orderProduct)) throw new Error('BAD_ORDER');
     const canEdit = allowEdit && order.payment_state === 'requested' && order.request_status === 'ready';
     if (canEdit) {
-      if (!editing) { clothing.checked = false; locker.checked = false; phone.value = ''; }
+      const nextProduct = wantedProduct || orderProduct;
+      if (!editing || product.code !== nextProduct.code) { clothing.checked = false; locker.checked = false; phone.value = ''; }
+      product = nextProduct;
       editing = true;
     } else {
+      product = orderProduct; wantedProduct = null;
       editing = false; clothing.checked = selected.clothing; locker.checked = selected.locker;
     }
-    current = { ...order, options: selected }; pending.orderId = order.id; savePending();
+    current = { ...order, product_code: orderProduct.code, options: selected }; pending.orderId = order.id; pending.productCode = orderProduct.code; savePending();
     const text = { paid: '결제가 완료됐어요.', cancelled: '결제 취소가 확인됐어요.', partial_refund: '일부 금액이 취소된 결제예요.',
       pending: '입금 또는 결제 승인을 기다리고 있어요.', requested: '결제창에서 결제를 진행해 주세요. 창을 닫은 것만으로 결제가 취소되지는 않아요.' };
     if (['paid','cancelled','partial_refund'].includes(order.payment_state)) status(text[order.payment_state]);
@@ -145,16 +164,27 @@
       if (!live(token)) return; displayOrder(order, true);
     } catch (error) {
       if (!live(token)) return;
-      if (error.code === 'ORDER_NOT_FOUND') { pending = null; savePending(); current = null; editing = false; status('이 계정에서 확인할 수 있는 결제가 없어요.'); }
+      if (error.code === 'ORDER_NOT_FOUND') {
+        pending = null; savePending(); current = null; editing = false;
+        if (wantedProduct) product = wantedProduct;
+        clothing.checked = false; locker.checked = false; phone.value = '';
+        status('이 계정에서 확인할 수 있는 결제가 없어요.');
+      }
       else status(failureText(error), true);
     } finally { if (live(token)) { checking = false; render(); poll(); } }
   }
-  function open() {
+  function open(code) {
     if (!active()) return;
     focusReturn = document.activeElement; pollCount = 0;
-    if (current?.payment_state === 'cancelled' ||
+    const chosen = productByCode(code);
+    if (chosen) wantedProduct = chosen;
+    if ((chosen && ['paid','cancelled','partial_refund'].includes(current?.payment_state)) || current?.payment_state === 'cancelled' ||
       (current?.request_status === 'failed' && !['paid','partial_refund'].includes(current.payment_state))) {
       pending = null; current = null; editing = false; clothing.checked = false; locker.checked = false; savePending();
+    }
+    if (chosen && (!pending || editing)) {
+      if (product.code !== chosen.code) { clothing.checked = false; locker.checked = false; phone.value = ''; }
+      product = chosen;
     }
     if (!dialog.open) dialog.showModal(); syncPaymentViewport(); render();
     if (pending) void check(); else { status(''); byId('payAppClothing').focus(); }
@@ -177,9 +207,9 @@
     if (!/^(010\d{8}|01[16789]\d{7,8})$/.test(value)) { phone.setCustomValidity('휴대전화번호를 정확히 입력해 주세요.'); phone.reportValidity(); return; }
     phone.setCustomValidity('');
     // 사용자 클릭 안에서 먼저 창을 확보하여 모바일 팝업 차단을 줄입니다.
-    const selected = selection();
+    const selected = selection(), selectedProduct = product;
     popup = reserveWindow();
-    if (!editing) { pending ||= { requestId: crypto.randomUUID(), orderId: null }; savePending(); }
+    if (!editing) { pending ||= { requestId: crypto.randomUUID(), orderId: null, productCode: selectedProduct.code }; savePending(); }
     const token = generation; busy = true; render(); status('결제창을 준비하고 있어요.');
     try {
       if (editing && current) {
@@ -192,17 +222,17 @@
           return;
         }
         current = null; editing = false;
-        pending = { requestId: crypto.randomUUID(), orderId: null }; savePending();
+        pending = { requestId: crypto.randomUUID(), orderId: null, productCode: selectedProduct.code }; savePending();
         status('결제창을 준비하고 있어요.');
       }
-      const order = await api({ action: 'create', product_code: PRODUCT, request_id: pending.requestId, phone: value, options: selected });
+      const order = await api({ action: 'create', product_code: selectedProduct.code, request_id: pending.requestId, phone: value, options: selected });
       if (!live(token)) return;
       displayOrder(order); phone.value = '';
-      const sameOptions = current.options.clothing === selected.clothing && current.options.locker === selected.locker;
+      const sameOptions = current.product_code === selectedProduct.code && current.options.clothing === selected.clothing && current.options.locker === selected.locker;
       if (safeUrl(order.pay_url) && sameOptions) navigate(order.pay_url);
       else if (safeUrl(order.pay_url)) {
         if (popup && !popup.closed) popup.close();
-        status('진행 중인 기존 주문이 있어요. 표시된 옵션과 금액을 확인한 뒤 결제창을 다시 열어 주세요.');
+        status('진행 중인 기존 주문이 있어요. 표시된 상품과 옵션, 금액을 확인한 뒤 결제창을 다시 열어 주세요.');
       }
       else if (popup && !popup.closed) popup.close();
     } catch (error) {
@@ -215,12 +245,13 @@
     generation++; stopPolling();
     try { if (popup && !popup.closed) popup.close(); } catch (_) {}
     popup = null; close(); client = null; userId = ''; showServices = null;
+    product = PRODUCTS[0]; wantedProduct = null;
     busy = false; checking = false; pending = null; current = null; editing = false; clothing.checked = false; locker.checked = false; phone.value = ''; phone.setCustomValidity(''); status(''); render();
   }
   function start(nextClient, nextUserId, openServices) {
     if (client === nextClient && userId === String(nextUserId)) { showServices = openServices; render(); return; }
     reset(); client = nextClient; userId = String(nextUserId); showServices = openServices;
-    pending = readPending();
+    pending = readPending(); product = productByCode(pending?.productCode) || PRODUCTS[0];
     const url = new URL(location.href), returned = url.searchParams.get('payapp_return');
     if (UUID.test(returned || '')) {
       if (pending?.orderId !== returned) pending = { requestId: crypto.randomUUID(), orderId: returned };
@@ -229,7 +260,8 @@
     }
     render();
   }
-  openButton.addEventListener('click', open); closeButton.addEventListener('click', close);
+  openButtons.forEach(button => button.addEventListener('click', () => open(button.dataset.payappProduct)));
+  closeButton.addEventListener('click', close);
   dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
   dialog.addEventListener('close', () => { stopPolling(); cancelAnimationFrame(viewportFrame); viewportFrame = null; });
   window.visualViewport?.addEventListener('resize', queuePaymentViewport);
