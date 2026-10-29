@@ -6023,22 +6023,23 @@ textarea.routine-weight-cell {
 #memberOneDayPtEntry[hidden] + .member-routine-divider { display: none; }
 @media (max-width: 360px) { .member-routine-divider { margin-left: 16px; margin-right: 16px; } }
 
-/* v217: 핵심 정보와 세트 기록을 먼저 보여 주고, 나머지 기능은 카드 안에서 펼칩니다. */
+/* v218: 사진·운동명 확대, 정보 사이 간격과 펼친 버튼의 글자 크기를 조정합니다. */
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure {
   padding: 14px 10px; cursor: pointer;
 }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-main {
-  position: relative; grid-template-columns: 100px minmax(0, 1fr); gap: 12px; min-height: 120px; align-items: center;
+  position: relative; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; min-height: 120px; align-items: center;
 }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-image-area {
-  width: 100px; height: 100px; align-self: center;
+  width: 110px; height: 110px; align-self: center;
 }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-info {
-  display: flex; flex-direction: column; min-height: 120px; justify-content: space-between; gap: 6px;
+  display: flex; flex-direction: column; min-height: 0; justify-content: center; gap: 0;
 }
-.routine-card-disclosure .routine-component-title { padding-right: 25px; }
-.routine-card-disclosure .routine-component-body-parts { padding-right: 25px; }
-.routine-card-dose-record { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-top: auto; }
+.routine-card-disclosure .routine-component-title { padding-right: 32px; }
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-body-parts { margin: 4.2px 0 0; padding-right: 32px; }
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure :is(.routine-component-number, .routine-component-name) { font-size: 19.2px; }
+.routine-card-dose-record { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-top: 19.05px; }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-dose-record .routine-component-dose { font-size: 15px; line-height: 1.5; white-space: nowrap; }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-dose-record .routine-weight-button {
   display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 5px;
@@ -6077,7 +6078,10 @@ textarea.routine-weight-cell {
 .routine-card-disclosure .routine-weight-panel { cursor: default; }
 .routine-card-toggle:focus-visible, .routine-card-dose-record .routine-weight-button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
 @media (max-width: 360px) {
-  :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-main { grid-template-columns: 82px minmax(0, 1fr); gap: 9px; }
-  :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-image-area { width: 82px; height: 82px; }
-  :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-edit-actions > button { font-size: 11px; gap: 2px; }
+  :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-main { grid-template-columns: 90.2px minmax(0, 1fr); gap: 9px; }
+  :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-image-area { width: 90.2px; height: 90.2px; }
+  :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-edit-actions > button { font-size: 12px; gap: 2px; }
 }
+
+/* 가장 좁은 화면에서 기록 버튼이 다음 줄로 내려갈 때도 기존 간격의 절반을 유지합니다. */
+@media (max-width: 340px) { .routine-card-disclosure .routine-card-dose-record { margin-top: 5.5px; } }

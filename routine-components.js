@@ -644,7 +644,7 @@
     toggleMark.setAttribute("aria-hidden", "true");
     toggle.append(toggleMark);
     main.append(toggle);
-    expanded.append(element("p", "routine-component-rest", "세트간 휴식 " + entry.restSec + "초"));
+    expanded.append(element("p", "routine-component-rest", "세트 사이 권장 휴식: " + entry.restSec + "초"));
     const tools = element("div", "routine-card-edit-actions");
 
     const actions = element("div", "routine-component-actions");
