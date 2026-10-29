@@ -6042,6 +6042,8 @@ textarea.routine-weight-cell {
 }
 .routine-card-disclosure .routine-component-title { padding-right: 32px; }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-body-parts { margin: 2.94px 0 0; padding-right: 32px; }
+/* 운동 부위가 없어도 한 줄 높이를 확보해 기록 버튼과 펼침 표식의 간격을 유지합니다. */
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-body-parts:empty { display: block; min-height: 1.5em; }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure :is(.routine-component-number, .routine-component-name) { font-size: 19.2px; }
 .routine-card-dose-record { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-top: 13.335px; }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-dose-record .routine-component-dose { font-size: 15px; line-height: 1.5; white-space: nowrap; }
