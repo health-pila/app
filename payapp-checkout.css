@@ -61,6 +61,12 @@
 .payapp-dialog.is-compact .payapp-total strong { font-size: 21px; }
 .payapp-dialog.is-compact .payapp-primary { min-height: 44px; padding-top: 9px; padding-bottom: 9px; }
 .payapp-dialog.is-typing #checkPayAppCheckout { display: none; }
+.payapp-pt-offer { display: grid; gap: 6px; margin: 0 0 18px; padding: 14px; border-radius: 12px; background: #fff4ea; }
+.payapp-pt-offer > span { color: #697586; font-size: 14px; }
+.payapp-pt-offer > strong { color: var(--brand-orange, #f56a00); font-size: 24px; line-height: 1.4; font-weight: 800; }
+.payapp-pt-list-title { margin: 0 0 8px; font-size: 14px; }
+.payapp-pt-exercises { margin: 0; padding: 12px 12px 12px 32px; border-radius: 12px; background: #f5f7fa; font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+.payapp-dialog.is-pt .payapp-start-notice { margin: 16px 0; }
 
 /* 일반 3·12개월 상품은 네이버 페이 카드와 같은 두 열로 배치합니다. */
 #payAppProduct > .payapp-product-compact { grid-column: auto; }

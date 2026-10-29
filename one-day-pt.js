@@ -1,4 +1,4 @@
-/* 1DAY PT: 운동 선택 → 신청 → 센터의 개별 연락. 온라인 결제는 사용하지 않습니다. */
+/* 1DAY PT: 운동 선택 → 페이앱 결제 → 센터의 문자 연락. 이전 신청 내역은 유지합니다. */
 (function () {
   "use strict";
   const $ = id => document.getElementById(id);
@@ -8,6 +8,7 @@
   const FIELDS = "id,user_id,exercises,status,created_at,updated_at";
   let client, role = "", userId = "", generation = 0;
   let cart = [], requestId = "", memberRows = [], memberReady = false;
+  let paymentRows = [], paymentSequence = 0;
   let memberLoading = false, memberSequence = 0, submitting = false;
   let adminRows = [], adminSequence = 0, adminLoading = false, adminSaving = false;
   let adminLimit = 20, adminHasMore = false;
@@ -109,8 +110,8 @@
       });
       item.append(remove); $("oneDayPtCartList").append(item);
     });
-    $("submitOneDayPt").disabled = role !== "member" || !cart.length || cart.some(id => !resolveExercise(id)) || submitting || memberLoading || !memberReady || memberRows.some(active);
-    $("submitOneDayPt").textContent = submitting ? "신청을 접수하고 있어요…" : "이 구성으로 1DAY PT 신청하기";
+    $("submitOneDayPt").disabled = role !== "member" || !cart.length || cart.some(id => !resolveExercise(id)) || submitting;
+    $("submitOneDayPt").textContent = "1DAY PT 결제하기";
     $("refreshMemberOneDayPt").disabled = memberLoading || submitting;
   }
   function requestCard(row) {
@@ -140,6 +141,7 @@
   }
   async function loadMember() {
     if (role !== "member" || submitting) return;
+    void loadPayments();
     const ticket = generation, seq = ++memberSequence;
     memberLoading = true; renderCart();
     $("oneDayPtHistoryMessage").textContent = "신청 내역을 확인하고 있어요…";
@@ -161,33 +163,40 @@
       if (current(ticket, "member") && seq === memberSequence) { memberLoading = false; renderCart(); }
     }
   }
-  async function submit() {
+  function submit() {
     if ($("submitOneDayPt").disabled || role !== "member") return;
     const exercises = cart.map(id => ({ exerciseId: id, name: resolveExercise(id).name }));
-    if (!window.confirm("선택한 " + exercises.length + "개 운동으로 1DAY PT를 신청할까요?\n센터가 별도로 연락해 일정을 예약하며, 결제는 현장에서 진행합니다.")) return;
-    const ticket = generation;
-    submitting = true; requestId = requestId || crypto.randomUUID(); saveCart(); renderCart();
-    $("oneDayPtSubmitMessage").textContent = "신청을 접수하고 있어요…";
+    if (!window.PayAppCheckout?.openPT(exercises)) {
+      $("oneDayPtSubmitMessage").textContent = "결제창을 준비하지 못했어요. 잠시 후 다시 눌러 주세요.";
+    } else $("oneDayPtSubmitMessage").textContent = "";
+  }
+  async function loadPayments() {
+    if (role !== "member") return;
+    const ticket = generation, seq = ++paymentSequence, owner = userId, db = client;
+    $("oneDayPtPaymentMessage").textContent = "결제 내역을 확인하고 있어요…";
     try {
-      const { data, error } = await client.rpc("submit_one_day_pt_request", { p_request_id: requestId, p_exercises: exercises }).single();
-      if (!current(ticket, "member")) return;
-      if (error) throw error;
-      if (!data?.id || data.user_id !== userId) throw new Error("NO_RECEIPT");
-      cart = []; requestId = ""; saveCart();
-      memberRows = [data, ...memberRows.filter(row => row.id !== data.id)].slice(0, 20);
-      memberReady = true; renderMemberHistory();
-      $("oneDayPtSubmitMessage").textContent = "1DAY PT 신청이 접수됐어요. 센터가 연락해 일정을 안내해 드립니다.";
-    } catch (error) {
-      if (!current(ticket, "member")) return;
-      if (error?.code === "23505" || String(error?.message).includes("ONE_DAY_PT_ACTIVE_REQUEST")) {
-        $("oneDayPtSubmitMessage").textContent = "이미 진행 중인 신청이 있어요. 아래 신청 내역을 확인해 주세요.";
-      } else if (["PGRST202", "42883", "42P01"].includes(error?.code)) {
-        $("oneDayPtSubmitMessage").textContent = errorMessage(error, false);
-      } else {
-        $("oneDayPtSubmitMessage").textContent = "접수 결과를 확인하지 못했어요. 담은 운동은 유지됩니다. 다시 신청하면 같은 요청의 접수 여부부터 확인합니다.";
+      const auth = await db.auth.getUser();
+      if (!current(ticket, "member") || seq !== paymentSequence) return;
+      if (auth.error || auth.data?.user?.id !== owner) throw new Error();
+      const { data, error } = await db.functions.invoke("payapp-checkout", { body: { action: "pt_history", expected_user_id: owner } });
+      if (!current(ticket, "member") || seq !== paymentSequence) return;
+      if (error || !data?.ok || !Array.isArray(data.entries)) throw new Error();
+      paymentRows = data.entries;
+      const list = $("oneDayPtPaymentList"); list.replaceChildren();
+      for (const row of paymentRows) {
+        if (row.product_code !== "one-day-pt" || row.amount !== 33000 || !["paid","cancelled","partial_refund"].includes(row.payment_state) || !Array.isArray(row.pt_exercises)) continue;
+        const card = node("article", "one-day-pt-request-card");
+        const labels = { paid: "결제 완료", cancelled: "취소", partial_refund: "일부 취소" };
+        card.append(node("strong", "", labels[row.payment_state] + " · 33,000원"));
+        const date = new Date(row.created_at);
+        card.append(node("p", "one-day-pt-message", Number.isNaN(date.getTime()) ? "" : date.toLocaleString("ko-KR")));
+        const selected = node("ol", "one-day-pt-exercises");
+        for (const item of row.pt_exercises.slice(0, 5)) selected.append(node("li", "", String(item.name || "")));
+        card.append(selected); list.append(card);
       }
-    } finally {
-      if (current(ticket, "member")) { submitting = false; renderCart(); await loadMember(); }
+      $("oneDayPtPaymentMessage").textContent = list.childElementCount ? "" : "아직 결제한 내역이 없어요.";
+    } catch (_) {
+      if (current(ticket, "member") && seq === paymentSequence) $("oneDayPtPaymentMessage").textContent = "결제 내역을 불러오지 못했어요. 새로고침 후 다시 확인해 주세요.";
     }
   }
   function renderAdmin() {
@@ -299,7 +308,8 @@
     }
   }
   function reset() {
-    generation++; memberSequence++; adminSequence++; adminAlertSequence++;
+    generation++; memberSequence++; adminSequence++; adminAlertSequence++; paymentSequence++; paymentRows = [];
+    $("oneDayPtPaymentList").replaceChildren(); $("oneDayPtPaymentMessage").textContent = "";
     clearTimeout(refreshTimer); clearTimeout(feedbackTimer); clearTimeout(alertPollTimer);
     alertPollTimer = null;
     if (channel && client) Promise.resolve(client.removeChannel(channel)).catch(() => { });
@@ -364,6 +374,14 @@
   });
   window.addEventListener("memberpersonalexerciseschange", () => {
     if (role === "member" && window.MemberCustomExercises?.getUserId() === userId) renderCart();
+  });
+  window.addEventListener("centerpayappptpaid", event => {
+    const paid = event.detail;
+    if (role !== "member" || paid?.userId !== userId || !Array.isArray(paid.exercises)) return;
+    const selected = cart.map(id => ({ exerciseId: id, name: resolveExercise(id)?.name }));
+    if (JSON.stringify(selected) === JSON.stringify(paid.exercises)) { cart = []; requestId = ""; saveCart(); renderCart(); }
+    $("oneDayPtSubmitMessage").textContent = "결제가 완료됐어요. 센터에서 일정 조율을 위한 문자를 드립니다.";
+    void loadPayments();
   });
   window.OneDayPT = Object.freeze({ showMember, showAdmin, reset, createAddButton });
 })();

@@ -47,7 +47,11 @@
       heading.append(member, textNode('span', `admin-payment-state is-${entry.payment_state}`, labels[entry.payment_state] || '상태 확인 필요'));
       card.append(heading, textNode('h3', 'admin-payment-product', entry.product_name));
       const options = [entry.options?.clothing && '운동복 대여', entry.options?.locker && '개인락커 이용'].filter(Boolean);
-      card.append(textNode('p', 'admin-payment-options', options.length ? '추가 옵션: ' + options.join(' · ') : '추가 옵션 없음'));
+      if (entry.product_code === 'one-day-pt') {
+        const selected = document.createElement('ol'); selected.className = 'one-day-pt-exercises';
+        for (const exercise of (Array.isArray(entry.pt_exercises) ? entry.pt_exercises.slice(0, 5) : [])) selected.append(textNode('li', '', String(exercise.name || '')));
+        card.append(textNode('p', 'admin-payment-options', '1DAY PT 선택 운동'), selected);
+      } else card.append(textNode('p', 'admin-payment-options', options.length ? '추가 옵션: ' + options.join(' · ') : '추가 옵션 없음'));
       const amount = Number(entry.amount);
       const amountLabel = entry.payment_state === 'paid' ? '결제 금액' : '원 주문 금액';
       card.append(textNode('p', 'admin-payment-amount', `${amountLabel} ${Number.isSafeInteger(amount) && amount >= 0 ? amount.toLocaleString('ko-KR') + '원' : '확인 필요'}`));
