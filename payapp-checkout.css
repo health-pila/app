@@ -1,11 +1,11 @@
 /* 상품 카드 높이는 v209 대비 약 85%. 팝업/옵션에만 적용합니다. */
 .payapp-product { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 20px; padding: 10.6px 16px; border: 1px solid #f3d4be; border-radius: 16px; background: linear-gradient(135deg,#fff7ef,#fff); }
 .payapp-product > div { min-width: 0; }
-.payapp-product-badge { display: inline-block; padding: 3px 8px; border: 1px solid #b64b07; border-radius: 6px; background: #b64b07; color: #fff; font-size: 12px; line-height: 1.5; font-weight: 800; }
+.payapp-product-badge { display: inline-block; padding: 3px 8px; border: 1px solid var(--brand-orange, #f56a00); border-radius: 6px; background: var(--brand-orange, #f56a00); color: #fff; font-size: 12px; line-height: 1.5; font-weight: 800; }
 .payapp-product h3 { margin: 6px 0 5px; color: #17233e; font-size: 17px; line-height: 1.5; word-break: keep-all; }
 .payapp-product-price { margin: 0; color: #17233e; font-size: 29px; line-height: 1.3; font-weight: 800; }
 .payapp-product-price span { margin-left: 3px; font-size: 16px; }
-.payapp-product > button, .payapp-dialog .payapp-primary { width: auto; min-height: 46px; margin: 0; padding: 11px 16px; border: 0; border-radius: 11px; background: #ec6a1a; color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.payapp-product > button, .payapp-dialog .payapp-primary { width: auto; min-height: 46px; margin: 0; padding: 11px 16px; border: 0; border-radius: 11px; background: var(--brand-orange, #f56a00); color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
 .payapp-product > button { flex-shrink: 0; }
 .payapp-product > button:disabled, .payapp-dialog button:disabled { opacity: .5; cursor: default; }
 .payapp-dialog { box-sizing: border-box; width: min(430px,calc(var(--payapp-viewport-width,100vw) - 24px)); max-height: calc(var(--payapp-viewport-height,100dvh) - 24px); position: fixed; inset: auto; left: calc(var(--payapp-viewport-left,0px) + var(--payapp-viewport-width,100vw) / 2); top: calc(var(--payapp-viewport-top,0px) + var(--payapp-viewport-height,100dvh) / 2); transform: translate(-50%,-50%); margin: 0; padding: 0; border: 0; border-radius: 20px; overflow: hidden; background: #fff; color: #17233e; font-family: inherit; }
@@ -21,15 +21,15 @@
 .payapp-options { min-width: 0; margin: 0; padding: 0; border: 0; }
 .payapp-options legend { margin-bottom: 10px; padding: 0; font-size: 15px; font-weight: 800; }
 .payapp-dialog .payapp-option { display: flex; align-items: center; gap: 10px; min-height: 66px; box-sizing: border-box; margin: 0 0 10px; padding: 12px 10px; border: 1px solid #dce2eb; border-radius: 12px; background: #fff; cursor: pointer; }
-.payapp-option.is-selected { border-color: #ec6a1a; background: #fff5ec; }
-.payapp-option input[type=checkbox] { width: 22px; height: 22px; flex-shrink: 0; margin: 0; accent-color: #ec6a1a; cursor: pointer; }
+.payapp-option.is-selected { border-color: var(--brand-orange, #f56a00); background: #fff5ec; }
+.payapp-option input[type=checkbox] { width: 22px; height: 22px; flex-shrink: 0; margin: 0; accent-color: var(--brand-orange, #f56a00); cursor: pointer; }
 .payapp-option-copy { display: grid; gap: 5px; flex: 1; min-width: 0; }
 .payapp-option-copy strong { font-size: 14px; }
 .payapp-option-copy > span { color: #697586; font-size: 11px; font-weight: 400; line-height: 1.5; }
-.payapp-option-price { flex-shrink: 0; color: #b64b07; font-size: 13px; }
+.payapp-option-price { flex-shrink: 0; color: var(--brand-orange, #f56a00); font-size: 13px; }
 .payapp-options:disabled .payapp-option { cursor: default; }
 .payapp-options:disabled input { opacity: 1; cursor: default; }
-.payapp-start-notice { margin: 20px 0; color: #c6530c; font-size: 14px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
+.payapp-start-notice { margin: 20px 0; color: var(--brand-orange, #f56a00); font-size: 14px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
 .payapp-start-notice strong { font-weight: 800; }
 .payapp-help { margin: 8px 0 16px; color: #697586; font-size: 12px; line-height: 1.6; }
 .payapp-holding-note { word-break: keep-all; }
@@ -42,7 +42,7 @@
 .payapp-status.is-error { color: #b43529; }
 .payapp-dialog-footer { flex-shrink: 0; padding: 14px 20px max(16px,env(safe-area-inset-bottom)); border-top: 1px solid #e7eaf0; background: #fff; }
 .payapp-total { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 12px; font-size: 14px; font-weight: 700; }
-.payapp-total strong { color: #b64b07; font-size: 25px; font-weight: 800; }
+.payapp-total strong { color: var(--brand-orange, #f56a00); font-size: 25px; font-weight: 800; }
 .payapp-dialog .payapp-primary { width: 100%; }
 .payapp-dialog .payapp-secondary { width: 100%; min-height: 44px; margin: 10px 0 0; padding: 10px; border: 1px solid #dce2eb; border-radius: 11px; background: #fff; color: #43516a; font: inherit; font-size: 14px; cursor: pointer; }
 .payapp-dialog [hidden] { display: none !important; }
