@@ -20,6 +20,7 @@
   }
   function renderPage(next) {
     page = next;
+    dialog.dataset.accountView = page;
     pages.forEach(el => { el.hidden = el.dataset.accountPage !== page; });
     $('accountHeading').textContent = ({home:'내 정보', payments:'내 결제 내역', password:'비밀번호 변경', withdraw:'앱 탈퇴 요청', privacy:'개인정보처리방침'})[page];
     $('accountBack').hidden = page === 'home';
