@@ -9,10 +9,10 @@
   const dialog = document.createElement("dialog");
   dialog.id = "workoutTextDialog"; dialog.className = "workout-text-dialog";
   dialog.setAttribute("aria-labelledby", "workoutTextTitle");
-  dialog.innerHTML = `<form><div class="workout-text-heading"><h2 id="workoutTextTitle">운동 시간∙세트 기록하기</h2><button type="button" data-text-close>닫기</button></div>
+  dialog.innerHTML = `<form><div class="workout-text-heading"><h2 id="workoutTextTitle">운동 시간∙세트 기록하기</h2><button type="button" data-text-close autofocus>닫기</button></div>
     <div class="workout-record-date-field"><label for="workoutTextDay">운동 날짜</label><input id="workoutTextDay" name="day" type="date" required></div>
     <div class="workout-text-tools"><label for="workoutTextBody">운동 기록</label><button type="submit" class="workout-text-save">기록 저장</button></div>
-    <textarea id="workoutTextBody" name="body" rows="6" maxlength="120" aria-describedby="workoutTextHelp"></textarea>
+    <textarea id="workoutTextBody" name="body" rows="3" maxlength="120" aria-describedby="workoutTextHelp"></textarea>
     <p id="workoutTextHelp">시간을 적거나 아래에서 세트 기록을 입력해 주세요. 시간 없이 세트 기록만 저장할 수도 있어요.</p>
     <div data-set-editors></div><button type="button" data-add-sets>세트 기록 입력</button>
     <p data-text-status role="status"></p><button type="button" data-text-check hidden>저장 상태 다시 확인</button></form>`;
@@ -150,7 +150,7 @@
     input.value = record ? (record.caption || '') : template; status.textContent = ""; checkButton.hidden = true; setBusy(false);
     previousOverflow = document.body.style.overflow;
     dialog.showModal(); document.body.style.overflow = "hidden"; syncDialogViewport();
-    input.focus({ preventScroll: true }); input.setSelectionRange(template.indexOf("\n"), template.indexOf("\n"));
+    closeButton.focus({ preventScroll: true });
   }
   trigger.addEventListener('click', () => openRecord());
   function edit(record) {

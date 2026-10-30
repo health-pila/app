@@ -6196,3 +6196,6 @@ textarea.routine-weight-cell {
 .workout-text-dialog .workout-set-table input:not([type=checkbox]),
 .workout-text-dialog .workout-set-table textarea { display:block; min-width:0; min-height:36px; margin:0; padding:5.4px 2.7px; border:1px solid #e2e8f0; border-radius:5px; font-size:14px; line-height:1.4; text-align:center; }
 .workout-text-dialog .workout-set-table textarea { min-height:55.8px; font-size:12px; text-align:left; }
+
+/* 처음에는 3줄만 표시하고 사용자가 세로로 늘릴 수 있습니다. */
+.workout-text-dialog #workoutTextBody { min-height:0; height:auto; resize:vertical; }
