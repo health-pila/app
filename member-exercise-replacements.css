@@ -62,10 +62,6 @@
 }
 #memberRoutineComponents.is-tutorial .is-personal-exercise .routine-component-actions { grid-template-columns: minmax(0, 1fr); }
 
-/* 종목과 기록 ID는 유지하고 숫자 설정만 수정합니다. */
-.routine-component-dose-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
-.routine-component-dose-row .routine-component-dose { margin: 0; }
-.routine-component-dose-row .exercise-dose-edit { flex: 0 0 auto; width: auto; min-height: 26px; margin: 0; padding: 2px 6px; border: 1px solid #dce2eb; border-radius: 6px; color: #697586; background: #fff; font: inherit; font-size: 11px; font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; }
 .exercise-dose-edit:disabled { opacity: .5; cursor: default; }
 .exercise-dose-edit:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
 

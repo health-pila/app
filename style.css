@@ -98,36 +98,6 @@ body {
   font-size: 16px;
 }
 
-/* 운동 카드 목록 */
-.workout-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* 각각의 운동 카드 */
-.workout-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px;
-  background-color: #171b24;
-  border: 1px solid #272d39;
-  border-radius: 18px;
-  transition: 0.2s;
-}
-
-.workout-card span {
-  color: #8d98aa;
-  font-size: 13px;
-}
-
-.workout-card h2 {
-  margin: 6px 0 0;
-  font-size: 18px;
-}
-
 /* 각각의 완료 버튼 */
 .complete-button {
   flex-shrink: 0;
@@ -139,22 +109,6 @@ body {
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
-}
-
-/* 운동을 완료했을 때 적용할 디자인 */
-.workout-card.completed {
-  background-color: #1d2819;
-  border-color: #bfff32;
-}
-
-.workout-card.completed h2 {
-  color: #bfff32;
-  text-decoration: line-through;
-}
-
-.workout-card.completed .complete-button {
-  color: #111111;
-  background-color: #bfff32;
 }
 
 /* 전체 초기화 버튼 */
@@ -187,29 +141,6 @@ body {
   width: 100%;
   height: auto;
 }
-
-/* 관리자 로그아웃 버튼 */
-.zoom-button {
-  width: 100%;
-  margin: 0 0 28px;
-  padding: 14px;
-  color: #ffffff;
-  background-color: #171b24;
-  border: 1px solid #343b49;
-  border-radius: 14px;
-  font-size: 15px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* 마우스를 올렸을 때 버튼 색상 변경 */
-.zoom-button:hover {
-  color: #111111;
-  background-color: #bfff32;
-  border-color: #bfff32;
-}
-
-
 
 /* =================================
    헬스와 필라테스 브랜드 테마
@@ -267,55 +198,11 @@ body {
   box-shadow: 0 8px 24px rgba(23, 35, 62, 0.1);
 }
 
-/* 관리자 로그아웃 버튼 브랜드 색상 */
-.zoom-button {
-  color: var(--brand-orange);
-  background-color: var(--brand-white);
-  border-color: var(--brand-orange);
-}
-
-.zoom-button:hover {
-  color: var(--brand-white);
-  background-color: var(--brand-orange);
-  border-color: var(--brand-orange);
-}
-
-/* 운동 카드 */
-.workout-card {
-  background-color: var(--brand-white);
-  border-color: var(--brand-border);
-  box-shadow: 0 5px 16px rgba(23, 35, 62, 0.07);
-}
-
-.workout-card span {
-  color: var(--brand-blue);
-}
-
-.workout-card h2 {
-  color: var(--brand-navy);
-}
-
 /* 완료 버튼 */
 .complete-button {
   color: var(--brand-orange);
   background-color: #fff2e8;
   border: 1px solid #ffd0ad;
-}
-
-/* 운동 완료 상태 */
-.workout-card.completed {
-  background-color: #eef5ff;
-  border-color: var(--brand-blue);
-}
-
-.workout-card.completed h2 {
-  color: var(--brand-blue);
-}
-
-.workout-card.completed .complete-button {
-  color: var(--brand-white);
-  background-color: var(--brand-blue);
-  border-color: var(--brand-blue);
 }
 
 /* 초기화 버튼 */
@@ -324,7 +211,6 @@ body {
   background-color: var(--brand-white);
   border-color: var(--brand-border);
 }
-
 
 /* 홈 화면 설치 버튼 */
 .install-button {
@@ -473,35 +359,6 @@ body {
 .app[hidden],
 .login-screen[hidden] {
   display: none;
-}
-
-/* 배정 루틴 정보와 로그아웃 */
-.member-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 0 0 28px;
-  padding: 14px 16px;
-  background-color: var(--brand-white);
-  border: 1px solid var(--brand-border);
-  border-radius: 14px;
-}
-
-.member-toolbar p {
-  display: grid;
-  gap: 4px;
-  margin: 0;
-}
-
-.member-toolbar span {
-  color: #667085;
-  font-size: 12px;
-}
-
-.member-toolbar strong {
-  color: var(--brand-navy);
-  font-size: 14px;
 }
 
 #logoutButton {
@@ -943,10 +800,6 @@ body {
   align-items: center;
   margin-top: 4px;
   margin-bottom: 22px;
-}
-
-.member-app-topbar-spacer {
-  grid-column: 1;
 }
 
 .member-app-topbar .screen-logo-top {
@@ -1801,14 +1654,6 @@ body {
   font-weight: bold;
   text-decoration: underline;
   text-underline-offset: 3px;
-}
-
-/* 사진 여러 장 안내 */
-.community-swipe-guide {
-  margin: 15px 0 0;
-  color: var(--brand-orange);
-  font-size: 12px;
-  font-weight: bold;
 }
 
 /* 게시 날짜 */
@@ -2806,44 +2651,6 @@ body.camera-open {
   display: none;
 }
 
-.admin-inquiry-archive-area {
-  display: grid;
-  gap: 8px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.admin-inquiry-archive-button {
-  width: 100%;
-  min-height: 44px;
-  padding: 10px 14px;
-  border: 1px solid #b8c0cc;
-  border-radius: 12px;
-  background-color: #ffffff;
-  color: #344054;
-  font: inherit;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.admin-inquiry-archive-button:hover {
-  background-color: #f8fafc;
-}
-
-.admin-inquiry-archive-button:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-
-.admin-inquiry-archive-message {
-  min-height: 20px;
-  margin: 0;
-  color: #c2410c;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
 .admin-inquiry-reply-area[hidden] {
   display: none;
 }
@@ -3531,12 +3338,6 @@ body.camera-open {
   overflow-anchor: none;
 }
 
-.routine-component-day-title {
-  margin: 22px 0 12px;
-  color: var(--brand-navy);
-  font-size: 18px;
-}
-
 .routine-component-card {
   min-width: 0;
   padding: 14px;
@@ -4049,7 +3850,6 @@ body.camera-open {
   display: none;
 }
 
-
 /* 운동 기구 사진 확대: 기존 카드 크기는 유지합니다. */
 .routine-component-image-button {
   position: relative;
@@ -4152,7 +3952,6 @@ body.camera-open {
   font-size: 14px;
   text-align: center;
 }
-
 
 /* 운동 구성 전용 휴식 타이머 */
 #routineTabPanel {
@@ -4382,8 +4181,6 @@ body.camera-open {
 }
 
 :is(#appScreen, #adminScreen) .member-app-topbar svg,
-.member-nav-icon,
-.member-inline-timer svg,
 .rest-timer-toggle svg {
   display: block;
   flex-shrink: 0;
@@ -4518,35 +4315,6 @@ body.camera-open {
   padding: 10px 0;
   font-size: 17px;
   font-weight: 800;
-}
-
-.member-inline-timer {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-height: 40px;
-  margin-left: auto;
-  padding: 6px 0 6px 6px;
-  color: var(--brand-orange);
-  background: transparent;
-  border: 0;
-  border-radius: 8px;
-  font: inherit;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-}
-
-.member-inline-timer svg {
-  width: 16px;
-  height: 16px;
-}
-
-.member-inline-timer[data-phase="running"],
-.member-inline-timer[data-phase="finished"],
-.member-inline-timer[aria-expanded="true"] {
-  color: var(--brand-orange);
 }
 
 .rest-timer-toggle svg {
@@ -4805,7 +4573,6 @@ body.camera-open {
 :is(#appScreen, #adminScreen) .member-refresh-button:focus-visible,
 #appScreen #logoutButton:focus-visible,
 #adminScreen #adminLogoutButton:focus-visible,
-.member-inline-timer:focus-visible,
 .routine-pattern-tab:focus-visible,
 .routine-pattern-panel:focus-visible,
 .routine-component-summary summary:focus-visible {
@@ -4851,14 +4618,6 @@ body.camera-open {
   padding: 22px 20px 20px;
 }
 
-.admin-app-eyebrow {
-  margin: 0 0 6px;
-  color: #657087;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
 .admin-app-hero h1 {
   margin: 0 0 8px;
   color: var(--brand-orange);
@@ -4866,14 +4625,6 @@ body.camera-open {
   font-weight: 800;
   line-height: 1.35;
   letter-spacing: -0.8px;
-  word-break: keep-all;
-}
-
-.admin-app-intro {
-  margin: 0;
-  color: #657087;
-  font-size: 13px;
-  line-height: 1.6;
   word-break: keep-all;
 }
 
@@ -5332,14 +5083,6 @@ body.naver-shortcut-guide-open { overflow: hidden; }
   color: var(--brand-orange);
 }
 
-.routine-weight-save-hint {
-  margin: 0 0 10px;
-  color: #444444;
-  font-size: 13px;
-  line-height: 1.5;
-  word-break: keep-all;
-}
-
 .routine-weight-toolbar-actions button:disabled {
   opacity: 0.6;
   cursor: wait;
@@ -5423,7 +5166,6 @@ textarea.routine-weight-cell {
   outline-offset: 1px;
 }
 
-.routine-weight-scroll-hint,
 .routine-weight-status {
   margin: 8px 0 0;
   color: #64748b;
@@ -5448,7 +5190,6 @@ textarea.routine-weight-cell {
   overflow-wrap: anywhere;
   line-height: 1.5;
 }
-
 
 /* v79: 관리자 루틴 신청 알림 설정 */
 .admin-routine-alerts {
@@ -5500,7 +5241,6 @@ textarea.routine-weight-cell {
 }
 #adminScreen .admin-routine-alert-actions button:disabled { opacity: 0.6; cursor: wait; }
 #adminScreen .admin-routine-alert-status { margin: 10px 0 0; color: #864212; font-size: 13px; line-height: 1.5; }
-#adminScreen .admin-routine-alert-help { margin: 6px 0 0; color: #697386; font-size: 12px; line-height: 1.6; }
 
 /* v81: 로그인 전 체험 화면 */
 .guest-demo-entry { margin: 20px 0; }
@@ -5565,29 +5305,17 @@ textarea.routine-weight-cell {
 .guest-demo-eyebrow { margin: 0 0 10px; color: #a74b12; font-size: 12px; font-weight: 700; }
 #guestDemoTitle { margin: 0; color: #17233e; font-size: 27px; line-height: 1.35; letter-spacing: -1px; }
 .guest-demo-hero > p:not(.guest-demo-eyebrow) { margin: 14px 0 0; color: #657087; font-size: 14px; line-height: 1.7; word-break: keep-all; }
-.guest-demo-jumps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-.guest-demo-jumps button {
-  width: auto;
-  min-height: 40px;
-  margin: 0;
-  padding: 8px 10px;
-  border: 1px solid #ebd8c7;
-  border-radius: 20px;
-  background: #fff;
-  color: #864212;
-  font-size: 12px;
-  font-weight: 700;
-}
+
 .guest-demo-section { margin: 14px; padding: 20px 16px; border-radius: 14px; background: #fff; }
 .guest-demo-step { margin: 0 0 8px; color: #b44f0b; font-size: 12px; font-weight: 800; }
 .guest-demo-section h3 { margin: 0; font-size: 18px; line-height: 1.5; word-break: keep-all; }
 .guest-demo-description { margin: 8px 0 16px; color: #657087; font-size: 13px; line-height: 1.7; word-break: keep-all; }
-.guest-demo-sample-note { margin: 0 0 14px; padding: 10px; border-radius: 8px; background: #f3f5f8; color: #657087; font-size: 12px; line-height: 1.6; }
+
 #guestDemoDialog .routine-component-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 #guestDemoDialog .routine-weight-button { grid-column: auto; grid-row: auto; }
 #guestDemoDialog .routine-weight-panel { padding: 10px; }
 #guestDemoDialog .routine-pattern-caption { margin-top: 12px; }
-.guest-demo-record-note { margin: 14px 0 0; color: #657087; font-size: 12px; line-height: 1.6; }
+
 .guest-demo-polaroid { max-width: 340px; margin: 20px auto 4px; transform: rotate(-2deg); }
 .guest-demo-polaroid .workout-record-photo { height: 220px; object-fit: contain; margin-bottom: 0; background: #fff; }
 .guest-demo-capture-example .workout-record-photo { height: auto; }
@@ -5604,7 +5332,6 @@ textarea.routine-weight-cell {
   .guest-demo-section { margin: 10px; padding: 18px 12px; }
   #guestDemoDialog .routine-component-actions button { font-size: 12px; }
 }
-
 
 /* 회원 커뮤니티의 미확인 소식·답변 */
 .member-community-badge,
@@ -5732,25 +5459,6 @@ textarea.routine-weight-cell {
   border-color: var(--brand-orange);
 }
 
-/* 아이콘 때문에 오른쪽 도구 열이 넓어지지 않도록 좌우 여백을 조정합니다. */
-#appScreen #memberRoutineComponents .routine-component-card-tools .exercise-replacement-change {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding-right: 2px;
-  padding-left: 2px;
-}
-
-#appScreen #memberRoutineComponents .routine-component-dose-row .exercise-dose-edit {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding-right: 3px;
-  padding-left: 3px;
-}
-
 #appScreen #memberRoutineComponents :is(.exercise-dose-edit, .exercise-replacement-change)::before {
   content: "";
   display: block;
@@ -5796,7 +5504,6 @@ textarea.routine-weight-cell {
   margin: auto;
   object-fit: contain;
 }
-
 
 /* v184: 가입 전 미리보기도 회원 카드의 공통 디자인을 사용합니다. */
 #guestDemoRoutineCards {
@@ -5848,7 +5555,6 @@ textarea.routine-weight-cell {
   height: 8px;
 }
 
-
 /* v187: 가입 전 미리보기의 지정 안내 문구만 20% 확대합니다. */
 #guestDemoDialog .guest-demo-hero > p:not(.guest-demo-eyebrow) {
   font-size: 16.8px;
@@ -5872,7 +5578,6 @@ textarea.routine-weight-cell {
   line-height: 1.4;
   text-align: right;
 }
-
 
 /* v189: 관리자에게만 표시하는 회원 현황 */
 #adminScreen .admin-member-statistics {
@@ -5969,7 +5674,6 @@ textarea.routine-weight-cell {
   #adminScreen .admin-page-sound-settings .admin-routine-alert-actions button { padding-left: 6px; padding-right: 6px; font-size: 11px; }
 }
 
-
 /* v196: 새 루틴 신청·회원 문의 현황 및 대기 건수 높이 50% 확대 */
 #adminScreen .admin-routine-alerts {
   padding-top: 11px;
@@ -5980,7 +5684,6 @@ textarea.routine-weight-cell {
   align-items: center;
   min-height: 27px;
 }
-
 
 /* v197: 관리자 문의의 답변 전송과 상태 완료 처리를 구분합니다. */
 #adminScreen .admin-inquiry-reply-actions { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -5997,7 +5700,6 @@ textarea.routine-weight-cell {
   margin-left: auto;
   margin-right: 0;
 }
-
 
 /* v200: 회원·관리자 문의를 내용 길이에 맞는 작은 말풍선으로 표시합니다. */
 :is(#appScreen, #adminScreen) .member-inquiry-message-list { gap: 6px; }
@@ -6017,7 +5719,6 @@ textarea.routine-weight-cell {
 :is(#appScreen, #adminScreen) .inquiry-chat-day::after { content: ""; height: 1px; flex: 1; background: #dfe5ed; }
 :is(#appScreen, #adminScreen) .inquiry-chat-day > span { flex-shrink: 0; }
 
-
 /* v202: 관리자 전용 전체 문의 검색 */
 #adminScreen .admin-inquiry-search { margin: 0 0 12px; }
 #adminScreen .admin-inquiry-search-label { display: block; margin-bottom: 6px; color: #596174; font-size: 13px; font-weight: 700; }
@@ -6027,7 +5728,6 @@ textarea.routine-weight-cell {
 #adminScreen .admin-inquiry-search-row :focus-visible { outline: 2px solid #ff6b00; outline-offset: 2px; }
 #adminScreen .admin-inquiry-search-status { margin: 6px 0 0; color: #657087; font-size: 12px; }
 #adminScreen .admin-inquiry-search-status:empty, #adminInquiryFilters[hidden], #adminInquirySearchClear[hidden] { display: none; }
-
 
 /* v216: 루틴 제목·배정일·구분과 안내 블록 대비만 조정합니다. */
 #memberWorkoutTitle.is-personalized { font-size: 19px; word-break: keep-all; overflow-wrap: anywhere; }
