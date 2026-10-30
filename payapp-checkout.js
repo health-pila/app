@@ -55,7 +55,23 @@
   const money = value => value.toLocaleString('ko-KR') + '원';
   let client = null, userId = '', generation = 0, busy = false, checking = false, current = null;
   let editing = false, choiceBlocked = false;
-  let pending = null, popup = null, timer = null, pollCount = 0, focusReturn = null, showServices = null;
+  let pending = null, popup = null, timer = null, pollCount = 0, focusReturn = null, restorePage = null;
+  let originTab = null, returning = false;
+  const TAB_PANELS = Object.freeze({routine:'routineTabPanel',workoutLog:'workoutLogTabPanel',services:'memberServicesTabPanel',community:'communityTabPanel'});
+  function captureOrigin(chosen) {
+    return Object.keys(TAB_PANELS).find(tab => byId(TAB_PANELS[tab])?.hidden === false) || (chosen.cartOnly ? 'routine' : 'services');
+  }
+  function restoreOrigin(order) {
+    if (!returning) return;
+    // 호출자는 서버 응답의 주문/상품/금액을 검증한 뒤에만 이 함수를 실행합니다.
+    returning = false;
+    const actual = productByCode(order.product_code) || PRODUCTS.find(item => item.name === order.product_name);
+    if (!actual || (wantedProduct && wantedProduct.code !== actual.code)) return;
+    const context = pending?.returnContext;
+    const saved = context && context.orderId === order.id && context.productCode === actual.code && Object.hasOwn(TAB_PANELS, context.tab);
+    originTab = saved ? context.tab : actual.cartOnly ? 'routine' : 'services';
+    restorePage?.(originTab);
+  }
   const key = () => `centerPayapp:v1:${userId}`;
   const live = token => token === generation && client && userId;
   const active = () => userId && !byId('appScreen')?.hidden;
@@ -224,10 +240,12 @@
     const token = generation; checking = true; render();
     try {
       const order = await api({ action: 'status', ...(pending.orderId ? { order_id: pending.orderId } : { request_id: pending.requestId }) });
-      if (!live(token)) return; displayOrder(order, true);
+      if (!live(token)) return;
+      readOrder(order); restoreOrigin(order); displayOrder(order, true);
     } catch (error) {
       if (!live(token)) return;
       if (error.code === 'ORDER_NOT_FOUND') {
+        returning = false;
         pending = null; savePending(); current = null; editing = false; choiceBlocked = false;
         if (wantedProduct) product = wantedProduct;
         clothing.checked = false; locker.checked = false; phone.value = '';
@@ -240,6 +258,7 @@
     if (!active()) return;
     focusReturn = document.activeElement; pollCount = 0;
     const chosen = productByCode(code);
+    if (chosen) originTab = captureOrigin(chosen);
     if (chosen) wantedProduct = chosen;
     if ((chosen && ['paid','cancelled','partial_refund'].includes(current?.payment_state)) || current?.payment_state === 'cancelled' ||
       (current?.request_status === 'failed' && !['paid','partial_refund'].includes(current.payment_state))) {
@@ -260,6 +279,10 @@
   }
   function navigate(payurl) {
     const url = safeUrl(payurl); if (!url) throw new Error('BAD_URL');
+    if (pending?.orderId && current?.id === pending.orderId) {
+      pending.returnContext = {tab:originTab || (product.cartOnly ? 'routine' : 'services'),orderId:pending.orderId,productCode:current.product_code};
+      savePending();
+    }
     if (popup && !popup.closed) { try { popup.location.replace(url); return; } catch (_) {} }
     // 팝업이 차단되면 같은 창을 사용합니다. 이때도 회원별 요청 ID를 먼저 보관합니다.
     savePending(); window.location.assign(url);
@@ -333,21 +356,21 @@
   function reset() {
     generation++; stopPolling();
     try { if (popup && !popup.closed) popup.close(); } catch (_) {}
-    popup = null; close(); client = null; userId = ''; showServices = null;
+    popup = null; close(); client = null; userId = ''; restorePage = null; originTab = null; returning = false;
     product = PRODUCTS[0]; wantedProduct = null;
     ptSelection = []; wantedPT = null; paidNotices.clear();
     busy = false; checking = false; pending = null; current = null; editing = false; choiceBlocked = false; clothing.checked = false; locker.checked = false; phone.value = ''; phone.setCustomValidity(''); status(''); render();
   }
-  function start(nextClient, nextUserId, openServices) {
-    if (client === nextClient && userId === String(nextUserId)) { showServices = openServices; render(); return; }
-    reset(); client = nextClient; userId = String(nextUserId); showServices = openServices;
+  function start(nextClient, nextUserId, openOrigin) {
+    if (client === nextClient && userId === String(nextUserId)) { restorePage = openOrigin; render(); return; }
+    reset(); client = nextClient; userId = String(nextUserId); restorePage = openOrigin;
     pending = readPending(); product = productByCode(pending?.productCode) || PRODUCTS[0];
     if (product.cartOnly) { try { ptSelection = validatePT(pending.ptExercises); } catch (_) { ptSelection = []; } }
     const url = new URL(location.href), returned = url.searchParams.get('payapp_return');
     if (UUID.test(returned || '')) {
       if (pending?.orderId !== returned) pending = { requestId: crypto.randomUUID(), orderId: returned };
       url.searchParams.delete('payapp_return'); history.replaceState(history.state, '', url.href);
-      showServices?.(); open();
+      returning = true; open();
     }
     render();
   }
@@ -367,14 +390,14 @@
   window.addEventListener('message', event => {
     if (event.origin !== location.origin || event.data?.type !== 'center-payapp-return' || event.data.orderId !== pending?.orderId || !active()) return;
     if (popup && event.source !== popup) return;
-    showServices?.(); open();
+    returning = true; open();
   });
   // 결제 제공자가 opener 연결을 끊더라도 같은 출처의 원래 창에 복귀를 알립니다.
   let returnChannel = null;
   try { returnChannel = new BroadcastChannel('center-payapp-return:v1'); } catch (_) {}
   if (returnChannel) returnChannel.onmessage = event => {
     if (event.data?.type !== 'return' || event.data.orderId !== pending?.orderId || !active()) return;
-    showServices?.(); open();
+    returning = true; open();
     returnChannel.postMessage({ type: 'received', orderId: pending.orderId });
   };
   window.addEventListener('focus', () => { if (dialog.open) { pollCount = 0; void check(); } });

@@ -4649,7 +4649,7 @@ function renderMemberAccountEmail(email = "") {
       if (screen.hidden) closeMenu();
     }).observe(screen, { attributes: true, attributeFilter: ["hidden"] });
   }
-  connectAppMenu("member", appScreen, logoutButton);
+  connectAppMenu("member", appScreen, document.querySelector("#memberInfoButton"));
   connectAppMenu("admin", adminScreen, document.querySelector("#adminLogoutButton"));
 })();
 const refreshLoginButton = document.querySelector("#refreshLoginButton");
@@ -9129,7 +9129,10 @@ async function showWorkoutApp(userId, displayName = "") {
   resetWorkoutCalendar();
 
   window.AdminPayments?.reset();
-  window.PayAppCheckout?.start(supabaseClient, userId, () => showMemberTab("services"));
+  window.PayAppCheckout?.start(supabaseClient, userId, tab => {
+    if (!appScreen.hidden && memberRoutineIdentity.userId === userId && memberTabPanels[tab]?.hidden) showMemberTab(tab);
+  });
+  window.MemberAccount?.start(supabaseClient, userId, { logout: handleLogout, refreshInquiries: loadMemberInquiries });
 
   memberInquiryVisibleCount =
     MEMBER_INQUIRY_PAGE_SIZE;
@@ -9743,6 +9746,7 @@ async function showAdminApp(userId) {
   appScreen.hidden = true;
   adminScreen.hidden = false;
   window.PayAppCheckout?.reset();
+  window.MemberAccount?.reset();
   resetAdminMemberStatistics();
   updateAdminRoutineAlerts("start", userId);
 
@@ -10803,6 +10807,7 @@ async function handleLogout() {
     window.MemberCardioPrograms?.reset();
     window.StretchingVideos?.reset();
     window.PayAppCheckout?.reset();
+    window.MemberAccount?.reset();
     window.AdminPayments?.reset();
     window.MemberExerciseReplacements?.reset();
     window.ExerciseContentSync?.stop();

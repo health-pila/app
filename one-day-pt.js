@@ -141,7 +141,6 @@
   }
   async function loadMember() {
     if (role !== "member" || submitting) return;
-    void loadPayments();
     const ticket = generation, seq = ++memberSequence;
     memberLoading = true; renderCart();
     $("oneDayPtHistoryMessage").textContent = "신청 내역을 확인하고 있어요…";
@@ -169,35 +168,6 @@
     if (!window.PayAppCheckout?.openPT(exercises)) {
       $("oneDayPtSubmitMessage").textContent = "결제창을 준비하지 못했어요. 잠시 후 다시 눌러 주세요.";
     } else $("oneDayPtSubmitMessage").textContent = "";
-  }
-  async function loadPayments() {
-    if (role !== "member") return;
-    const ticket = generation, seq = ++paymentSequence, owner = userId, db = client;
-    $("oneDayPtPaymentMessage").textContent = "결제 내역을 확인하고 있어요…";
-    try {
-      const auth = await db.auth.getUser();
-      if (!current(ticket, "member") || seq !== paymentSequence) return;
-      if (auth.error || auth.data?.user?.id !== owner) throw new Error();
-      const { data, error } = await db.functions.invoke("payapp-checkout", { body: { action: "pt_history", expected_user_id: owner } });
-      if (!current(ticket, "member") || seq !== paymentSequence) return;
-      if (error || !data?.ok || !Array.isArray(data.entries)) throw new Error();
-      paymentRows = data.entries;
-      const list = $("oneDayPtPaymentList"); list.replaceChildren();
-      for (const row of paymentRows) {
-        if (row.product_code !== "one-day-pt" || row.amount !== 33000 || !["paid","cancelled","partial_refund"].includes(row.payment_state) || !Array.isArray(row.pt_exercises)) continue;
-        const card = node("article", "one-day-pt-request-card");
-        const labels = { paid: "결제 완료", cancelled: "취소", partial_refund: "일부 취소" };
-        card.append(node("strong", "", labels[row.payment_state] + " · 33,000원"));
-        const date = new Date(row.created_at);
-        card.append(node("p", "one-day-pt-message", Number.isNaN(date.getTime()) ? "" : date.toLocaleString("ko-KR")));
-        const selected = node("ol", "one-day-pt-exercises");
-        for (const item of row.pt_exercises.slice(0, 5)) selected.append(node("li", "", String(item.name || "")));
-        card.append(selected); list.append(card);
-      }
-      $("oneDayPtPaymentMessage").textContent = list.childElementCount ? "" : "아직 결제한 내역이 없어요.";
-    } catch (_) {
-      if (current(ticket, "member") && seq === paymentSequence) $("oneDayPtPaymentMessage").textContent = "결제 내역을 불러오지 못했어요. 새로고침 후 다시 확인해 주세요.";
-    }
   }
   function renderAdmin() {
     $("adminOneDayPtList").replaceChildren();
@@ -309,7 +279,6 @@
   }
   function reset() {
     generation++; memberSequence++; adminSequence++; adminAlertSequence++; paymentSequence++; paymentRows = [];
-    $("oneDayPtPaymentList").replaceChildren(); $("oneDayPtPaymentMessage").textContent = "";
     clearTimeout(refreshTimer); clearTimeout(feedbackTimer); clearTimeout(alertPollTimer);
     alertPollTimer = null;
     if (channel && client) Promise.resolve(client.removeChannel(channel)).catch(() => { });
@@ -381,7 +350,6 @@
     const selected = cart.map(id => ({ exerciseId: id, name: resolveExercise(id)?.name }));
     if (JSON.stringify(selected) === JSON.stringify(paid.exercises)) { cart = []; requestId = ""; saveCart(); renderCart(); }
     $("oneDayPtSubmitMessage").textContent = "결제가 완료됐어요. 센터에서 일정 조율을 위한 문자를 드립니다.";
-    void loadPayments();
   });
   window.OneDayPT = Object.freeze({ showMember, showAdmin, reset, createAddButton });
 })();
