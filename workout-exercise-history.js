@@ -1,4 +1,4 @@
-/* 같은 운동의 자동 저장 기록만 펼칩니다. 기존 사진·메모·회원 저장 데이터는 수정하지 않습니다. */
+/* 같은 운동의 자동 저장·직접 입력 기록을 펼칩니다. 기존 사진·메모·회원 저장 데이터는 수정하지 않습니다. */
 (() => {
   "use strict";
   const uuid = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
@@ -34,46 +34,59 @@
     return parts.length === 2 && parts[0] === userId &&
       (typedFile.test(parts[1]) || legacyFile.test(parts[1]));
   }
-  function matchingRecords(record, records, userId) {
-    const source = identify(record, userId);
-    if (!source) return { rows: [], ambiguous: false };
-    const candidates = records.map(row => ({ row, exercise: identify(row, userId) })).filter(item => item.exercise);
+  // 한글 음절을 분해해 중성 ㅐ/ㅔ만 통일합니다. 표시 이름과 다른 모음은 변경하지 않습니다.
+  const normalizedName = value => String(value || '').normalize('NFD')
+    .replace(/\u1162/gu, '\u1166').replace(/\u3150/gu, '\u3154')
+    .replace(/\s+/gu, '').normalize('NFC');
+  function identities(record, userId) {
+    if (!record || (record.user_id && record.user_id !== userId)) return [];
+    const photo = identify(record, userId);
+    if (photo) return [{ exercise: photo, index: null }];
+    if (record.photo_path !== null) return [];
+    return (window.WorkoutSetRecords?.clean(record.set_records) || []).map((e,index) => ({exercise:{id:'',name:e.name}, index}));
+  }
+  function matchingRecords(record, records, userId, exerciseIndex) {
+    const source = identities(record, userId).find(item => item.index === (exerciseIndex ?? null))?.exercise;
+    if (!source) return {rows:[],ambiguous:false};
+    const candidates = records.flatMap(row => identities(row,userId).map(item => ({row,...item})));
     const names = new Map();
     function remember(id, name) {
-      if (!id || !name) return;
-      const key = name.normalize("NFC").trim();
-      if (!names.has(key)) names.set(key, new Set());
+      const key = normalizedName(name);
+      if (!id || !key) return;
+      if (!names.has(key)) names.set(key,new Set());
       names.get(key).add(id);
     }
-    (window.ExerciseDB?.getActiveExercises() || []).forEach(exercise => remember(exercise.exerciseId, exercise.name));
+    (window.ExerciseDB?.getActiveExercises() || []).forEach(e => remember(e.exerciseId,e.name));
     if (window.MemberCustomExercises?.getUserId?.() === userId) {
-      (window.MemberCustomExercises.getExercises?.() || []).forEach(exercise => remember(exercise.exerciseId, exercise.name));
+      (window.MemberCustomExercises.getExercises?.() || []).forEach(e => remember(e.exerciseId,e.name));
     }
-    candidates.forEach(item => remember(item.exercise.id, item.exercise.name));
-    remember(source.id, source.name);
-    const identities = name => names.get(name) || new Set();
+    candidates.forEach(item => remember(item.exercise.id,item.exercise.name));
+    remember(source.id,source.name);
     function key(exercise) {
-      if (exercise.id) return "id:" + exercise.id;
-      const ids = identities(exercise.name);
-      if (ids.size > 1) return null; // 옛 이름만으로 구분할 수 없는 종목을 임의로 합치지 않습니다.
-      return ids.size === 1 ? "id:" + [...ids][0] : "name:" + exercise.name;
+      if (exercise.id) return 'id:'+exercise.id;
+      const name=normalizedName(exercise.name),ids=names.get(name)||new Set();
+      if(ids.size>1)return null;
+      return ids.size===1?'id:'+([...ids][0]):'name:'+name;
     }
-    const ownKey = key(source), seen = new Set([record.id]);
-    const rows = ownKey ? candidates.filter(item => {
-      if (seen.has(item.row.id) || key(item.exercise) !== ownKey) return false;
-      seen.add(item.row.id); return true;
-    }).map(item => item.row) : [];
+    const ownKey=key(source), found=new Map();
+    if(ownKey) candidates.forEach(item => {
+      if(String(item.row.id)===String(record.id)||key(item.exercise)!==ownKey)return;
+      if(item.index===null) {if(!found.has(item.row.id))found.set(item.row.id,item.row);return;}
+      if(!found.has(item.row.id))found.set(item.row.id,{...item.row,set_records:[]});
+      found.get(item.row.id).set_records.push(item.row.set_records[item.index]);
+    });
+    const rows=[...found.values()];
     const timestamp = value => Number.isFinite(Date.parse(value)) ? Date.parse(value) : 0;
-    rows.sort((a, b) => timestamp(b.taken_at) - timestamp(a.taken_at) || timestamp(b.created_at) - timestamp(a.created_at) || String(b.id).localeCompare(String(a.id)));
-    return { rows, ambiguous: ownKey === null };
+    rows.sort((a,b)=>timestamp(b.taken_at)-timestamp(a.taken_at)||timestamp(b.created_at)-timestamp(a.created_at)||String(b.id).localeCompare(String(a.id)));
+    return {rows,ambiguous:ownKey===null};
   }
   function node(tag, className, text) {
     const result = document.createElement(tag); result.className = className;
     if (text !== undefined) result.textContent = text;
     return result;
   }
-  function createControl(record, context, actions) {
-    const identity = identify(record, context.userId);
+  function createControl(record, context, actions, exerciseIndex) {
+    const identity = identities(record, context.userId).find(item => item.index === (exerciseIndex ?? null));
     if (!identity) return null;
     const root = node("section", "workout-exercise-history");
     const toggle = node("button", "workout-exercise-history-toggle", "이 운동의 기록 모아보기");
@@ -102,8 +115,10 @@
         const row = rows[count], item = node("article", "workout-exercise-history-item");
         const date = node("time", "workout-exercise-history-date", "운동 날짜: " + context.formatDay(row.taken_at));
         date.dateTime = row.taken_at;
-        item.append(date, context.createPhoto(row));
-        if (row.caption) item.append(node("p", "workout-exercise-history-caption", row.caption));
+        item.append(date);
+        const tables = row.photo_path === null ? window.WorkoutSetRecords?.render(row.set_records) : null;
+        if (tables) item.append(tables); else item.append(context.createPhoto(row));
+        if (!tables && row.caption) item.append(node("p", "workout-exercise-history-caption", row.caption));
         list.append(item);
       }
       more.hidden = count >= rows.length;
@@ -115,7 +130,7 @@
       try {
         const records = await context.loadRecords();
         if (!current()) return;
-        const result = matchingRecords(record, records, context.userId);
+        const result = matchingRecords(record, records, context.userId, exerciseIndex);
         rows = result.rows;
         status.textContent = result.ambiguous ? "운동명이 같은 기록이 있어 이전 기록의 운동을 정확히 구분할 수 없어요."
           : rows.length ? "같은 운동의 다른 기록 " + rows.length + "개"

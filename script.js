@@ -3158,13 +3158,14 @@ function createWorkoutExerciseHistoryContext() {
         const { data, error } = await supabaseClient.auth.getUser();
         if (error || data?.user?.id !== ownerId || !isCurrent()) throw new Error("로그인 상태가 변경됐어요.");
         const result = new Map();
-        // 일반 사진·텍스트 기록은 조회하지 않고 본인의 자동 저장 기록만 읽습니다.
+        // 본인의 자동 저장 사진과 직접 입력한 세트 기록만 읽습니다.
         // 서버의 기본 행 수 제한 때문에 오래된 기록이 빠지지 않도록 나눠 읽습니다.
         for (let offset = 0; ; offset += 200) {
           if (!isCurrent()) throw new Error("로그인 상태가 변경됐어요.");
           const response = await supabaseClient.from("workout_records")
-            .select("id, photo_path, caption, taken_at, created_at")
-            .eq("user_id", ownerId).like("photo_path", ownerId + "/weight-%")
+            .select("id, photo_path, caption, taken_at, created_at, set_records, user_id")
+            .eq("user_id", ownerId)
+            .or(`photo_path.like.${ownerId}/weight-%,set_records.not.is.null`)
             .order("taken_at", { ascending: false }).order("id", { ascending: false })
             .range(offset, offset + 199);
           if (!isCurrent()) throw new Error("로그인 상태가 변경됐어요.");
@@ -3191,7 +3192,7 @@ function renderWorkoutRecords() {
   const recordsToShow = workoutRecords.filter(record => {
     if (selectedWorkoutDate && getWorkoutRecordDateKey(record.taken_at) !== selectedWorkoutDate) return false;
     if (workoutRecordTypeFilter === "text") return record.photo_path === null;
-    if (workoutRecordTypeFilter === "sets") return window.WorkoutExerciseHistory.isCapturePhoto(record, workoutRecordsUserId);
+    if (workoutRecordTypeFilter === "sets") return window.WorkoutSetRecords?.has(record) || window.WorkoutExerciseHistory.isCapturePhoto(record, workoutRecordsUserId);
     if (workoutRecordTypeFilter === "photo") {
       return typeof record.photo_path === "string" && record.photo_path.length > 0 &&
         !window.WorkoutExerciseHistory.isCapturePhoto(record, workoutRecordsUserId);
@@ -3220,6 +3221,11 @@ function renderWorkoutRecords() {
       "workout-record-card";
 
     const textOnly = record.photo_path === null;
+    const savedSets = window.WorkoutSetRecords?.render(record.set_records, (card, index) => {
+      const history = window.WorkoutExerciseHistory?.createControl(record, exerciseHistoryContext, null, index);
+      if (history) card.append(history);
+    });
+    recordCard.classList.toggle("has-set-tables", Boolean(savedSets));
     const recordPhotoArea = textOnly ? null : createWorkoutRecordPhoto(record, recordIndex === 0);
     recordCard.classList.toggle("is-text-only", textOnly);
 
@@ -3333,6 +3339,7 @@ function renderWorkoutRecords() {
     editButton.addEventListener(
       "click",
       function () {
+        if (savedSets) { window.WorkoutTextRecords?.edit(record); return; }
         captionEditor.value =
           record.caption || "";
 
@@ -3404,6 +3411,11 @@ function renderWorkoutRecords() {
       recordCard.append(recordMedia);
       recordDates.hidden = recordDates.childElementCount === 0;
     } else if (recordPhotoArea) recordCard.append(recordPhotoArea);
+    if (savedSets) {
+      savedSets.append(recordDate);
+      recordCard.append(savedSets);
+      recordDates.hidden = recordDates.childElementCount === 0;
+    }
     recordCard.append(
       recordCaption,
       captionEditor,
@@ -3462,7 +3474,7 @@ async function loadWorkoutRecords(userId) {
   for (let offset = 0; ; offset += 200) {
     const result = await supabaseClient
       .from("workout_records")
-      .select("id, photo_path, caption, taken_at, created_at")
+      .select("id, photo_path, caption, taken_at, created_at, set_records")
       .eq("user_id", userId)
       .order("taken_at", { ascending: false })
       .order("id", { ascending: false })
