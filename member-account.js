@@ -165,7 +165,6 @@
     }).catch(() => {});
   }
   $('memberInfoButton').addEventListener('click', () => open());
-  $('memberPaymentHistoryButton').addEventListener('click', () => open('payments'));
   dialog.querySelectorAll('[data-account-open]').forEach(b => b.addEventListener('click', () => renderPage(b.dataset.accountOpen)));
   $('accountClose').addEventListener('click', () => close());
   $('accountBack').addEventListener('click', () => renderPage('home'));
