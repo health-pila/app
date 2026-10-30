@@ -2142,6 +2142,7 @@ function showMemberTab(tabName) {
   });
   window.StretchingVideos?.syncVisibility();
   updateMemberCommunityBadges("checkSoon");
+  window.AppUsage?.screen(tabName);
   if (tabName === "workoutLog") workoutCaptureBadge.markSeen();
 }
 
@@ -9135,6 +9136,8 @@ async function showWorkoutApp(userId, displayName = "") {
     if (!appScreen.hidden && memberRoutineIdentity.userId === userId && memberTabPanels[tab]?.hidden) showMemberTab(tab);
   });
   window.MemberAccount?.start(supabaseClient, userId, { logout: handleLogout, refreshInquiries: loadMemberInquiries });
+  window.AdminUsage?.reset();
+  window.AppUsage?.start(supabaseClient, userId);
 
   memberInquiryVisibleCount =
     MEMBER_INQUIRY_PAGE_SIZE;
@@ -9749,7 +9752,10 @@ async function showAdminApp(userId) {
   adminScreen.hidden = false;
   window.PayAppCheckout?.reset();
   window.MemberAccount?.reset();
+  window.AppUsage?.reset();
+  window.AdminUsage?.reset();
   resetAdminMemberStatistics();
+  window.AdminUsage?.start(supabaseClient, userId);
   updateAdminRoutineAlerts("start", userId);
 
   adminRoutineEditor.hidden = true;
@@ -10810,6 +10816,8 @@ async function handleLogout() {
     window.StretchingVideos?.reset();
     window.PayAppCheckout?.reset();
     window.MemberAccount?.reset();
+    window.AppUsage?.reset();
+    window.AdminUsage?.reset();
     window.AdminPayments?.reset();
     window.MemberExerciseReplacements?.reset();
     window.ExerciseContentSync?.stop();
