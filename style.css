@@ -6024,7 +6024,6 @@ textarea.routine-weight-cell {
 #adminScreen .admin-inquiry-search-row { display: flex; gap: 6px; align-items: stretch; }
 #adminScreen .admin-inquiry-search-row input { flex: 1 1 0; min-width: 0; width: 0; min-height: 44px; margin: 0; padding: 9px 10px; border: 1px solid #cfd8e6; border-radius: 10px; color: #17233e; background: #fff; font: inherit; font-size: 14px; }
 #adminScreen .admin-inquiry-search-row button { flex: 0 0 auto; width: auto; min-height: 44px; margin: 0; padding: 8px 10px; border: 1px solid #cfd8e6; border-radius: 10px; color: #596174; background: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
-#adminScreen .admin-inquiry-search-row button[type="submit"] { border-color: #ff6b00; background: #ff6b00; color: #fff; }
 #adminScreen .admin-inquiry-search-row :focus-visible { outline: 2px solid #ff6b00; outline-offset: 2px; }
 #adminScreen .admin-inquiry-search-status { margin: 6px 0 0; color: #657087; font-size: 12px; }
 #adminScreen .admin-inquiry-search-status:empty, #adminInquiryFilters[hidden], #adminInquirySearchClear[hidden] { display: none; }
