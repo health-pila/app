@@ -6181,3 +6181,18 @@ textarea.routine-weight-cell {
 .workout-exercise-history-item .workout-saved-exercise:last-child { margin-bottom:0; }
 .workout-exercise-history-item .workout-saved-exercise h3 { font-size:15px; }
 .workout-exercise-history-item .workout-saved-sets { min-width:0; }
+
+/* 시간·세트 입력 팝업의 표 크기를 운동 구성의 세트 입력 표와 맞춥니다. */
+.workout-text-dialog .workout-set-scroll { border:1px solid #dce2eb; border-radius:8px; }
+.workout-text-dialog .workout-set-table { width:424.8px; min-width:100%; border-collapse:separate; border-spacing:0; font-size:11px; background:#fff; }
+.workout-text-dialog .workout-set-table th,
+.workout-text-dialog .workout-set-table td { padding:3.6px; border:0; border-right:1px solid #dce2eb; border-bottom:1px solid #dce2eb; text-align:center; vertical-align:middle; }
+.workout-text-dialog .workout-set-table th { height:30.6px; }
+.workout-text-dialog .workout-set-table thead th { height:40.2px; }
+.workout-text-dialog .workout-set-table th:first-child { position:sticky; left:0; z-index:1; width:57.6px; }
+.workout-text-dialog .workout-set-table tr>:last-child { border-right:0; }
+.workout-text-dialog .workout-set-table tbody tr:last-child>* { border-bottom:0; }
+.workout-text-dialog .workout-set-table input[type=checkbox] { margin:0; }
+.workout-text-dialog .workout-set-table input:not([type=checkbox]),
+.workout-text-dialog .workout-set-table textarea { display:block; min-width:0; min-height:36px; margin:0; padding:5.4px 2.7px; border:1px solid #e2e8f0; border-radius:5px; font-size:14px; line-height:1.4; text-align:center; }
+.workout-text-dialog .workout-set-table textarea { min-height:55.8px; font-size:12px; text-align:left; }
