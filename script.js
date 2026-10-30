@@ -2949,6 +2949,7 @@ let workoutRecords = [];
 let workoutRecordTypeFilter = "all";
 const showPhotoWorkoutRecordsButton = document.querySelector("#showPhotoWorkoutRecordsButton");
 const showTextWorkoutRecordsButton = document.querySelector("#showTextWorkoutRecordsButton");
+const showSetWorkoutRecordsButton = document.querySelector("#showSetWorkoutRecordsButton");
 
 // 현재 기록을 조회하는 회원
 let workoutRecordsUserId = "";
@@ -3181,16 +3182,15 @@ function renderWorkoutRecords() {
   workoutRecordList.innerHTML = "";
   const exerciseHistoryContext = createWorkoutExerciseHistoryContext();
 
-  showAllWorkoutRecordsButton.hidden =
-    (!selectedWorkoutDate && workoutRecordTypeFilter === "all") ||
-    workoutRecords.length === 0;
-
+  showAllWorkoutRecordsButton.setAttribute("aria-pressed", String(workoutRecordTypeFilter === "all" && !selectedWorkoutDate));
   showPhotoWorkoutRecordsButton.setAttribute("aria-pressed", String(workoutRecordTypeFilter === "photo"));
   showTextWorkoutRecordsButton.setAttribute("aria-pressed", String(workoutRecordTypeFilter === "text"));
+  showSetWorkoutRecordsButton.setAttribute("aria-pressed", String(workoutRecordTypeFilter === "sets"));
 
   const recordsToShow = workoutRecords.filter(record => {
     if (selectedWorkoutDate && getWorkoutRecordDateKey(record.taken_at) !== selectedWorkoutDate) return false;
     if (workoutRecordTypeFilter === "text") return record.photo_path === null;
+    if (workoutRecordTypeFilter === "sets") return window.WorkoutExerciseHistory.isCapturePhoto(record, workoutRecordsUserId);
     if (workoutRecordTypeFilter === "photo") {
       return typeof record.photo_path === "string" && record.photo_path.length > 0 &&
         !window.WorkoutExerciseHistory.isCapturePhoto(record, workoutRecordsUserId);
@@ -3199,7 +3199,7 @@ function renderWorkoutRecords() {
   });
 
   if (recordsToShow.length === 0) {
-    const kind = workoutRecordTypeFilter === "photo" ? "사진 기록" : workoutRecordTypeFilter === "text" ? "운동 시간 기록" : "운동 기록";
+    const kind = workoutRecordTypeFilter === "photo" ? "사진 기록" : workoutRecordTypeFilter === "text" ? "운동 시간 기록" : workoutRecordTypeFilter === "sets" ? "세트별 기록" : "운동 기록";
     emptyWorkoutRecordMessage.textContent = selectedWorkoutDate
       ? `선택한 날짜에는 저장된 ${kind}이 없습니다.`
       : `아직 저장된 ${kind}이 없습니다.`;
@@ -3802,6 +3802,7 @@ showAllWorkoutRecordsButton.addEventListener(
   function () {
     selectedWorkoutDate = "";
     workoutRecordTypeFilter = "all";
+    shouldSelectLatestWorkoutDate = false;
 
     renderWorkoutCalendar();
     renderWorkoutRecords();
@@ -3817,6 +3818,7 @@ function toggleWorkoutRecordTypeFilter(type) {
 }
 showPhotoWorkoutRecordsButton.addEventListener("click", () => toggleWorkoutRecordTypeFilter("photo"));
 showTextWorkoutRecordsButton.addEventListener("click", () => toggleWorkoutRecordTypeFilter("text"));
+showSetWorkoutRecordsButton.addEventListener("click", () => toggleWorkoutRecordTypeFilter("sets"));
 
 // 로그인할 때 이번 달로 초기화
 function resetWorkoutCalendar() {
