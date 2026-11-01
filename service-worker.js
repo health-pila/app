@@ -1,9 +1,9 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "254";
+const APP_VERSION = "255";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 // Cache generation only: retire older cache entries that may include auth-related query URLs.
-// Keep APP_VERSION 254 so index.html and static asset versioned URLs remain unchanged.
+// Keep the auth-query cache guard across app updates.
 const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}-authquery1`;
 const APP_SHELL_URL = new URL("index.html", APP_SCOPE).href;
 

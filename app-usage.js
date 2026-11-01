@@ -4,7 +4,7 @@
   const app = document.getElementById('appScreen');
   const ids = {
     memberAssignedRoutineMenuButton:'menu_routine',memberCardioMenuButton:'menu_cardio',memberStretchingMenuButton:'menu_stretch',
-    openOneDayPtCart:'pt_cart',submitOneDayPt:'pt_checkout',routineRequestButton:'routine_request',
+    openOneDayPtCart:'pt_cart',submitOneDayPt:'pt_checkout',routineRequestButton:'routine_request',routineTutorialRequestButton:'routine_request',
     openWorkoutCameraButton:'photo_open',openWorkoutTextButton:'time_open',saveWorkoutRecordButton:'photo_save_click',
     showPhotoWorkoutRecordsButton:'filter_photo',showTextWorkoutRecordsButton:'filter_time',showSetWorkoutRecordsButton:'filter_sets',showAllWorkoutRecordsButton:'filter_all',
     previousWorkoutMonthButton:'calendar_month',nextWorkoutMonthButton:'calendar_month',restTimerToggle:'timer_open',restTimerStart:'timer_start',

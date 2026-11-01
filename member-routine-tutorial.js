@@ -21,7 +21,12 @@
 
   function render({ userId, captureWeightRecord, customization }) {
     const parsed = customization?.effective || window.RoutineComponents.parseRoutineJson(JSON.stringify(routine));
-    const root = window.RoutineComponents.renderRoutine(parsed, {
+    // 저장된 교체·추가 운동의 원본 슬롯은 유지하고, 레그 익스텐션 슬롯만 체험 목록에서 제외합니다.
+    // 서버의 공통 원본과 버전을 바꾸지 않아 기존 기록·개인 변경 내용이 다른 운동에 연결되지 않습니다.
+    const excludedOrders = new Set(exercises.filter(entry => entry.exerciseId === "EX005").map(entry => entry.order));
+    const displayRoutine = { ...parsed, days: parsed.days.map(day => ({ ...day,
+      exercises: day.exercises.filter(entry => !excludedOrders.has(entry.order)) })) };
+    const root = window.RoutineComponents.renderRoutine(displayRoutine, {
       layout: "tabs", userId, captureWeightRecord, exerciseReplacementContext: customization
       // 튜토리얼에는 oneDayPT 권한을 전달하지 않습니다.
     });
@@ -35,6 +40,9 @@
     panel.removeAttribute("aria-labelledby");
     panel.removeAttribute("tabindex");
     panel.setAttribute("aria-label", "튜토리얼 운동");
+    panel.querySelectorAll(".routine-component-number").forEach((number, index) => {
+      number.textContent = String(index + 1).padStart(2, "0");
+    });
     // 표시용 띄어쓰기만 적용합니다. 공식 DB·운동 ID·기록 연결은 EX016 그대로입니다.
     const legPress = root.querySelector('[data-exercise-id="EX016"] .routine-component-name');
     if (legPress) legPress.textContent = "시티드 레그 프레스";

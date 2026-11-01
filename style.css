@@ -4373,19 +4373,87 @@ body.camera-open {
 /* 회원 루틴은 선택한 패턴 버튼으로 구분하므로 반복 안내는 표시하지 않습니다. */
 #memberRoutineComponents .routine-pattern-caption { display: none; }
 
+/* 신청·배정 이력이 없는 회원의 첫 화면에만 적용합니다. */
+#routineTabPanel.is-unrequested:has(> #memberAssignedRoutinePanel:not([hidden])) { padding-top: 8px; }
+#routineTabPanel.is-unrequested:has(> #memberAssignedRoutinePanel:not([hidden])) > .member-routine-hero { display: none; }
+#routineTabPanel.is-unrequested:has(> #memberAssignedRoutinePanel:not([hidden])) > .member-routine-menu { margin-bottom: 12px; }
+.member-routine-application {
+  min-width: 0;
+  margin: 0 14px 16px;
+  padding: 14px;
+  border: 1px solid #dfe5ed;
+  border-radius: 20px;
+  background: #fff;
+  color: var(--brand-navy);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.member-routine-free-badge {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: #fff0e1;
+  color: #dc5900;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+.member-routine-application h2 {
+  margin: 7px 0 6px;
+  font-size: clamp(18px, 5.2vw, 23px);
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.7px;
+}
+.member-routine-application-description {
+  margin: 0 0 13px;
+  color: #5b687d;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+.member-routine-application .routine-request-button {
+  height: auto;
+  min-height: 48px;
+  margin: 0;
+  padding: 12px 8px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.member-routine-application-note {
+  margin: 8px 0 0;
+  color: #657087;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+}
+.is-unrequested .member-workout-heading { justify-content: flex-start; gap: 8px; margin-bottom: 6px; }
+.is-unrequested .member-workout-heading h3 { padding: 0; font-size: 20px; line-height: 1.5; }
+.member-routine-trial-count {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #dfe5ef;
+  color: #60708a;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
 .member-routine-tutorial-notice {
   margin: 0 2px 12px;
-  padding: 10px 12px;
-  border: 1px solid #e0e6ee;
-  border-radius: 10px;
-  background: #f8fafc;
-  color: #526078;
+  color: #5b687d;
   font-size: 13px;
+  font-weight: 600;
   line-height: 1.6;
   word-break: keep-all;
 }
 .member-routine-tutorial-notice p { margin: 0; }
-.member-routine-tutorial-notice p + p { margin-top: 4px; }
+@media (max-width: 360px) {
+  .member-routine-application { margin-right: 10px; margin-left: 10px; padding: 12px; }
+  .member-routine-application .routine-request-button { font-size: 15px; }
+  .is-unrequested .member-workout-heading h3 { font-size: 18px; }
+}
 #memberRoutineComponents.is-tutorial .routine-component-actions {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }

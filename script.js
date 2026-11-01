@@ -8149,6 +8149,8 @@ function clearRoutineRequestReturnFlag() {
 
 let routineRequestStatusLoadId = 0;
 const routineRequestButton = document.querySelector("#routineRequestButton");
+const routineTutorialRequestButton = document.querySelector("#routineTutorialRequestButton");
+const memberRoutineApplication = document.querySelector("#memberRoutineApplication");
 const routineRequestDialog = document.querySelector("#routineRequestDialog");
 const routineNewFormLink = document.querySelector("#routineNewFormLink");
 const submitRoutineChange = document.querySelector("#submitRoutineChange");
@@ -8156,6 +8158,7 @@ const routineRequestDialogMessage = document.querySelector("#routineRequestDialo
 const defaultRoutineRequestButtonText = routineRequestButton.textContent;
 let routineChangeState = { userId: null, generation: 0, activeId: undefined, pending: undefined, tutorialEligible: undefined, saving: false };
 routineNewFormLink.href = routineRequestButton.href;
+routineTutorialRequestButton.href = routineRequestButton.href;
 
 function resetRoutineChangeRequest(userId = null) {
   routineChangeState = { userId, generation: routineChangeState.generation + 1,
@@ -8169,16 +8172,25 @@ function resetRoutineChangeRequest(userId = null) {
 
 function syncRoutineChangeRequest() {
   const state = routineChangeState;
-  routineRequestButton.textContent = state.activeId === null && state.pending === false && state.tutorialEligible === true
+  const unrequested = state.activeId === null && state.pending === false && state.tutorialEligible === true;
+  routineRequestButton.textContent = unrequested
     ? "나에게 맞는 루틴으로 신청하기" : defaultRoutineRequestButtonText;
+  if (!unrequested) {
+    memberRoutineApplication.hidden = true;
+    memberTabPanels.routine.classList.remove("is-unrequested");
+  }
   submitRoutineChange.disabled = state.saving || !state.activeId || state.pending !== false;
   routineNewFormLink.setAttribute("aria-disabled", String(state.saving));
   if (!state.saving && state.pending === true) routineRequestDialogMessage.textContent = "이미 접수된 운동 구성 신청이 있어요. 새 신청서를 작성하면 변경된 내용을 추가로 알려줄 수 있어요.";
 }
 
-routineRequestButton.addEventListener("click", function (event) {
+function handleRoutineRequestClick(event) {
   const state = routineChangeState;
   if (!state.userId || appScreen.hidden) { event.preventDefault(); return; }
+  if (event.currentTarget === routineTutorialRequestButton &&
+    (state.activeId !== null || state.pending !== false || state.tutorialEligible !== true)) {
+    event.preventDefault(); return;
+  }
   // 처음 신청하는 회원은 기존 링크를 그대로 사용합니다.
   if (state.activeId === null) return;
   event.preventDefault();
@@ -8195,7 +8207,8 @@ routineRequestButton.addEventListener("click", function (event) {
   }
   syncRoutineChangeRequest();
   if (!routineRequestDialog.open) routineRequestDialog.showModal();
-});
+}
+[routineRequestButton, routineTutorialRequestButton].forEach(button => button.addEventListener("click", handleRoutineRequestClick));
 document.querySelector("#closeRoutineRequestDialog").addEventListener("click", () => routineRequestDialog.close());
 routineNewFormLink.addEventListener("click", function (event) {
   if (routineChangeState.saving) { event.preventDefault(); return; }
@@ -8367,9 +8380,13 @@ const memberWorkoutTitle = document.querySelector("#memberWorkoutTitle");
 const memberRoutinePlaceholder = document.querySelector("#memberRoutinePlaceholder");
 const memberOneDayPtEntry = document.querySelector("#memberOneDayPtEntry");
 const memberRoutineTutorialNotice = document.querySelector("#memberRoutineTutorialNotice");
+const memberRoutineTrialCount = document.querySelector("#memberRoutineTrialCount");
 const memberAssignedRoutineLabel = assignedRoutineName.closest(".member-assigned-routine");
 
 function clearMemberTutorialDecoration() {
+  memberRoutineApplication.hidden = true;
+  memberRoutineTrialCount.hidden = true;
+  memberTabPanels.routine.classList.remove("is-unrequested");
   memberRoutineTutorialNotice.hidden = true;
   memberAssignedRoutineLabel.hidden = false;
   memberRoutineComponents.classList.remove("is-tutorial");
@@ -8430,9 +8447,12 @@ async function syncMemberRoutineTutorial(state) {
   memberRoutineComponents.setAttribute("aria-label", "공통 튜토리얼 운동");
   memberRoutineComponents.hidden = false;
   memberRoutineTutorialNotice.hidden = false;
+  memberRoutineApplication.hidden = false;
+  memberRoutineTrialCount.hidden = false;
+  memberTabPanels.routine.classList.add("is-unrequested");
   memberAssignedRoutineLabel.hidden = true;
   memberWorkoutTitle.classList.remove("is-personalized");
-  memberWorkoutTitle.textContent = "튜토리얼 루틴";
+  memberWorkoutTitle.textContent = "먼저 체험해 보세요";
   memberRoutinePlaceholder.hidden = true;
   memberOneDayPtEntry.hidden = true;
   memberRoutineDisplayedUserId = state.userId;
