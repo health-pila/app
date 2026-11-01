@@ -1,0 +1,42 @@
+diff --git a/service-worker.js b/service-worker.js
+--- a/service-worker.js
++++ b/service-worker.js
+@@ -2,7 +2,9 @@
+ const APP_VERSION = "254";
+ const APP_SCOPE = new URL(self.registration.scope);
+ const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
+-const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}`;
++// Cache generation only: retire older cache entries that may include auth-related query URLs.
++// Keep APP_VERSION 254 so index.html and static asset versioned URLs remain unchanged.
++const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}-authquery1`;
+ const APP_SHELL_URL = new URL("index.html", APP_SCOPE).href;
+ 
+ const APP_FILES = [
+@@ -85,6 +87,16 @@
+   return url.origin === APP_SCOPE.origin && url.pathname.startsWith(APP_SCOPE.pathname);
+ }
+ 
++// Do not intercept query-bearing navigations (OAuth, password recovery and payment returns).
++// For other requests, only the app's own ?v=<current version> asset URLs are cacheable.
++function shouldBypassAppCache(request) {
++  const url = new URL(request.url);
++  if (!url.search) return false;
++  if (request.mode === "navigate") return true;
++  const params = [...url.searchParams.entries()];
++  return params.length !== 1 || params[0][0] !== "v" || params[0][1] !== APP_VERSION;
++}
++
+ self.addEventListener("install", (event) => {
+   event.waitUntil(
+     caches.open(CACHE_NAME)
+@@ -142,8 +154,8 @@
+ self.addEventListener("fetch", (event) => {
+   const request = event.request;
+ 
+-  // 외부 서비스, 다른 프로젝트, GET 이외의 요청은 처리하지 않습니다.
+-  if (request.method !== "GET" || !belongsToThisApp(request.url)) return;
++  // 외부 서비스, 다른 프로젝트, GET 이외 또는 인증/일회성 쿼리 URL은 캐시하지 않습니다.
++  if (request.method !== "GET" || !belongsToThisApp(request.url) || shouldBypassAppCache(request)) return;
+ 
+   let cacheWrite = Promise.resolve();
+   const responsePromise = (async () => {
