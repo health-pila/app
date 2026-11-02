@@ -28,6 +28,11 @@
   height: 48px;
 }
 
+/* N 이미지의 왼쪽 투명 여백(48px 중 15px)을 빼고 보이는 내용의 중심을 맞춥니다. */
+#naverLoginButton > img {
+  margin-inline-start: -15px;
+}
+
 .naver-auth-button:disabled {
   cursor: wait;
 }
