@@ -837,7 +837,7 @@
       alternativeExerciseIds: ["EX001","EX016","EX013"],
       difficulty: 4,
       cautionTags: ["무릎","허리","고관절"],
-      videoUrl: "",
+      videoUrl: "https://youtu.be/y47HdibFLxE",
       defaultGifUrl: "",
       enabled: true
     }

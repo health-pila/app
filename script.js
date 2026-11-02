@@ -2144,6 +2144,7 @@ function showMemberTab(tabName) {
   updateMemberCommunityBadges("checkSoon");
   window.AppUsage?.screen(tabName);
   if (tabName === "workoutLog") workoutCaptureBadge.markSeen();
+  window.CenterAttendance?.onTab();
 }
 
 // 하단 탭 버튼 클릭 기능
@@ -3779,6 +3780,7 @@ function renderWorkoutCalendar() {
 
     workoutCalendarDays.append(dateButton);
   }
+  window.CenterAttendance?.onCalendar(year, monthIndex, selectedWorkoutDate);
 }
 
 // 이전 달 보기
@@ -9118,6 +9120,7 @@ async function loadMemberRoutine(
 
 // 일반 회원 화면 표시
 async function showWorkoutApp(userId, displayName = "") {
+  window.CenterAttendance?.reset();
   memberRoutineIdentity = { userId, name: typeof displayName === "string" ? displayName.trim() : "" };
   memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
   window.ExerciseContentSync?.start(supabaseClient);
@@ -9162,6 +9165,8 @@ async function showWorkoutApp(userId, displayName = "") {
     "memberTabBeforeRefresh"
   );
   resetWorkoutCalendar();
+  window.CenterAttendance?.startMember(supabaseClient, userId);
+  window.CenterAttendance?.onCalendar(visibleWorkoutMonth.getFullYear(), visibleWorkoutMonth.getMonth(), selectedWorkoutDate);
 
   window.AdminPayments?.reset();
   window.PayAppCheckout?.start(supabaseClient, userId, tab => {
@@ -9766,6 +9771,7 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId) {
+  window.CenterAttendance?.startAdmin(supabaseClient, userId);
   memberRoutineIdentity = { userId: "", name: "" };
   memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
   resetAdminInquirySearch();
@@ -10065,6 +10071,7 @@ async function loadSelectedAdminMemberRoutine() {
   const requestId = ++adminRoutineLoadRequestId;
   window.RoutineComponents?.resetAdminPreview();
   const userId = adminMemberSelect.value;
+  window.CenterAttendance?.selectAdminMember(userId);
 
   const selectedOption =
     adminMemberSelect.options[
@@ -10842,6 +10849,7 @@ async function handleLogout() {
     memberRoutineIdentity = { userId: "", name: "" };
   memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
     window.OneDayPT.reset();
+    window.CenterAttendance?.reset();
     window.WorkoutTextRecords?.reset();
     workoutCaptureBadge.reset();
     window.MemberCardioPrograms?.reset();

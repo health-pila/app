@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "255";
+const APP_VERSION = "257";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 // Cache generation only: retire older cache entries that may include auth-related query URLs.
@@ -15,6 +15,8 @@ const APP_FILES = [
   `./app-usage.js?v=${APP_VERSION}`,
   `./admin-usage.js?v=${APP_VERSION}`,
   `./admin-usage.css?v=${APP_VERSION}`,
+  `./center-attendance.js?v=${APP_VERSION}`,
+  `./center-attendance.css?v=${APP_VERSION}`,
   `./member-account.js?v=${APP_VERSION}`,
   `./member-account.css?v=${APP_VERSION}`,
   "./reset-password.html",
