@@ -1,3 +1,4 @@
+window.LoginTiming?.ready();
 const SUPABASE_URL = "https://cithfqbzszgiqjifhrqy.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0mGHHS1HcRHh0Ttt8sZwtA_MBI22p1w";
 
@@ -9119,7 +9120,7 @@ async function loadMemberRoutine(
 }
 
 // 일반 회원 화면 표시
-async function showWorkoutApp(userId, displayName = "") {
+async function showWorkoutApp(userId, displayName = "", timingRun = null, screenRequestId = null, screenAuthRevision = null) {
   window.CenterAttendance?.reset();
   memberRoutineIdentity = { userId, name: typeof displayName === "string" ? displayName.trim() : "" };
   memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
@@ -9132,9 +9133,11 @@ async function showWorkoutApp(userId, displayName = "") {
   routineRequestStatusMessage.hidden = true;
   stopAdminMemberAutoRefresh();
   await stopCommunityRealtimeSubscription();
+  if (screenRequestId !== null && (screenRequestId !== loginScreenRequestId || screenAuthRevision !== loginAuthRevision)) return;
   loginScreen.hidden = true;
   adminScreen.hidden = true;
   appScreen.hidden = false;
+  window.LoginTiming?.finish(timingRun, "ready");
   window.MemberCustomExercises?.start(supabaseClient, userId);
   window.StretchingVideos?.startMember(supabaseClient, userId);
   window.MemberExerciseReplacements?.startMember(supabaseClient, userId, () => loadMemberRoutine(userId, true));
@@ -9770,7 +9773,7 @@ adminMemberSearch.addEventListener("input", function () {
 });
 
 // 관리자 화면 표시
-async function showAdminApp(userId) {
+async function showAdminApp(userId, timingRun = null, screenRequestId = null, screenAuthRevision = null) {
   window.CenterAttendance?.startAdmin(supabaseClient, userId);
   memberRoutineIdentity = { userId: "", name: "" };
   memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
@@ -9784,10 +9787,12 @@ async function showAdminApp(userId) {
   resetRoutineChangeRequest();
   stopAdminMemberAutoRefresh();
   await stopCommunityRealtimeSubscription();
+  if (screenRequestId !== null && (screenRequestId !== loginScreenRequestId || screenAuthRevision !== loginAuthRevision)) return;
   resetMemberCommunityPosts();
   loginScreen.hidden = true;
   appScreen.hidden = true;
   adminScreen.hidden = false;
+  window.LoginTiming?.finish(timingRun, "ready");
   window.PayAppCheckout?.reset();
   window.MemberAccount?.reset();
   window.AppUsage?.reset();
@@ -9821,44 +9826,67 @@ async function showAdminApp(userId) {
   ]);
 }
 
-// 현재 로그인한 계정의 역할에 따라 화면 선택
-async function showScreenForCurrentUser() {
+// Only a server-verified user plus a fresh role query may open an account screen.
+let loginScreenRequestId = 0;
+let loginAuthRevision = 0;
+let loginObservedAuthId = null;
+// Synchronous observation only; never call another Auth method inside this callback.
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  const id = typeof session?.user?.id === "string" ? session.user.id : "";
+  if (event === "SIGNED_OUT" || (loginObservedAuthId !== null && id !== loginObservedAuthId)) loginAuthRevision += 1;
+  loginObservedAuthId = id;
+});
+function measureLoginStage(run, name, operation) {
+  return window.LoginTiming ? window.LoginTiming.measure(run, name, operation) : operation();
+}
+async function showScreenForCurrentUser(session = null, timingRun = null) {
+  const requestId = ++loginScreenRequestId;
+  const authRevision = loginAuthRevision;
   renderMemberAccountEmail();
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
+  const hint = typeof session?.user?.id === "string" ? session.user.id : "";
+  const token = typeof session?.access_token === "string" ? session.access_token : "";
+  const readProfile = id => supabaseClient.from("profiles")
+    .select("role,email,display_name").eq("id", id).maybeSingle();
+  let userResult, profileResult;
+  if (hint && token) {
+    // Explicit JWT still goes to Auth /user, while avoiding the SDK session lock
+    // holding the independent profile request behind that same network round trip.
+    [userResult, profileResult] = await Promise.all([
+      measureLoginStage(timingRun, "user", () => supabaseClient.auth.getUser(token)),
+      measureLoginStage(timingRun, "profile", () => readProfile(hint))
+    ]);
+  } else {
+    userResult = await measureLoginStage(timingRun, "user", () => supabaseClient.auth.getUser());
+    if (requestId !== loginScreenRequestId || authRevision !== loginAuthRevision) return;
+    if (!userResult.error && userResult.data?.user) {
+      profileResult = await measureLoginStage(timingRun, "profile", () => readProfile(userResult.data.user.id));
+    }
+  }
+  if (requestId !== loginScreenRequestId || authRevision !== loginAuthRevision) return;
+  const user = userResult.data?.user;
+  if (userResult.error || !user || (hint && user.id !== hint)) {
     loginMessage.textContent = "로그인 정보를 확인하지 못했습니다.";
+    window.LoginTiming?.finish(timingRun, "error");
     return;
   }
-
-  const { data: profile, error: profileError } = await supabaseClient
-    .from("profiles")
-    .select("role,email,display_name")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profileError || !profile) {
+  const profile = profileResult?.data;
+  const profileError = profileResult?.error;
+  if (profileError || !profile || !["member", "admin"].includes(profile.role)) {
     console.error("회원 역할 확인 실패:", profileError);
-
     loginMessage.textContent = profileError
       ? `회원 정보 오류: ${profileError.message}`
-      : "회원 정보 오류: 프로필이 없습니다.";
-
+      : "회원 정보 오류: 프로필 또는 권한을 확인하지 못했습니다.";
+    window.LoginTiming?.finish(timingRun, "error");
     return;
   }
-
   if (profile.role === "admin") {
     naverAuth?.renderUser(user, profile.role);
-    await showAdminApp(user.id);
+    await showAdminApp(user.id, timingRun, requestId, authRevision);
     return;
   }
-
   naverAuth?.renderUser(user, profile.role);
   renderMemberAccountEmail(user.email || profile.email);
-  await showWorkoutApp(user.id, profile.display_name);
+  await showWorkoutApp(user.id, profile.display_name, timingRun, requestId, authRevision);
 }
 
 // 기존 단일 이미지와 새 이미지 목록을 같은 형태로 정리
@@ -10746,19 +10774,23 @@ applyAdminRoutineJsonButton?.addEventListener("click", applyValidatedAdminRoutin
 // 로그인 버튼 기능
 loginForm.addEventListener("submit", async function (event) {
   event.preventDefault();
-  if (naverAuth?.isBusy()) return;
+  if (loginButton.disabled || naverAuth?.isBusy()) return;
+  const loginAttemptId = ++loginScreenRequestId;
+  const timingRun = window.LoginTiming?.begin("email");
 
   loginMessage.textContent = "로그인 중...";
   loginButton.disabled = true;
 
   try {
-    const { error } =
-      await supabaseClient.auth.signInWithPassword({
+    const { data, error } =
+      await measureLoginStage(timingRun, "password", () => supabaseClient.auth.signInWithPassword({
         email: loginEmail.value.trim(),
         password: loginPassword.value
-      });
+      }));
 
+    if (loginAttemptId !== loginScreenRequestId) return;
     if (error) {
+      window.LoginTiming?.finish(timingRun, "error");
       loginMessage.textContent =
         "이메일 또는 비밀번호를 확인해 주세요.";
       return;
@@ -10767,9 +10799,10 @@ loginForm.addEventListener("submit", async function (event) {
     loginMessage.textContent = "";
     loginForm.reset();
 
-    await showScreenForCurrentUser();
+    await showScreenForCurrentUser(data?.session, timingRun);
 
   } catch (unexpectedError) {
+    window.LoginTiming?.finish(timingRun, "error");
     console.error(
       "로그인 중 예상하지 못한 오류:",
       unexpectedError
@@ -10786,6 +10819,8 @@ loginForm.addEventListener("submit", async function (event) {
 // 이미 로그인한 상태인지 확인
 async function initializeLogin() {
   if (isPasswordRecoveryReturn) return;
+  const restorationRequestId = loginScreenRequestId;
+  const timingRun = window.LoginTiming?.begin("restore");
   try {
     const currentUrl = new URL(window.location.href);
     if (currentUrl.searchParams.get("password-reset") === "complete") {
@@ -10796,16 +10831,22 @@ async function initializeLogin() {
       naverAuth?.reset();
       await naverAuth?.finishReturn(null);
       loginMessage.textContent = "새 비밀번호로 로그인해 주세요.";
+      window.LoginTiming?.finish(timingRun, "signed_out");
       return;
     }
     const {
       data: { session },
       error: sessionError
-    } = await supabaseClient.auth.getSession();
+    } = await measureLoginStage(timingRun, "session", () => supabaseClient.auth.getSession());
 
-    if (naverAuth && !(await naverAuth.finishReturn(session))) return;
+    if (naverAuth && !(await measureLoginStage(timingRun, "return", () => naverAuth.finishReturn(session)))) {
+      window.LoginTiming?.finish(timingRun, "error");
+      return;
+    }
 
+    if (restorationRequestId !== loginScreenRequestId) return;
     if (sessionError) {
+      window.LoginTiming?.finish(timingRun, "error");
       console.error(
         "로그인 상태 확인 실패:",
         sessionError
@@ -10819,10 +10860,13 @@ async function initializeLogin() {
     }
 
     if (session) {
-      await showScreenForCurrentUser();
+      await showScreenForCurrentUser(session, timingRun);
+    } else {
+      window.LoginTiming?.finish(timingRun, "signed_out");
     }
 
   } catch (unexpectedError) {
+    window.LoginTiming?.finish(timingRun, "error");
     console.error(
       "로그인 상태 확인 중 예상하지 못한 오류:",
       unexpectedError
@@ -10835,6 +10879,8 @@ async function initializeLogin() {
 
 // 로그아웃 공통 기능
 async function handleLogout() {
+  loginScreenRequestId += 1;
+  window.LoginTiming?.cancel();
   logoutButton.disabled = true;
   adminLogoutButton.disabled = true;
 

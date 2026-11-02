@@ -1,0 +1,10 @@
+.login-timing-open{font:inherit;cursor:pointer}
+#loginForm .login-timing-open{margin:10px 0 0;padding:8px 12px;min-height:36px;border:1px solid #dce2eb;border-radius:10px;background:#f5f7fa;color:#526078;font-size:13px}
+.login-timing-dialog{box-sizing:border-box;width:min(520px,calc(100vw - 24px));max-height:85dvh;margin:auto;padding:18px;border:0;border-radius:18px;background:#fff;color:#17233f;font-family:inherit;overflow:auto}
+.login-timing-dialog::backdrop{background:#17233f99}
+.login-timing-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.login-timing-heading h2{font-size:19px;margin:0}
+.login-timing-dialog p{font-size:13px;line-height:1.6;color:#657188}
+.login-timing-dialog pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:13px/1.8 system-ui,sans-serif;background:#f5f7fa;padding:12px;border-radius:10px}
+.login-timing-dialog button{padding:9px 12px;border:1px solid #dce2eb;border-radius:10px;background:#fff;color:#17233f;font:inherit;font-size:14px;line-height:1.4;cursor:pointer;min-height:38px}
+.login-timing-actions{display:flex;flex-wrap:wrap;gap:8px}

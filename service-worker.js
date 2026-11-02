@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "257";
+const APP_VERSION = "258";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 // Cache generation only: retire older cache entries that may include auth-related query URLs.
@@ -8,6 +8,8 @@ const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}-authquery1`;
 const APP_SHELL_URL = new URL("index.html", APP_SCOPE).href;
 
 const APP_FILES = [
+  `./login-timing.js?v=${APP_VERSION}`,
+  `./login-timing.css?v=${APP_VERSION}`,
   `./workout-set-records.js?v=${APP_VERSION}`,
   "./",
   "./index.html",
@@ -83,6 +85,12 @@ const APP_FILES = [
   `./images/install-samsung-blocked.png?v=${APP_VERSION}`,
   `./images/install-samsung-details.png?v=${APP_VERSION}`
 ];
+
+// Only explicitly listed, current-version static files can use the cache first.
+const VERSIONED_APP_ASSETS = new Set(APP_FILES.filter(file => {
+  const url = new URL(file, APP_SCOPE);
+  return url.search === `?v=${APP_VERSION}`;
+}).map(file => new URL(file, APP_SCOPE).href));
 
 function belongsToThisApp(urlValue) {
   const url = new URL(urlValue, APP_SCOPE);
@@ -162,6 +170,10 @@ self.addEventListener("fetch", (event) => {
   let cacheWrite = Promise.resolve();
   const responsePromise = (async () => {
     let networkResponse = null;
+    if (request.mode !== "navigate" && VERSIONED_APP_ASSETS.has(request.url)) {
+      const cached = await findCurrentCachedResponse(request);
+      if (cached) return cached;
+    }
     try {
       networkResponse = await fetch(request);
       if (networkResponse.ok) {
