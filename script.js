@@ -9683,8 +9683,6 @@ async function loadAdminMembers(preserveCurrentState = false) {
       option.dataset.memberName = memberName;
       option.dataset.email = member.email || "";
       option.dataset.assignmentCount = String(summary.assignmentCount);
-      option.dataset.routineAssigned = String(Boolean(summary.currentRoutineName));
-      option.dataset.phoneLast4 = member.phone_last4 || "";
       option.dataset.currentRoutineName = summary.currentRoutineName;
       option.dataset.currentRoutineImagePath =
         summary.currentRoutineImagePath;
