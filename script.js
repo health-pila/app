@@ -36,6 +36,7 @@ if (
 }
 // 홈 화면 설치 기능
 const installButton = document.getElementById("installButton");
+const memberInstallCard = document.getElementById("memberInstallCard");
 const loginInstallArea = document.getElementById("loginInstallArea");
 const loginInstallButton = document.getElementById("loginInstallButton");
 const loginInstallHelp = document.getElementById("loginInstallHelp");
@@ -70,6 +71,7 @@ const isStandalone =
 function syncInstallControls() {
   const hideInstall = isStandalone || installationCompleted;
   if (installButton) installButton.hidden = hideInstall || isNaverApp;
+  if (memberInstallCard) memberInstallCard.hidden = hideInstall || isNaverApp;
   if (loginInstallArea) loginInstallArea.hidden = hideInstall;
   if (loginInstallButton) loginInstallButton.hidden = hideInstall;
   if (naverShortcutHelp) naverShortcutHelp.hidden = !isNaverApp || hideInstall;
@@ -80,7 +82,10 @@ if (isNaverApp && loginInstallButton) {
   loginInstallButton.textContent = "홈 화면에 바로가기 안내";
   if (loginInstallHelp) loginInstallHelp.textContent = "회원가입 전에도 홈 화면에 바로가기를 추가할 수 있어요.";
 } else if (isIos) {
-  installButtons.forEach(button => { button.textContent = "📲 아이폰 설치 방법"; });
+  installButtons.forEach(button => {
+    const label = button.querySelector("[data-install-label]") || button;
+    label.textContent = button === installButton ? "아이폰 홈 화면에 설치하기" : "📲 아이폰 설치 방법";
+  });
 }
 syncInstallControls();
 
@@ -8138,7 +8143,7 @@ function renderRoutineDescription(description) {
   toggleRoutineDescriptionButton.setAttribute("aria-expanded", "false");
 }
 
-// 폼 접수는 Google Apps Script에서 처리합니다. 복귀 링크는 화면 이동만 합니다.
+// 예전 구글 폼 복귀 주소의 표시용 매개변수만 정리합니다.
 function clearRoutineRequestReturnFlag() {
   const cleanUrl = new URL(window.location.href);
   if (cleanUrl.searchParams.get("routine-requested") !== "1") return;
@@ -8151,6 +8156,67 @@ function clearRoutineRequestReturnFlag() {
 }
 
 let routineRequestStatusLoadId = 0;
+let routineApplicationModulePromise = null;
+let routineApplicationStylesReady = false;
+function getRoutineApplicationModule() {
+  if (window.RoutineApplication && routineApplicationStylesReady) return Promise.resolve(window.RoutineApplication);
+  if (routineApplicationModulePromise) return routineApplicationModulePromise;
+  const load = (tag, url) => new Promise((resolve, reject) => {
+    const node = document.createElement(tag);
+    if (tag === "link") { node.rel = "stylesheet"; node.href = url; }
+    else { node.src = url; node.async = true; }
+    const timer = setTimeout(() => { node.remove(); reject(new Error("APPLICATION_LOAD_TIMEOUT")); }, 12000);
+    node.onload = () => { clearTimeout(timer); if (tag === "link") routineApplicationStylesReady = true; resolve(); };
+    node.onerror = () => { clearTimeout(timer); node.remove(); reject(new Error("APPLICATION_LOAD_FAILED")); };
+    document.head.append(node);
+  });
+  routineApplicationModulePromise = Promise.all([
+    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=265"),
+    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=265")
+  ]).then(() => {
+    if (!window.RoutineApplication) throw new Error("APPLICATION_MODULE_UNAVAILABLE");
+    return window.RoutineApplication;
+  }).catch(error => { routineApplicationModulePromise = null; throw error; });
+  return routineApplicationModulePromise;
+}
+
+async function openMemberRoutineApplication(trigger) {
+  const state = routineChangeState;
+  const current = () => routineChangeState === state && Boolean(state.userId) && !appScreen.hidden;
+  if (!current() || state.saving || trigger.disabled) return;
+  trigger.disabled = true;
+  try {
+    const module = await getRoutineApplicationModule();
+    if (!current()) return;
+    module.openMember({ client: supabaseClient, isCurrent: current, returnFocus: trigger,
+      onSubmitted: async result => {
+        if (!current()) return;
+        state.pending = result.status === "pending";
+        state.tutorialEligible = false;
+        syncRoutineChangeRequest();
+        if (state.activeId === null || result.status === "completed") await loadMemberRoutine(state.userId, true);
+        else await updateRoutineRequestStatus(state.userId);
+      }
+    });
+  } catch (_) {
+    if (current()) alert("신청 화면을 열지 못했어요. 연결을 확인한 뒤 다시 눌러 주세요.");
+  } finally { trigger.disabled = false; }
+}
+
+async function openAdminRoutineApplication(request, copy) {
+  const authRevision = loginAuthRevision;
+  const current = () => !adminScreen.hidden && loginAuthRevision === authRevision;
+  if (!current()) return;
+  try {
+    const module = await getRoutineApplicationModule();
+    if (!current()) return;
+    module.openAdmin({client: supabaseClient, request, copy, isCurrent: current,
+      memberName: request.memberProfile?.display_name || "회원 정보 없음"});
+  } catch (_) {
+    if (current()) adminRoutineRequestListMessage.textContent = "신청서 화면을 열지 못했어요. 연결을 확인한 뒤 다시 눌러 주세요.";
+  }
+}
+
 const routineRequestButton = document.querySelector("#routineRequestButton");
 const routineTutorialRequestButton = document.querySelector("#routineTutorialRequestButton");
 const memberRoutineApplication = document.querySelector("#memberRoutineApplication");
@@ -8160,13 +8226,13 @@ const submitRoutineChange = document.querySelector("#submitRoutineChange");
 const routineRequestDialogMessage = document.querySelector("#routineRequestDialogMessage");
 const defaultRoutineRequestButtonText = routineRequestButton.textContent;
 let routineChangeState = { userId: null, generation: 0, activeId: undefined, pending: undefined, tutorialEligible: undefined, saving: false };
-routineNewFormLink.href = routineRequestButton.href;
-routineTutorialRequestButton.href = routineRequestButton.href;
+
 
 function resetRoutineChangeRequest(userId = null) {
   routineChangeState = { userId, generation: routineChangeState.generation + 1,
     activeId: undefined, pending: undefined, tutorialEligible: undefined, saving: false };
   routineRequestStatusLoadId += 1;
+  window.RoutineApplication?.resetMember();
   routineRequestStatusMessage.hidden = true;
   routineRequestDialogMessage.textContent = "";
   if (routineRequestDialog.open) routineRequestDialog.close();
@@ -8176,7 +8242,7 @@ function resetRoutineChangeRequest(userId = null) {
 function syncRoutineChangeRequest() {
   const state = routineChangeState;
   const unrequested = state.activeId === null && state.pending === false && state.tutorialEligible === true;
-  routineRequestButton.textContent = unrequested
+  routineRequestButton.textContent = state.pending === true ? "신청 내용 수정하기" : unrequested
     ? "나에게 맞는 루틴으로 신청하기" : defaultRoutineRequestButtonText;
   if (!unrequested) {
     memberRoutineApplication.hidden = true;
@@ -8184,7 +8250,7 @@ function syncRoutineChangeRequest() {
   }
   submitRoutineChange.disabled = state.saving || !state.activeId || state.pending !== false;
   routineNewFormLink.setAttribute("aria-disabled", String(state.saving));
-  if (!state.saving && state.pending === true) routineRequestDialogMessage.textContent = "이미 접수된 운동 구성 신청이 있어요. 새 신청서를 작성하면 변경된 내용을 추가로 알려줄 수 있어요.";
+  if (!state.saving && state.pending === true) routineRequestDialogMessage.textContent = "배정 대기 중이에요. 신청서를 다시 제출하면 마지막 신청 내용으로 변경됩니다.";
 }
 
 function handleRoutineRequestClick(event) {
@@ -8194,9 +8260,11 @@ function handleRoutineRequestClick(event) {
     (state.activeId !== null || state.pending !== false || state.tutorialEligible !== true)) {
     event.preventDefault(); return;
   }
-  // 처음 신청하는 회원은 기존 링크를 그대로 사용합니다.
-  if (state.activeId === null) return;
   event.preventDefault();
+  if (state.activeId === null || state.pending === true) {
+    void openMemberRoutineApplication(event.currentTarget);
+    return;
+  }
   if (state.activeId === undefined) {
     routineRequestDialogMessage.textContent = "운동 구성 정보를 확인 중이에요. 잠시 후 다시 눌러 주세요. 계속되면 상단 새로고침 버튼으로 다시 확인해 주세요.";
     syncRoutineChangeRequest();
@@ -8214,8 +8282,10 @@ function handleRoutineRequestClick(event) {
 [routineRequestButton, routineTutorialRequestButton].forEach(button => button.addEventListener("click", handleRoutineRequestClick));
 document.querySelector("#closeRoutineRequestDialog").addEventListener("click", () => routineRequestDialog.close());
 routineNewFormLink.addEventListener("click", function (event) {
-  if (routineChangeState.saving) { event.preventDefault(); return; }
+  event.preventDefault();
+  if (routineChangeState.saving) return;
   routineRequestDialog.close();
+  void openMemberRoutineApplication(routineRequestButton);
 });
 
 submitRoutineChange.addEventListener("click", async function () {
@@ -8287,7 +8357,7 @@ async function updateRoutineRequestStatus(userId) {
     if (data || state.activeId !== null) state.tutorialEligible = false;
     if (!data && !state.saving && routineRequestDialog.open && [
       "신청 상태를 확인하고 있어요…",
-      "이미 접수된 운동 구성 신청이 있어요. 새 신청서를 작성하면 변경된 내용을 추가로 알려줄 수 있어요."
+      "배정 대기 중이에요. 신청서를 다시 제출하면 마지막 신청 내용으로 변경됩니다."
     ].includes(routineRequestDialogMessage.textContent)) routineRequestDialogMessage.textContent = "";
     syncRoutineChangeRequest();
     if (data) await syncMemberRoutineTutorial(state);
@@ -8356,7 +8426,10 @@ async function updateMemberRoutineGoals(routine, userId, requestId) {
     String(memberRoutineDisplayedId) === String(routine.id) && memberRoutineGoalState.scope === scope;
   if (!current()) return;
   try {
-    const { data, error } = await supabaseClient.rpc("get_member_routine_goals", { p_routine_id: String(routine.id) });
+    let { data, error } = await supabaseClient.rpc("get_member_application_routine_goals", { p_routine_id: String(routine.id) });
+    if (["PGRST202", "42883"].includes(error?.code)) {
+      ({ data, error } = await supabaseClient.rpc("get_member_routine_goals", { p_routine_id: String(routine.id) }));
+    }
     if (!current() || error || !data || String(data.routine_id) !== String(routine.id) ||
       !Number.isFinite(Date.parse(routine.assigned_at)) || Date.parse(data.assigned_at) !== Date.parse(routine.assigned_at) ||
       !Array.isArray(data.goals) || data.goals.length > 5 || data.goals.some(goal =>
@@ -8382,15 +8455,11 @@ const memberRoutineSummary = document.querySelector("#memberRoutineSummary");
 const memberWorkoutTitle = document.querySelector("#memberWorkoutTitle");
 const memberRoutinePlaceholder = document.querySelector("#memberRoutinePlaceholder");
 const memberOneDayPtEntry = document.querySelector("#memberOneDayPtEntry");
-const memberRoutineTutorialNotice = document.querySelector("#memberRoutineTutorialNotice");
-const memberRoutineTrialCount = document.querySelector("#memberRoutineTrialCount");
 const memberAssignedRoutineLabel = assignedRoutineName.closest(".member-assigned-routine");
 
 function clearMemberTutorialDecoration() {
   memberRoutineApplication.hidden = true;
-  memberRoutineTrialCount.hidden = true;
   memberTabPanels.routine.classList.remove("is-unrequested");
-  memberRoutineTutorialNotice.hidden = true;
   memberAssignedRoutineLabel.hidden = false;
   memberRoutineComponents.classList.remove("is-tutorial");
   delete memberRoutineComponents.dataset.tutorial;
@@ -8449,13 +8518,11 @@ async function syncMemberRoutineTutorial(state) {
   memberRoutineComponents.dataset.tutorial = "true";
   memberRoutineComponents.setAttribute("aria-label", "공통 튜토리얼 운동");
   memberRoutineComponents.hidden = false;
-  memberRoutineTutorialNotice.hidden = false;
   memberRoutineApplication.hidden = false;
-  memberRoutineTrialCount.hidden = false;
   memberTabPanels.routine.classList.add("is-unrequested");
   memberAssignedRoutineLabel.hidden = true;
   memberWorkoutTitle.classList.remove("is-personalized");
-  memberWorkoutTitle.textContent = "먼저 체험해 보세요";
+  memberWorkoutTitle.textContent = "루틴 안내는 아래와 같이 운동카드 형식으로 구성됩니다.";
   memberRoutinePlaceholder.hidden = true;
   memberOneDayPtEntry.hidden = true;
   memberRoutineDisplayedUserId = state.userId;
@@ -9416,10 +9483,20 @@ function renderAdminRoutineRequests(
       }
     );
 
-    requestCard.append(
-      requestContent,
-      selectMemberButton
-    );
+    const actions = document.createElement("div");
+    actions.className = "admin-routine-application-actions";
+    if (request.application_revision) {
+      for (const [text, copy] of [["신청서 보기", false], ["루틴 생성용 전체 복사", true]]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "admin-routine-request-select-button";
+        button.textContent = text;
+        button.addEventListener("click", () => { void openAdminRoutineApplication(request, copy); });
+        actions.append(button);
+      }
+    }
+    actions.append(selectMemberButton);
+    requestCard.append(requestContent, actions);
 
     adminRoutineRequestList.append(
       requestCard
@@ -9452,7 +9529,7 @@ async function loadAdminRoutineRequests(
     let { data: requests, error: requestsError } =
       await supabaseClient
         .from("routine_requests")
-        .select("id, user_id, status, requested_at, request_kind")
+        .select("id, user_id, status, requested_at, request_kind, application_revision")
         .eq("status", "pending")
         .order("requested_at", { ascending: false });
 
@@ -9516,6 +9593,7 @@ async function loadAdminRoutineRequests(
     }
 
     renderAdminRoutineRequests(requestsWithProfiles);
+    window.RoutineApplication?.syncAdmin(requestsWithProfiles);
     updateAdminRoutineAlerts("sync", requestsWithProfiles);
   } catch (loadError) {
     if (!canUpdateList()) {
@@ -9777,6 +9855,7 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId, timingRun = null, screenRequestId = null, screenAuthRevision = null) {
+  window.RoutineApplication?.resetAdmin();
   window.CenterAttendance?.startAdmin(supabaseClient, userId);
   memberRoutineIdentity = { userId: "", name: "" };
   memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };

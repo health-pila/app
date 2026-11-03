@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "263";
+const APP_VERSION = "265";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 // Cache generation only: retire older cache entries that may include auth-related query URLs.
@@ -89,8 +89,13 @@ const APP_FILES = [
   `./images/install-samsung-details.png?v=${APP_VERSION}`
 ];
 
+// 신청 화면은 사용 시에만 내려받습니다. 로그인 시 선행 다운로드하지 않습니다.
+const LAZY_APP_FILES = [
+  `./routine-application.js?v=${APP_VERSION}`,
+  `./routine-application.css?v=${APP_VERSION}`
+];
 // Only explicitly listed, current-version static files can use the cache first.
-const VERSIONED_APP_ASSETS = new Set(APP_FILES.filter(file => {
+const VERSIONED_APP_ASSETS = new Set([...APP_FILES, ...LAZY_APP_FILES].filter(file => {
   const url = new URL(file, APP_SCOPE);
   return url.search === `?v=${APP_VERSION}`;
 }).map(file => new URL(file, APP_SCOPE).href));

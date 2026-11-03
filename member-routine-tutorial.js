@@ -21,16 +21,19 @@
 
   function render({ userId, captureWeightRecord, customization }) {
     const parsed = customization?.effective || window.RoutineComponents.parseRoutineJson(JSON.stringify(routine));
-    // 저장된 교체·추가 운동의 원본 슬롯은 유지하고, 레그 익스텐션 슬롯만 체험 목록에서 제외합니다.
+    // 저장된 교체 운동의 원본 슬롯을 유지하고 표시 대상만 제한합니다.
     // 서버의 공통 원본과 버전을 바꾸지 않아 기존 기록·개인 변경 내용이 다른 운동에 연결되지 않습니다.
-    const excludedOrders = new Set(exercises.filter(entry => entry.exerciseId === "EX005").map(entry => entry.order));
+    const visibleOrders = new Set([1, 3]);
     const displayRoutine = { ...parsed, days: parsed.days.map(day => ({ ...day,
-      exercises: day.exercises.filter(entry => !excludedOrders.has(entry.order)) })) };
+      exercises: day.exercises.filter(entry => visibleOrders.has(entry.order)) })) };
+    const displayCustomization = customization ? { ...customization, additions: [] } : customization;
     const root = window.RoutineComponents.renderRoutine(displayRoutine, {
-      layout: "tabs", userId, captureWeightRecord, exerciseReplacementContext: customization
+      layout: "tabs", userId, captureWeightRecord, exerciseReplacementContext: displayCustomization
       // 튜토리얼에는 oneDayPT 권한을 전달하지 않습니다.
     });
     root.classList.add("member-routine-tutorial");
+    // 기존 원본 슬롯·기록 연결을 유지한 채 첫 두 카드만 보여줍니다.
+    root.querySelectorAll(".member-pattern-add").forEach(button => button.remove());
     // 가입 전 미리보기와 동일하게 기존 카드 렌더러에서 단일 패턴만 사용합니다.
     root.querySelector(".routine-pattern-tabs").remove();
     root.querySelector(".routine-pattern-caption").remove();

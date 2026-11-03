@@ -671,6 +671,19 @@ body {
   text-decoration: none;
 }
 
+button.routine-request-button {
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  min-height: 48px;
+  border: 0;
+  font-family: inherit;
+  line-height: 1.4;
+  cursor: pointer;
+}
+button.routine-request-button:disabled { opacity: .65; cursor: wait; }
+button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outline-offset: 3px; }
+
 .routine-request-receipt {
   min-width: 0;
   margin: 0 14px 16px;
@@ -4429,30 +4442,11 @@ body.camera-open {
   text-align: center;
 }
 .is-unrequested .member-workout-heading { justify-content: flex-start; gap: 8px; margin-bottom: 6px; }
-.is-unrequested .member-workout-heading h3 { padding: 0; font-size: 20px; line-height: 1.5; }
-.member-routine-trial-count {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #dfe5ef;
-  color: #60708a;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.5;
-  white-space: nowrap;
-}
-.member-routine-tutorial-notice {
-  margin: 0 2px 12px;
-  color: #5b687d;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.6;
-  word-break: keep-all;
-}
-.member-routine-tutorial-notice p { margin: 0; }
+.is-unrequested .member-workout-heading h3 { padding: 0; font-size: 16px; line-height: 1.6; word-break: keep-all; }
 @media (max-width: 360px) {
   .member-routine-application { margin-right: 10px; margin-left: 10px; padding: 12px; }
   .member-routine-application .routine-request-button { font-size: 15px; }
-  .is-unrequested .member-workout-heading h3 { font-size: 18px; }
+  .is-unrequested .member-workout-heading h3 { font-size: 15px; }
 }
 #memberRoutineComponents.is-tutorial .routine-component-actions {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4587,8 +4581,7 @@ body.camera-open {
   margin: 0 14px 14px;
 }
 
-#appScreen #toggleRoutineDescriptionButton,
-#appScreen #installButton {
+#appScreen #toggleRoutineDescriptionButton {
   width: calc(100% - 28px);
   margin-left: 14px;
   margin-right: 14px;
@@ -5966,3 +5959,65 @@ textarea.routine-weight-cell {
 
 /* 처음에는 3줄만 표시하고 사용자가 세로로 늘릴 수 있습니다. */
 .workout-text-dialog #workoutTextBody { min-height:0; height:auto; resize:vertical; }
+
+/* 첫 화면 메뉴 아래의 홈 화면 설치 안내 */
+#appScreen .member-install-card {
+  box-sizing: border-box;
+  margin: 0 14px 16px;
+  padding: 12px;
+  border: 1px solid #ff790e;
+  border-radius: 18px;
+  background: linear-gradient(120deg, #fff9f1, #fff3e7);
+  box-shadow: 0 4px 12px #17233e0a;
+  color: var(--brand-navy);
+}
+
+#appScreen .member-install-card[hidden] { display: none; }
+.member-install-card-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.member-install-phone { display: block; width: 54px; height: 68px; flex: 0 0 54px; }
+.member-install-card-copy { min-width: 0; }
+#appScreen .member-install-card-copy h2 {
+  margin: 0 0 5px;
+  font-size: clamp(15px, 4.3vw, 18px);
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.5px;
+  word-break: keep-all;
+}
+.member-install-card-copy p { margin: 0; color: #58677c; font-size: 12px; font-weight: 500; line-height: 1.6; word-break: keep-all; }
+#appScreen .member-install-card #installButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #17233e;
+  border-radius: 11px;
+  background: #17233e;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.5;
+  cursor: pointer;
+  box-shadow: none;
+}
+#appScreen .member-install-card #installButton[hidden] { display: none; }
+#appScreen .member-install-card #installButton svg { flex: 0 0 23px; width: 23px; height: 23px; }
+#appScreen .member-install-card #installButton:disabled { opacity: .65; cursor: wait; }
+#appScreen .member-install-card #installButton:focus-visible { outline: 3px solid #f56a00; outline-offset: 3px; }
+#appScreen .member-install-card #installButton:active:not(:disabled) { background: #253650; }
+
+@media (max-width: 360px) {
+  #appScreen .member-install-card { margin-right: 10px; margin-left: 10px; padding: 11px; }
+  .member-install-card-heading { gap: 8px; }
+  .member-install-phone { flex-basis: 46px; width: 46px; height: 62px; }
+  #appScreen .member-install-card #installButton { gap: 7px; font-size: 14px; }
+}
+
+.admin-routine-application-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.admin-routine-application-actions .admin-routine-request-select-button { width: auto; min-height: 36px; margin: 0; padding: 8px 10px; font-size: 12px; }

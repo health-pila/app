@@ -1,0 +1,53 @@
+body.routine-application-open { overflow: hidden; }
+.routine-application-dialog { box-sizing: border-box; width: min(100%, 460px); max-width: 100%; height: min(900px, 100dvh); max-height: 100dvh; margin: auto; padding: 0; border: 1px solid #dce3ec; border-radius: 20px; background: #f7f9fc; color: #17233e; font-family: inherit; }
+.routine-application-dialog::backdrop { background: #17233e80; }
+.routine-application-shell { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.routine-application-header { display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #e0e6ee; background: white; }
+.routine-application-header h2 { margin: 0; font-size: 19px; line-height: 1.4; }
+.member-routine-application-dialog .routine-application-header h2 { flex: 1; text-align: center; }
+.routine-application-dialog .routine-application-back { width: 30px; min-height: 36px; padding: 0; border: 0; background: transparent; color: #17233e; font-size: 33px; cursor: pointer; }
+.routine-application-dialog .routine-application-close { display: grid; place-items: center; width: 36px; height: 36px; min-height: 36px; padding: 0; border: 0; background: transparent; color: #17233e; font-size: 29px; border-radius: 9px; cursor: pointer; }
+.routine-application-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px; }
+.routine-application-progress { display: flex; align-items: center; gap: 5px; margin-bottom: 17px; }
+.routine-application-progress span { flex: 1; height: 7px; background: #dce2e9; border-radius: 9px; }
+.routine-application-progress span.is-active { background: #ff6d00; }
+.routine-application-progress b { margin-left: 7px; font-size: 13px; white-space: nowrap; }
+.routine-application-dialog .routine-application-step-title { margin: 0 0 12px; font-size: 22px; font-weight: 800; letter-spacing: -.7px; }
+.routine-application-intro { margin: 0 0 17px; font-size: 12px; line-height: 1.6; word-break: keep-all; }
+.routine-application-status { margin: 0 0 12px; color: #a94600; font-size: 13px; line-height: 1.6; word-break: keep-all; }
+.routine-application-status:empty { display: none; }
+.routine-application-field { box-sizing: border-box; min-width: 0; margin: 0 0 22px; padding: 0; border: 0; }
+.routine-application-field legend, .routine-application-text-label { display: block; margin-bottom: 9px; padding: 0; font-size: 16px; font-weight: 800; line-height: 1.5; word-break: keep-all; }
+.routine-application-required { color: #e24120; }
+.routine-application-limit { display: inline-block; margin-left: 7px; padding: 3px 8px; border-radius: 30px; background: #e6ecf4; color: #58677e; font-size: 11px; font-weight: 700; vertical-align: middle; white-space: nowrap; }
+.routine-application-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.routine-application-choices.is-list { grid-template-columns: minmax(0, 1fr); }
+[data-field="interests"] .routine-application-choice:last-child { grid-column: 1 / -1; }
+[data-field="frequency"] .routine-application-choices { grid-template-columns: repeat(6,minmax(0,1fr)); }
+[data-field="frequency"] .routine-application-choice { grid-column: span 2; }
+[data-field="frequency"] .routine-application-choice:nth-child(n+4) { grid-column: span 3; }
+.routine-application-choice { box-sizing: border-box; display: flex; align-items: center; gap: 7px; min-width: 0; min-height: 43px; padding: 9px; border: 1px solid #c9d1dd; border-radius: 10px; background: #fff; color: #17233e; cursor: pointer; font-size: 14px; line-height: 1.4; }
+.routine-application-choice input { flex: 0 0 auto; width: 17px; height: 17px; margin: 0; accent-color: #f56a00; }
+.routine-application-choice span { min-width: 0; overflow-wrap: anywhere; }
+.routine-application-choice:has(input:checked) { border-color: #ff6d00; background: #fff0e3; color: #bf4900; font-weight: 800; }
+.routine-application-choice:has(input:focus-visible) { outline: 3px solid #ffc390; outline-offset: 2px; }
+.routine-application-help { margin: -3px 0 9px; color: #627087; font-size: 12px; line-height: 1.6; word-break: keep-all; }
+.routine-application-dialog input[type="text"] { box-sizing: border-box; width: 100%; height: 46px; margin: 0; padding: 11px; border: 1px solid #c9d1dd; border-radius: 10px; background: #fff; color: #17233e; font: inherit; font-size: 16px; }
+.routine-application-dialog input::placeholder { color: #929ba9; opacity: 1; }
+.routine-application-other { display: block; margin-top: 9px; color: #52617a; font-size: 13px; }
+.routine-application-notice { padding: 13px; border: 1px solid #ffc58f; border-radius: 13px; background: #fff8ee; font-size: 12px; line-height: 1.7; word-break: keep-all; }
+.routine-application-notice strong { color: #c94d00; font-size: 14px; }
+.routine-application-notice p { margin: 7px 0 0; }
+.routine-application-footer { display: flex; flex: 0 0 auto; gap: 9px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid #dce3ed; background: #fff; }
+.routine-application-dialog .routine-application-primary, .routine-application-dialog .routine-application-secondary { box-sizing: border-box; min-height: 46px; margin: 0; padding: 11px 15px; border: 1px solid #c8d1df; border-radius: 11px; background: #fff; color: #17233e; font: inherit; font-size: 16px; font-weight: 800; line-height: 1.5; cursor: pointer; }
+.routine-application-dialog .routine-application-primary { flex: 1; border-color: #ff6d00; background: #ff6d00; color: white; }
+.routine-application-dialog button:disabled { opacity: .55; cursor: wait; }
+.routine-application-dialog button:focus-visible, .routine-application-dialog input:focus-visible { outline: 3px solid #ffa859; outline-offset: 2px; }
+.routine-application-success { padding: 24px 0; text-align: center; }
+.routine-application-success h3 { font-size: 23px; }
+.routine-application-success p { font-size: 14px; line-height: 1.7; }
+.routine-application-member { margin: 0 0 13px; font-weight: 800; }
+.routine-application-copy-text { box-sizing: border-box; width: 100%; min-height: 350px; margin: 0; padding: 12px; border: 1px solid #d4dce6; border-radius: 12px; resize: vertical; background: #fff; color: #17233e; font: inherit; font-size: 14px; line-height: 1.9; }
+.routine-application-dialog [hidden] { display: none !important; }
+@media (max-width: 480px) { .routine-application-dialog { width: 100%; height: 100dvh; border: 0; border-radius: 0; } }
+@media (max-width: 360px) { .routine-application-body { padding: 12px; } .routine-application-choice { gap: 5px; padding: 8px; font-size: 13px; } .routine-application-field legend { font-size: 15px; } }
