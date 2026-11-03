@@ -1,4 +1,4 @@
-// 회원별 읽음 표시는 이 브라우저에만 저장합니다. 본문과 개인정보는 저장하지 않습니다.
+// 읽은 항목 ID만 본인 계정에 동기화하며, 기존 기기 기록도 유지합니다.
 (() => {
   "use strict";
   let userId = "";
@@ -11,6 +11,50 @@
   let seenNews = new Set();
   let seenReplies = new Set();
   const watched = new Map();
+  let hydrated = false, hydration = null, sending = false, sendTimer = 0;
+  let serverNews = new Set(), serverReplies = new Set();
+  const pendingNews = new Set(), pendingReplies = new Set();
+  const ids = rows => Array.isArray(rows) && rows.every(id => typeof id === "string" && id.length > 0 && id.length <= 100);
+  function current(ticket, member) { return ticket === generation && member === userId && !!userId; }
+  function queueLocal() {
+    seenNews.forEach(id => { if(!serverNews.has(id)) pendingNews.add(id); });
+    seenReplies.forEach(id => { if(!serverReplies.has(id)) pendingReplies.add(id); });
+  }
+  function scheduleSend() {
+    if (!userId || !client || !hydrated || sendTimer || sending || (!pendingNews.size && !pendingReplies.size)) return;
+    sendTimer = setTimeout(() => { sendTimer=0; void flush(); }, 400);
+  }
+  async function flush() {
+    if (!userId || !client || !hydrated || sending || (!pendingNews.size && !pendingReplies.size)) return;
+    const ticket=generation, member=userId, db=client;
+    const a=[...pendingNews].slice(0,500), b=[...pendingReplies].slice(0,500-a.length);
+    sending=true;let success=false;
+    try {
+      const {error}=await db.rpc("member_community_mark_read", {p_news_ids:a,p_reply_ids:b});
+      if(!current(ticket,member))return;
+      if(error)throw error;
+      a.forEach(id=>{serverNews.add(id);pendingNews.delete(id);});
+      b.forEach(id=>{serverReplies.add(id);pendingReplies.delete(id);});success=true;
+    } catch (_) { /* Keep the local read state and retry at the next viewing/online event. */ }
+    finally { if(current(ticket,member)){sending=false;if(success)scheduleSend();} }
+  }
+  function hydrate(force=false) {
+    if(!userId || !client || hydration || (hydrated && !force))return hydration;
+    const ticket=generation, member=userId, db=client;
+    const operation=(async()=>{
+      try {
+        const {data,error}=await db.rpc("member_community_read_state");
+        if(!current(ticket,member))return;
+        if(error || !ids(data?.news) || !ids(data?.replies))throw Error("READ_STATE_UNAVAILABLE");
+        hydrated=true;serverNews=new Set(data.news);serverReplies=new Set(data.replies);
+        data.news.forEach(id=>seenNews.add(id));data.replies.forEach(id=>seenReplies.add(id));
+        // Persist does not discard local reads made while the RPC was in flight.
+        persist();
+      } catch (_) { /* Browser state remains a fallback when the server is unavailable. */ }
+      finally { if(current(ticket,member)){hydration=null;queueLocal();render();checkSoon();scheduleSend();} }
+    })();
+    hydration=operation;return operation;
+  }
   const key = () => `memberCommunityRead:v1:${userId}`;
   const byId = id => document.getElementById(id);
 
@@ -19,8 +63,8 @@
     try {
       const saved = JSON.parse(localStorage.getItem(key()));
       if (saved?.version !== 1) return;
-      for (const id of saved.news || []) if (typeof id === "string") seenNews.add(id);
-      for (const id of saved.replies || []) if (typeof id === "string") seenReplies.add(id);
+      for (const id of Array.isArray(saved.news) ? saved.news : []) if (typeof id === "string" && id.length > 0 && id.length <= 100) seenNews.add(id);
+      for (const id of Array.isArray(saved.replies) ? saved.replies : []) if (typeof id === "string" && id.length > 0 && id.length <= 100) seenReplies.add(id);
     } catch (_) { /* 저장소를 사용할 수 없어도 현재 화면에서는 동작합니다. */ }
   }
 
@@ -30,7 +74,8 @@
       localStorage.setItem(key(), JSON.stringify({
         version: 1, news: [...seenNews], replies: [...seenReplies]
       }));
-    } catch (_) { /* 비공개 모드·저장 공간 부족 시 메모리만 사용합니다. */ }
+    } catch (_) { /* 서버 동기화는 로컬 저장 실패와 무관하게 계속합니다. */ }
+    queueLocal(); scheduleSend();
   }
 
   function badge(parent, count, label, inline = false) {
@@ -48,8 +93,8 @@
   }
 
   function render() {
-    const newsCount = news.filter(post => !seenNews.has(String(post.id))).length;
-    const unreadThreads = new Set(replies.filter(reply => !seenReplies.has(String(reply.id)))
+    const newsCount = !hydrated ? 0 : news.filter(post => !seenNews.has(String(post.id))).length;
+    const unreadThreads = new Set((hydrated ? replies : []).filter(reply => !seenReplies.has(String(reply.id)))
       .map(reply => String(reply.inquiry_id)));
     badge(byId("communityTabButton"), newsCount + unreadThreads.size, "미확인 소식 및 답변");
     badge(byId("communityNewsMenuButton"), newsCount, "미확인 센터 소식");
@@ -104,6 +149,7 @@
 
   function syncNews(posts) {
     if (!userId) return;
+    mergeSaved();
     news = posts;
     render();
     document.querySelectorAll("[data-community-post-id]").forEach(card => {
@@ -165,6 +211,8 @@
   function reset() {
     generation++;
     requestId++;
+    clearTimeout(sendTimer);sendTimer=0;sending=false;hydrated=false;hydration=null;
+    serverNews=new Set();serverReplies=new Set();pendingNews.clear();pendingReplies.clear();
     userId = "";
     client = null;
     news = [];
@@ -183,14 +231,20 @@
     userId = String(id);
     client = db;
     mergeSaved();
+    void hydrate();
   }
 
   window.addEventListener("storage", event => {
-    if (userId && event.key === key()) { mergeSaved(); render(); }
+    if (userId && event.key === key()) { mergeSaved(); queueLocal(); render(); scheduleSend(); }
   });
   window.addEventListener("scroll", checkSoon, { passive: true });
   window.addEventListener("resize", checkSoon);
-  document.addEventListener("visibilitychange", checkSoon);
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible") { void hydrate(true); scheduleSend(); checkSoon(); }
+    else { clearTimeout(sendTimer);sendTimer=0;void flush(); }
+  });
+  window.addEventListener("pagehide", () => { checkVisible(); clearTimeout(sendTimer);sendTimer=0;void flush(); });
+  window.addEventListener("online", () => { void hydrate(true); scheduleSend(); });
   window.MemberCommunityBadges = Object.freeze({
     start, reset, syncNews, observeReplies, refreshReplies, render, checkSoon
   });
