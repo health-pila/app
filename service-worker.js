@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "259";
+const APP_VERSION = "261";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 // Cache generation only: retire older cache entries that may include auth-related query URLs.
@@ -8,6 +8,10 @@ const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}-authquery1`;
 const APP_SHELL_URL = new URL("index.html", APP_SCOPE).href;
 
 const APP_FILES = [
+  `./admin-member-picker.js?v=${APP_VERSION}`,
+  `./admin-member-picker.css?v=${APP_VERSION}`,
+  `./admin-member-alerts.js?v=${APP_VERSION}`,
+  `./admin-member-alerts.css?v=${APP_VERSION}`,
   `./login-timing.js?v=${APP_VERSION}`,
   `./login-timing.css?v=${APP_VERSION}`,
   `./workout-set-records.js?v=${APP_VERSION}`,

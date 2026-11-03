@@ -9683,6 +9683,8 @@ async function loadAdminMembers(preserveCurrentState = false) {
       option.dataset.memberName = memberName;
       option.dataset.email = member.email || "";
       option.dataset.assignmentCount = String(summary.assignmentCount);
+      option.dataset.routineAssigned = String(Boolean(summary.currentRoutineName));
+      option.dataset.phoneLast4 = member.phone_last4 || "";
       option.dataset.currentRoutineName = summary.currentRoutineName;
       option.dataset.currentRoutineImagePath =
         summary.currentRoutineImagePath;
@@ -9698,11 +9700,13 @@ async function loadAdminMembers(preserveCurrentState = false) {
     const searchText = preserveCurrentState ? adminMemberSearch.value.trim().toLowerCase() : "";
     adminMemberOptionCache = memberOptions;
     renderAdminMemberOptions(selectedValue, searchText);
+    window.AdminMemberAlerts?.sync(members);
     return true;
   } catch (error) {
     if (!canApply()) return false;
     console.error("관리자 회원 정보 불러오기 실패:", error);
     resetAdminMemberStatistics("회원 현황을 불러오지 못했어요. 새로고침해 주세요.");
+    window.AdminMemberAlerts?.error();
     if (!preserveCurrentState) {
       adminMemberOptionCache = [];
       adminMemberSelect.innerHTML =
@@ -9740,7 +9744,7 @@ function renderAdminMemberOptions(selectedValue = "", searchText = "") {
   }
 
   adminMemberSelect.innerHTML =
-    '<option value="">루틴을 관리할 회원을 선택하세요.</option>';
+    '<option value="">루틴 | 출석연결을 관리할 회원 선택</option>';
 
   if (matchingOptions.length === 0) {
     const noResultOption =
@@ -9761,6 +9765,7 @@ function renderAdminMemberOptions(selectedValue = "", searchText = "") {
   }
 
   adminMemberSelect.value = selectedValue;
+  window.AdminMemberPicker?.refresh();
 }
 
 // 관리자 회원 검색: 사용자가 직접 검색할 때만 기존처럼 회원 선택을 초기화합니다.
@@ -9799,7 +9804,15 @@ async function showAdminApp(userId, timingRun = null, screenRequestId = null, sc
   window.AdminUsage?.reset();
   resetAdminMemberStatistics();
   window.AdminUsage?.start(supabaseClient, userId);
+  window.AdminMemberPicker?.start(supabaseClient, userId);
   updateAdminRoutineAlerts("start", userId);
+  window.AdminMemberAlerts?.start(userId, id => {
+    if (adminScreen.hidden || !adminMemberOptionCache.some(option => option.value === id)) return;
+    adminMemberSearch.value = "";
+    renderAdminMemberOptions(id);
+    adminMemberSelect.dispatchEvent(new Event("change"));
+    document.getElementById("adminMemberManagement").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 
   adminRoutineEditor.hidden = true;
   adminMemberInfo.textContent = "";
@@ -10096,6 +10109,7 @@ let adminRoutineLoadRequestId = 0;
 
 // 관리자 화면에서 회원을 선택했을 때
 async function loadSelectedAdminMemberRoutine() {
+  window.AdminMemberPicker?.refresh();
   const requestId = ++adminRoutineLoadRequestId;
   window.RoutineComponents?.resetAdminPreview();
   const userId = adminMemberSelect.value;
@@ -10971,7 +10985,7 @@ async function handleLogout() {
     resetAdminMemberStatistics();
     adminMemberSearch.value = "";
     adminMemberSelect.innerHTML =
-      '<option value="">루틴을 관리할 회원을 선택하세요.</option>';
+      '<option value="">루틴 | 출석연결을 관리할 회원 선택</option>';
 
     adminMemberOptionCache = [];
     adminRoutineEditor.hidden = true;

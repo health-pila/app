@@ -201,6 +201,7 @@
           typeof data.member.identity_ready !== "boolean") throw new Error("INVALID_CONTEXT");
       if (data.link !== null && (typeof data.link?.crm_member_id !== "string" || !data.link.crm_member_id.trim())) throw new Error("INVALID_LINK");
       adminContext = data;
+      window.AdminMemberPicker?.setLink(member, data.link !== null);
       if (data.link) {
         const stamp = data.link.last_synced_at && Number.isFinite(Date.parse(data.link.last_synced_at))
           ? " 최근 출석 확인: " + stampFormat.format(new Date(data.link.last_synced_at)) : " 출석 기록 연결을 준비 중이에요.";

@@ -22,7 +22,11 @@
     kind: "oneDayPt", storagePrefix: "adminOneDayPtAlerts:v1:", label: "1DAY PT 신청",
     initialized: false, count: 0, sequence: 0, seen: new Set(), storageFailed: false, loadFailed: false
   };
-  const alertSources = [...sections, oneDayPtAlerts];
+  const memberAlerts = {
+    kind: "member", storagePrefix: "adminMemberSound:v1:", label: "회원 가입",
+    initialized: false, count: 0, sequence: 0, seen: new Set(), storageFailed: false, loadFailed: false
+  };
+  const alertSources = [...sections, oneDayPtAlerts, memberAlerts];
 
   const originalTitle = document.title;
   const originalIcon = favicon?.getAttribute("href");
@@ -84,6 +88,7 @@
     if (counts[0]) labels.push(`신청 ${counts[0]}건`);
     if (counts[1]) labels.push(`문의 ${counts[1]}건`);
     if (counts[2]) labels.push(`1DAY PT ${counts[2]}건`);
+    if (counts[3]) labels.push(`새 가입 ${counts[3]}명`);
     document.title = count ? `(${labels.join(" · ")}) ${originalTitle}` : originalTitle;
     sections.forEach((section, index) => {
       section.countLabel.textContent = section.kind === "inquiry" ? `답변 대기 ${counts[index]}건` : `대기 ${counts[index]}건`;
@@ -281,6 +286,6 @@
   // 로그아웃/회원 화면 전환 후 늦게 도착한 비동기 알림을 차단합니다.
   new MutationObserver(() => { if (screen.hidden && userId) reset(); })
     .observe(screen, { attributes: true, attributeFilter: ["hidden"] });
-  window.AdminRoutineAlerts = Object.freeze({ start, sync, syncInquiries, syncOneDayPt, inquiryError, oneDayPtError, reset });
+  window.AdminRoutineAlerts = Object.freeze({ start, sync, syncInquiries, syncOneDayPt, syncMembers: ids => syncSection(memberAlerts, ids, ids), inquiryError, oneDayPtError, reset });
 })();
 
