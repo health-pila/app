@@ -8171,8 +8171,8 @@ function getRoutineApplicationModule() {
     document.head.append(node);
   });
   routineApplicationModulePromise = Promise.all([
-    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=265"),
-    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=265")
+    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=266"),
+    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=266")
   ]).then(() => {
     if (!window.RoutineApplication) throw new Error("APPLICATION_MODULE_UNAVAILABLE");
     return window.RoutineApplication;
@@ -9792,12 +9792,25 @@ async function loadAdminMembers(preserveCurrentState = false) {
   }
 }
 
+function adminMemberSearchMode(searchText) {
+  return ({"미연결":"unlinked", "출석미연결":"unlinked", "연결":"linked", "출석연결":"linked",
+    "없음":"no-routine", "루틴없음":"no-routine", "있음":"routine", "루틴있음":"routine"})[
+    searchText.replace(/\s/g, "")] || "text";
+}
+
 function renderAdminMemberOptions(selectedValue = "", searchText = "") {
+  searchText = searchText.trim().toLowerCase();
+  const searchMode = adminMemberSearchMode(searchText);
   const previousSelection = Array.from(adminMemberSelect.options)
     .find(option => option.value === selectedValue && selectedValue);
 
   const matchingOptions = adminMemberOptionCache.filter(
     (option) => {
+      if (option.value === selectedValue) return true;
+      if (searchMode === "unlinked") return window.AdminMemberPicker?.linkState(option.value) === false;
+      if (searchMode === "linked") return window.AdminMemberPicker?.linkState(option.value) === true;
+      if (searchMode === "no-routine") return !option.dataset.currentRoutineName;
+      if (searchMode === "routine") return Boolean(option.dataset.currentRoutineName);
       const optionText =
         option.textContent.toLowerCase();
 
@@ -9829,6 +9842,12 @@ function renderAdminMemberOptions(selectedValue = "", searchText = "") {
     noResultOption.value = "";
     noResultOption.textContent =
       "일치하는 회원이 없습니다.";
+    if (["unlinked", "linked"].includes(searchMode) && adminMemberOptionCache.some(option =>
+      window.AdminMemberPicker?.linkState(option.value) == null)) {
+      noResultOption.textContent = window.AdminMemberPicker?.isLoading()
+        ? "출석 연결 상태를 확인하고 있어요."
+        : "출석 연결 상태를 확인하지 못했어요. 상단 새로고침 버튼으로 다시 확인해 주세요.";
+    }
     noResultOption.disabled = true;
 
     adminMemberSelect.append(noResultOption);
@@ -9845,6 +9864,11 @@ function renderAdminMemberOptions(selectedValue = "", searchText = "") {
 }
 
 // 관리자 회원 검색: 사용자가 직접 검색할 때만 기존처럼 회원 선택을 초기화합니다.
+adminMemberSelect.addEventListener("attendance-status-change", () => {
+  if (!adminScreen.hidden && ["unlinked", "linked"].includes(adminMemberSearchMode(adminMemberSearch.value.trim()))) {
+    renderAdminMemberOptions(adminMemberSelect.value, adminMemberSearch.value);
+  }
+});
 adminMemberSearch.addEventListener("input", function () {
   renderAdminMemberOptions("", adminMemberSearch.value.trim().toLowerCase());
 
