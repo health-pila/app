@@ -4441,6 +4441,7 @@ body.camera-open {
   line-height: 1.5;
   text-align: center;
 }
+.is-unrequested .member-routine-request-area { display: none; }
 .is-unrequested .member-workout-heading { justify-content: flex-start; gap: 8px; margin-bottom: 6px; }
 .is-unrequested .member-workout-heading h3 { padding: 0; font-size: 16px; line-height: 1.6; word-break: keep-all; }
 @media (max-width: 360px) {

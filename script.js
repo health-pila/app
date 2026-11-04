@@ -8171,8 +8171,8 @@ function getRoutineApplicationModule() {
     document.head.append(node);
   });
   routineApplicationModulePromise = Promise.all([
-    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=266"),
-    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=266")
+    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=267"),
+    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=267")
   ]).then(() => {
     if (!window.RoutineApplication) throw new Error("APPLICATION_MODULE_UNAVAILABLE");
     return window.RoutineApplication;
