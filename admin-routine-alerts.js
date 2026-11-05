@@ -292,7 +292,7 @@
   // 로그아웃/회원 화면 전환 후 늦게 도착한 비동기 알림을 차단합니다.
   new MutationObserver(() => { if (screen.hidden && userId) reset(); })
     .observe(screen, { attributes: true, attributeFilter: ["hidden"] });
-  window.AdminRoutineAlerts = Object.freeze({ start, sync, syncInquiries, syncOneDayPt, syncMembers: ids => syncSection(memberAlerts, ids, ids),
+  window.AdminRoutineAlerts = Object.freeze({ start, sync, syncInquiries, syncOneDayPt, syncMembers: (ids,count=null,silent=false) => syncSection(memberAlerts,ids,ids,count,!silent),
     syncPayments: (ids,count,silent=false) => syncSection(paymentAlerts,ids,ids,count,!silent),
     paymentError: () => { if(active()){paymentAlerts.loadFailed=true;renderControls();} },
     inquiryError, oneDayPtError, reset });

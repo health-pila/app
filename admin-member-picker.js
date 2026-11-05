@@ -8,6 +8,14 @@
   const active=e=>e===epoch&&user&&client&&!screen.hidden;
   const linkState=id=>active(epoch)?updates.get(id)?.linked??(ready?linked.has(id):null):null;
   const notify=()=>select.dispatchEvent(new Event('attendance-status-change'));
+  const captureSync=()=>({epoch,seq,revision});
+  function applySync(ids,ticket){
+    if(!ticket||!active(ticket.epoch)||ticket.seq!==seq||!Array.isArray(ids)||ids.length>100000||!ids.every(uuid))return;
+    // Discard an older in-flight link lookup and keep confirmations made after this snapshot began.
+    seq++;busy=false;linked=new Set(ids);ready=true;lastRead=Date.now();
+    for(const [id,v] of updates){if(v.revision>ticket.revision){if(v.linked)linked.add(id);else linked.delete(id);}else updates.delete(id);}
+    refresh();notify();
+  }
   function refresh(){
     for(const option of select.options){
       if(!option.value)continue;
@@ -37,5 +45,5 @@
   select.addEventListener('focus',()=>void loadLinks());
   new MutationObserver(refresh).observe(select,{childList:true});
   new MutationObserver(()=>{if(screen.hidden&&user)reset();}).observe(screen,{attributes:true,attributeFilter:['hidden']});
-  window.AdminMemberPicker=Object.freeze({start,reset,refresh,setLink,linkState,isLoading:()=>busy});
+  window.AdminMemberPicker=Object.freeze({start,reset,refresh,setLink,linkState,captureSync,applySync,isLoading:()=>busy});
 })();

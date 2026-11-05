@@ -205,6 +205,7 @@
       adminContext = data;
       window.AdminMemberPicker?.setLink(member, data.link !== null);
       if (data.link) {
+        window.AdminMemberAlerts?.linked(member);
         const stamp = data.link.last_synced_at && Number.isFinite(Date.parse(data.link.last_synced_at))
           ? " 최근 출석 확인: " + stampFormat.format(new Date(data.link.last_synced_at)) : " 출석 기록 연결을 준비 중이에요.";
         showAdminMessage("센터 회원 연결 완료." + stamp, "linked");
@@ -267,6 +268,8 @@
       if (!adminCurrent(epoch, request, member)) return;
       candidate = null;
       if (!error && data?.ok === true && ["linked", "already_linked"].includes(data.code)) {
+        window.AdminMemberPicker?.setLink(member, true);
+        window.AdminMemberAlerts?.linked(member);
         adminBusy = false; await selectAdminMember(member, true); return;
       }
       if (data?.code === "profile_changed" || data?.code === "identity_not_ready") {
@@ -283,6 +286,11 @@
   $("refreshCenterAttendance")?.addEventListener("click", () => { void loadMonth(true); void window.CenterMemberships?.load(true); });
   $("adminAttendanceLookup")?.addEventListener("click", () => { void lookup(); });
   $("adminAttendanceConfirm")?.addEventListener("click", () => { void confirmLink(); });
+  $("adminMemberSelect")?.addEventListener("attendance-status-change", () => {
+    if (role !== "admin" || !adminContext || adminBusy || candidate || !selectedMember || $("adminScreen")?.hidden) return;
+    const linked = window.AdminMemberPicker?.linkState(selectedMember);
+    if (typeof linked === "boolean" && linked !== Boolean(adminContext.link)) void selectAdminMember(selectedMember, true);
+  });
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { void loadMonth(); void window.CenterMemberships?.load(); } });
   window.CenterAttendance = Object.freeze({ reset,
     startMember: (connection, id) => start(connection, id, "member"),

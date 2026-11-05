@@ -8,3 +8,6 @@
 #adminScreen .admin-member-signup-actions button:focus-visible{outline:3px solid #ed6a0a;outline-offset:2px}
 @media(max-width:360px){.admin-member-signup-card{align-items:stretch;flex-direction:column}.admin-member-signup-actions{justify-content:flex-end}}
 #adminScreen #adminMemberSelect:has(option[value=""]:checked){font-size:14px}
+
+#adminMemberSignupStatus.is-error{color:#b43529}
+#adminScreen .admin-member-signup-actions button:disabled{opacity:.55;cursor:default}

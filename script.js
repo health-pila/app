@@ -8172,8 +8172,8 @@ function getRoutineApplicationModule() {
     document.head.append(node);
   });
   routineApplicationModulePromise = Promise.all([
-    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=274"),
-    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=274")
+    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=275"),
+    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=275")
   ]).then(() => {
     if (!window.RoutineApplication) throw new Error("APPLICATION_MODULE_UNAVAILABLE");
     return window.RoutineApplication;
@@ -9795,13 +9795,11 @@ async function loadAdminMembers(preserveCurrentState = false) {
     const searchText = preserveCurrentState ? adminMemberSearch.value.trim().toLowerCase() : "";
     adminMemberOptionCache = memberOptions;
     renderAdminMemberOptions(selectedValue, searchText);
-    window.AdminMemberAlerts?.sync(members);
     return true;
   } catch (error) {
     if (!canApply()) return false;
     console.error("관리자 회원 정보 불러오기 실패:", error);
     resetAdminMemberStatistics("회원 현황을 불러오지 못했어요. 새로고침해 주세요.");
-    window.AdminMemberAlerts?.error();
     if (!preserveCurrentState) {
       adminMemberOptionCache = [];
       adminMemberSelect.innerHTML =
@@ -9930,7 +9928,9 @@ async function showAdminApp(userId, timingRun = null, screenRequestId = null, sc
   window.AdminUsage?.start(supabaseClient, userId);
   window.AdminMemberPicker?.start(supabaseClient, userId);
   updateAdminRoutineAlerts("start", userId);
-  window.AdminMemberAlerts?.start(userId, id => {
+  window.AdminMemberAlerts?.start(supabaseClient, userId, async id => {
+    if (!adminMemberOptionCache.some(option => option.value === id)) await loadAdminMembers(true);
+    if (loginObservedAuthId !== userId) return;
     if (adminScreen.hidden || !adminMemberOptionCache.some(option => option.value === id)) return;
     adminMemberSearch.value = "";
     renderAdminMemberOptions(id);
