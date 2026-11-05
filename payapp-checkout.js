@@ -28,6 +28,19 @@
   dialog.setAttribute('aria-labelledby', 'payAppCheckoutTitle');
   dialog.innerHTML = `<form id="payAppCheckoutForm">
   <div class="payapp-dialog-heading"><h2 id="payAppCheckoutTitle">가을이벤트) 헬스 6개월</h2><button id="closePayAppCheckout" type="button">닫기</button></div>
+  <section id="payAppSuccess" class="payapp-success" aria-labelledby="payAppSuccessTitle" hidden>
+    <svg class="payapp-success-mark" viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#fff3e7"/><path d="m19 32 9 9 18-19" stroke="#f56a00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h3 id="payAppSuccessTitle" tabindex="-1">결제가 완료됐어요!</h3>
+    <p class="payapp-success-thanks">감사합니다.</p>
+    <dl class="payapp-success-receipt">
+      <div><dt>결제 상품</dt><dd id="payAppSuccessProduct"></dd></div>
+      <div id="payAppSuccessOptionsRow" hidden><dt>추가 옵션</dt><dd id="payAppSuccessOptions"></dd></div>
+      <div class="payapp-success-total"><dt>결제 금액</dt><dd id="payAppSuccessAmount"></dd></div>
+    </dl>
+    <p class="payapp-success-help">센터에서 상품을 적용하면<br>앱에서 다시 알려드려요.</p>
+    <button id="payAppSuccessConfirm" class="payapp-primary" type="button">확인</button>
+    <button id="payAppSuccessHistory" class="payapp-success-history" type="button">내 결제 내역 보기</button>
+  </section>
   <div class="payapp-dialog-body">
     <p class="payapp-dialog-price">180,000원</p>
     <div id="payAppPTOffer" class="payapp-pt-offer" hidden><span>정가 <s>66,000원</s></span><strong>50% 할인 · 33,000원</strong></div>
@@ -131,6 +144,24 @@
     byId('payAppLockerBreakdown').querySelector('dd').textContent = money(product.months * 5000);
     const order = editing ? null : current;
     const terminal = ['paid','cancelled','partial_refund'].includes(order?.payment_state);
+    // Only a validated own-order response with payment_state=paid can enter this view.
+    const completed = order?.payment_state === 'paid';
+    byId('payAppSuccess').hidden = !completed;
+    dialog.querySelector('.payapp-dialog-body').hidden = completed;
+    dialog.querySelector('.payapp-dialog-footer').hidden = completed;
+    dialog.classList.toggle('is-paid', completed);
+    if (completed) {
+      byId('payAppCheckoutTitle').textContent = '결제 완료';
+      byId('payAppSuccessProduct').textContent = product.name;
+      const extra = [order.options.clothing ? '운동복 대여' : '', order.options.locker ? '개인락커 이용' : ''].filter(Boolean);
+      byId('payAppSuccessOptionsRow').hidden = !extra.length;
+      byId('payAppSuccessOptions').textContent = extra.join(' · ');
+      byId('payAppSuccessAmount').textContent = money(order.amount);
+      if (dialog.dataset.completedOrder !== order.id) {
+        dialog.dataset.completedOrder = order.id;
+        queueMicrotask(() => { if (dialog.open && !byId('payAppSuccess').hidden) { byId('payAppSuccess').scrollTop = 0; byId('payAppSuccessTitle').focus({preventScroll:true}); } });
+      }
+    } else delete dialog.dataset.completedOrder;
     phoneField.hidden = Boolean(order);
     phone.disabled = Boolean(order) || busy;
     phone.required = !order;
@@ -376,6 +407,8 @@
   }
   openButtons.forEach(button => button.addEventListener('click', () => open(button.dataset.payappProduct)));
   closeButton.addEventListener('click', close);
+  byId('payAppSuccessConfirm').addEventListener('click', close);
+  byId('payAppSuccessHistory').addEventListener('click', () => { if (!active() || current?.payment_state !== 'paid') return; close(); window.MemberAccount?.openPayments(); });
   dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
   dialog.addEventListener('close', () => { stopPolling(); cancelAnimationFrame(viewportFrame); viewportFrame = null; });
   window.visualViewport?.addEventListener('resize', queuePaymentViewport);

@@ -26,7 +26,11 @@
     kind: "member", storagePrefix: "adminMemberSound:v1:", label: "회원 가입",
     initialized: false, count: 0, sequence: 0, seen: new Set(), storageFailed: false, loadFailed: false
   };
-  const alertSources = [...sections, oneDayPtAlerts, memberAlerts];
+  const paymentAlerts = {
+    kind:"payment",storagePrefix:"adminPaymentSound:v1:",label:"결제",
+    initialized:false,count:0,sequence:0,seen:new Set(),storageFailed:false,loadFailed:false
+  };
+  const alertSources = [...sections, oneDayPtAlerts, memberAlerts, paymentAlerts];
 
   const originalTitle = document.title;
   const originalIcon = favicon?.getAttribute("href");
@@ -69,9 +73,10 @@
       section.status.textContent = message || (soundEnabled
         ? (audioContext?.state === "running" ? "알림음 켜짐" : "알림음 켜짐 · 소리 활성화 대기")
         : "알림음 꺼짐");
-      if (sections.some(source => source.storageFailed) || oneDayPtAlerts.storageFailed) section.status.textContent += " 알림 이력을 저장하지 못해 여러 탭에서 소리가 겹칠 수 있어요.";
+      if (alertSources.some(source => source.storageFailed)) section.status.textContent += " 알림 이력을 저장하지 못해 여러 탭에서 소리가 겹칠 수 있어요.";
       if (sections.some(source => source.loadFailed)) section.status.textContent += " 신청·문의 알림을 갱신하지 못했어요. 연결 후 다시 확인해 주세요.";
       if (oneDayPtAlerts.loadFailed) section.status.textContent += " 1DAY PT 알림을 갱신하지 못했어요.";
+      if (paymentAlerts.loadFailed) section.status.textContent += " 결제 알림을 갱신하지 못했어요.";
     });
   }
   function restoreIcon() {
@@ -89,6 +94,7 @@
     if (counts[1]) labels.push(`문의 ${counts[1]}건`);
     if (counts[2]) labels.push(`1DAY PT ${counts[2]}건`);
     if (counts[3]) labels.push(`새 가입 ${counts[3]}명`);
+    if (counts[4]) labels.push(`새 결제 ${counts[4]}건`);
     document.title = count ? `(${labels.join(" · ")}) ${originalTitle}` : originalTitle;
     sections.forEach((section, index) => {
       section.countLabel.textContent = section.kind === "inquiry" ? `답변 대기 ${counts[index]}건` : `대기 ${counts[index]}건`;
@@ -222,19 +228,19 @@
     });
     closeAudio(); renderBadge(); renderControls();
   }
-  function syncSection(section, pendingKeys, observedKeys) {
+  function syncSection(section, pendingKeys, observedKeys, totalCount = null, allowRing = true) {
     if (!active()) return Promise.resolve();
     const ticket = generation, sequence = ++section.sequence;
     const keys = [...new Set(pendingKeys)];
     const observed = [...new Set(observedKeys)];
-    section.count = keys.length; section.loadFailed = false;
+    section.count = Number.isSafeInteger(totalCount) && totalCount >= keys.length ? totalCount : keys.length; section.loadFailed = false;
     renderBadge();
     const key = storageKey(section);
     const update = () => {
       if (!active(ticket) || sequence !== section.sequence) return;
       const seen = readSeen(section);
       const fresh = keys.filter(value => !seen.has(value));
-      const shouldRing = section.initialized && fresh.length > 0 && soundEnabled;
+      const shouldRing = allowRing && section.initialized && fresh.length > 0 && soundEnabled;
       observed.forEach(value => { seen.delete(value); seen.add(value); });
       saveSeen(section, seen, observed);
       section.initialized = true;
@@ -286,6 +292,9 @@
   // 로그아웃/회원 화면 전환 후 늦게 도착한 비동기 알림을 차단합니다.
   new MutationObserver(() => { if (screen.hidden && userId) reset(); })
     .observe(screen, { attributes: true, attributeFilter: ["hidden"] });
-  window.AdminRoutineAlerts = Object.freeze({ start, sync, syncInquiries, syncOneDayPt, syncMembers: ids => syncSection(memberAlerts, ids, ids), inquiryError, oneDayPtError, reset });
+  window.AdminRoutineAlerts = Object.freeze({ start, sync, syncInquiries, syncOneDayPt, syncMembers: ids => syncSection(memberAlerts, ids, ids),
+    syncPayments: (ids,count,silent=false) => syncSection(paymentAlerts,ids,ids,count,!silent),
+    paymentError: () => { if(active()){paymentAlerts.loadFailed=true;renderControls();} },
+    inquiryError, oneDayPtError, reset });
 })();
 

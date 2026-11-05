@@ -83,3 +83,22 @@
   .payapp-product-compact .payapp-product-price { font-size: 21px; }
   .payapp-product-compact .payapp-product-price span { font-size: 12px; }
 }
+
+/* Verified payment result has its own receipt view, with no editable purchase controls. */
+.payapp-dialog-body[hidden],.payapp-dialog-footer[hidden],.payapp-success[hidden] { display:none !important; }
+.payapp-success { min-height:0; padding:8px 20px 20px; overflow-y:auto; overscroll-behavior:contain; text-align:center; }
+.payapp-success-mark { display:block; width:64px; height:64px; margin:0 auto 14px; }
+.payapp-success h3 { margin:0; font-size:24px; line-height:1.5; font-weight:800; word-break:keep-all; }
+.payapp-success h3:focus { outline:none; }
+.payapp-success-thanks { margin:5px 0 22px; color:#657087; font-size:14px; }
+.payapp-success-receipt { margin:0; padding:16px; border-radius:14px; background:#f6f8fb; text-align:left; }
+.payapp-success-receipt > div { display:grid; grid-template-columns:68px minmax(0,1fr); gap:10px; margin:0 0 12px; }
+.payapp-success-receipt > div:last-child { margin-bottom:0; }
+.payapp-success-receipt dt { color:#657087; font-size:13px; line-height:1.7; }
+.payapp-success-receipt dd { margin:0; color:#17233e; font-size:14px; line-height:1.6; font-weight:700; text-align:right; overflow-wrap:anywhere; }
+.payapp-success-receipt .payapp-success-total { align-items:center; padding-top:12px; border-top:1px solid #dfe5ee; }
+.payapp-success-total dd { color:#e36a17; font-size:24px; font-weight:800; }
+.payapp-success-help { margin:18px 0; color:#657087; font-size:13px; line-height:1.7; word-break:keep-all; }
+.payapp-success .payapp-primary { display:block; width:100%; min-height:48px; }
+.payapp-success-history { display:block; width:100%; min-height:40px; margin:6px 0 0; padding:8px; border:0; background:transparent; color:#52627a; font:inherit; font-size:13px; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+@media(max-height:560px) { .payapp-success-mark { width:46px; height:46px; margin-bottom:8px; } .payapp-success h3 { font-size:21px; } .payapp-success-thanks { margin-bottom:14px; } .payapp-success-help { margin:12px 0; } }

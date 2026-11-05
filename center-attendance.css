@@ -25,3 +25,6 @@
 .admin-attendance-candidate { margin-top:9px; padding:11px; border:1px solid #f5d6bd; border-radius:10px; background:#fff7ef; }
 .admin-attendance-candidate p { margin:0 0 7px; font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
 .admin-attendance-panel .admin-attendance-confirm { background:#f56a00; border-color:#f56a00; color:white; }
+
+/* Enlarge the live calendar legend without changing the guest example. */
+#workoutLogTabPanel .center-attendance-legend { font-size:13.2px; }

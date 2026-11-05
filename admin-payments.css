@@ -36,3 +36,19 @@
 .admin-application-time { margin:5px 0 0; color:#697586; font-size:12px; line-height:1.6; }
 .admin-application-button { width:auto; min-height:38px; margin:0; padding:8px 14px; border:1px solid #ed6c13; border-radius:9px; background:#fff4e9; color:#9b480d; font:inherit; font-size:13px; font-weight:700; }
 .admin-application-button:disabled { opacity:.55; cursor:default; }
+
+#adminPaymentsBody[hidden],#adminPaymentNoticeButton[hidden] { display:none !important; }
+#adminPayments .admin-payments-heading-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+#adminPayments .admin-payments-heading-row h2 { margin:0; }
+#adminPayments .admin-payments-toggle { flex:none; min-height:36px; padding:7px 10px; font-size:12px; }
+.admin-payments-toggle span { display:inline-block; margin-left:3px; }
+.admin-payments-toggle[aria-expanded=true] span { transform:rotate(180deg); }
+#adminPayments .admin-payment-notice-button { display:grid; gap:5px; width:100%; margin:14px 0 0; padding:12px 14px; border-color:#f2cfb7; border-radius:12px; background:#fff7ef; color:#a64a04; text-align:left; }
+#adminPaymentNoticeCount { font-size:14px; }
+#adminPaymentNoticePreview { color:#43516a; font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
+.admin-payment-notice-action { font-size:12px; }
+.admin-payment-notice-status { margin:10px 0 0; color:#697586; font-size:12px; line-height:1.6; }
+.admin-payment-notice-status.is-error { color:#b43529; }
+#adminPaymentsBody > .admin-section-description { margin-top:14px; }
+
+.admin-payment-notice-status:empty { display:none; }
