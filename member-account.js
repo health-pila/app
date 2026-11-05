@@ -5,6 +5,7 @@
   const pages = [...dialog.querySelectorAll('[data-account-page]')];
   let client, owner = '', generation = 0, sequence = 0, page = 'home', hooks = {}, offset = 0;
   let loading = false, withdrawing = false, withdrawn = false, returnFocus, routePushed = false, backPending = false, queuedOpen = ''; 
+  let backTimer = null;
   const seen = new Set();
   const PASSWORD_RETURN_URL = 'https://health-pila.github.io/app/reset-password.html';
   let passwordSending = false, passwordLoading = false, passwordEmail = '', passwordRetryAt = 0, passwordTimer, passwordSequence = 0;
@@ -19,7 +20,7 @@
     return data.user;
   }
   function renderPage(next) {
-    page = next;
+    page = hooks.restricted && next === 'payments' ? 'home' : next;
     dialog.dataset.accountView = page;
     pages.forEach(el => { el.hidden = el.dataset.accountPage !== page; });
     $('accountHeading').textContent = ({home:'내 정보', payments:'앱 내 결제 내역', password:'비밀번호 변경', withdraw:'앱 탈퇴 요청', privacy:'개인정보처리방침'})[page];
@@ -44,11 +45,23 @@
     }
     renderPage(next); $('accountHeading').tabIndex = -1; $('accountHeading').focus({preventScroll:true});
   }
+  function finishBack() {
+    clearTimeout(backTimer);backTimer=null;backPending=false;
+    const next=queuedOpen;queuedOpen='';if(next&&owner)open(next);
+  }
   function close(fromPop = false) {
     clearTimeout(passwordTimer);
     sequence++; loading = false;
     if (dialog.open) dialog.close();
-    if (routePushed && !fromPop) { routePushed = false; backPending = true; history.back(); }
+    if (routePushed && !fromPop) {
+      routePushed = false;backPending = true;
+      const fallback=()=>{
+        if(!backPending)return;
+        if(history.state?.centerAccount){try{const state={...history.state};delete state.centerAccount;history.replaceState(state,'',location.href);}catch(_){}}
+        finishBack();
+      };
+      backTimer=setTimeout(fallback,200);try{history.back();}catch(_){fallback();}
+    }
     else routePushed = false;
     if (returnFocus?.isConnected && !returnFocus.closest('[hidden]')) returnFocus.focus({preventScroll:true});
   }
@@ -111,11 +124,21 @@
       const {data, error} = await db.functions.invoke('payapp-checkout', {body:{action:'member_history', expected_user_id:uid, offset}});
       if (!valid(ticket) || seq !== sequence || !dialog.open || page !== 'payments') return;
       if (error || !data?.ok || !Array.isArray(data.entries) || typeof data.has_more !== 'boolean') throw new Error();
+      let applicationStates=new Map(), applicationStateError=false;
+      try { applicationStates=await window.PaymentFulfillment.getStatuses(db,data.entries.map(row=>row.id)); }
+      catch (_) { applicationStateError=true; }
+      if (!valid(ticket) || seq !== sequence || !dialog.open || page !== 'payments') return;
       for (const row of data.entries) {
         if (typeof row.id !== 'string' || seen.has(row.id) || !['paid','cancelled','partial_refund'].includes(row.payment_state)) continue;
         const card = element('article', '', 'account-payment-card');
         card.append(element('h3', String(row.product_name || '상품명 확인 필요')));
         if (row.payment_state !== 'paid') card.append(element('p', row.payment_state === 'cancelled' ? '결제 취소·환불' : '일부 취소', 'account-payment-state'));
+        else {
+          const application=applicationStates.get(row.id),state=application?.state;
+          const label=state==='applied'?'상품 적용 완료':state==='pending'?'결제 완료 · 상품 적용 대기':'결제 완료';
+          card.append(element('p',label,'account-application-state'+(state==='applied'?' is-applied':state==='pending'?' is-pending':'')));
+          if(state==='applied')card.append(element('p','상품 적용 일시: '+window.PaymentFulfillment.formatTime(application.applied_at),'account-application-time'));
+        }
         const when = row.paid_at ? new Date(row.paid_at) : null;
         card.append(element('p', '결제 일시: ' + (when && Number.isFinite(when.getTime()) ? when.toLocaleString('ko-KR', {timeZone:'Asia/Seoul'}) : '확인 필요')));
         const months = row.installment_months;
@@ -124,7 +147,7 @@
       }
       offset += data.entries.length;
       $('accountPaymentsMore').hidden = !data.has_more;
-      $('accountPaymentMessage').textContent = seen.size ? '' : '아직 결제한 내역이 없어요.';
+      $('accountPaymentMessage').textContent = seen.size ? applicationStateError?'상품 적용 상태를 불러오지 못했어요. 새로고침해서 확인해 주세요.':'' : '아직 결제한 내역이 없어요.';
     } catch (_) {
       if (valid(ticket) && seq === sequence) $('accountPaymentMessage').textContent = '결제 내역을 불러오지 못했어요. 새로고침을 눌러 다시 확인해 주세요.';
     } finally {
@@ -141,7 +164,7 @@
       if (!valid(ticket)) return;
       if (error || !data?.ok) throw new Error();
       withdrawn = true;
-      $('accountWithdrawMessage').textContent = '탈퇴 요청이 접수되었습니다. 센터에서 확인 후 처리합니다. 진행 상황은 센터 커뮤니티의 문의하기에서 확인하실 수 있습니다.';
+      $('accountWithdrawMessage').textContent = hooks.restricted ? '탈퇴 요청이 접수되었습니다. 센터에서 확인 후 처리합니다.' : '탈퇴 요청이 접수되었습니다. 센터에서 확인 후 처리합니다. 진행 상황은 센터 커뮤니티의 문의하기에서 확인하실 수 있습니다.';
       void hooks.refreshInquiries?.();
     } catch (_) {
       if (valid(ticket)) $('accountWithdrawMessage').textContent = '요청 결과를 확인하지 못했습니다. 다시 눌러 확인해 주세요. 문의 접수가 중단된 경우 센터(02-2602-9184)로 연락해 주세요.';
@@ -157,6 +180,12 @@
   }
   function start(db, uid, callbacks = {}) {
     reset(); client = db; owner = uid; hooks = callbacks;
+    dialog.querySelector('[data-account-open="payments"]').hidden = callbacks.restricted === true;
+    if (callbacks.profile) {
+      $('accountName').textContent = callbacks.profile.display_name || '회원';
+      $('accountEmail').textContent = callbacks.profile.email || '';
+      return;
+    }
     const ticket = generation;
     void auth(ticket).then(async user => {
       if (!user || !valid(ticket)) return;
@@ -176,7 +205,8 @@
   $('accountPaymentsRefresh').addEventListener('click', () => loadPayments(false));
   $('accountPaymentsMore').addEventListener('click', () => loadPayments(true));
   dialog.addEventListener('cancel', e => { e.preventDefault(); close(); });
-  window.addEventListener('popstate', () => { if (backPending) { backPending = false; const next = queuedOpen; queuedOpen = ''; if (next && owner) open(next); } else if (routePushed) close(true); });
+  window.addEventListener('popstate', () => { if (backPending) finishBack(); else if (routePushed) close(true); });
   window.addEventListener('centerpayappptpaid', () => { if (dialog.open && page === 'payments') void loadPayments(false); });
-  window.MemberAccount = {start, reset};
+  window.addEventListener('paymentapplicationacknowledged', () => { if (dialog.open && page === 'payments') void loadPayments(false); });
+  window.MemberAccount = {start, reset, openPayments:()=>open('payments'), openHome:()=>open('home'), openWithdrawal:()=>open('withdraw')};
 })();

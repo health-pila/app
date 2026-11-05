@@ -2102,6 +2102,7 @@ const workoutCaptureBadge = (() => {
 
 // 선택한 회원 탭 표시
 function showMemberTab(tabName) {
+  if (window.CenterMemberAccess?.isRestricted()) return;
   // 센터 커뮤니티를 벗어나면 재생 중인 영상 정지
   if (
     tabName !== "community" &&
@@ -8171,8 +8172,8 @@ function getRoutineApplicationModule() {
     document.head.append(node);
   });
   routineApplicationModulePromise = Promise.all([
-    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=267"),
-    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=267")
+    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=271"),
+    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=271")
   ]).then(() => {
     if (!window.RoutineApplication) throw new Error("APPLICATION_MODULE_UNAVAILABLE");
     return window.RoutineApplication;
@@ -8243,7 +8244,7 @@ function syncRoutineChangeRequest() {
   const state = routineChangeState;
   const unrequested = state.activeId === null && state.pending === false && state.tutorialEligible === true;
   routineRequestButton.textContent = state.pending === true ? "신청 내용 수정하기" : unrequested
-    ? "나에게 맞는 루틴으로 신청하기" : defaultRoutineRequestButtonText;
+    ? "나에게 맞는 루틴 신청" : defaultRoutineRequestButtonText;
   if (!unrequested) {
     memberRoutineApplication.hidden = true;
     memberTabPanels.routine.classList.remove("is-unrequested");
@@ -9187,7 +9188,24 @@ async function loadMemberRoutine(
 }
 
 // 일반 회원 화면 표시
-async function showWorkoutApp(userId, displayName = "", timingRun = null, screenRequestId = null, screenAuthRevision = null) {
+function showRestrictedMemberApp(userId, profile, timingRun) {
+  appScreen.hidden = true; adminScreen.hidden = true; loginScreen.hidden = true;
+  document.getElementById("restrictedScreen").hidden = false;
+  document.getElementById("restrictedMemberName").textContent = profile.display_name || "회원";
+  document.getElementById("restrictedMemberEmail").textContent = profile.email || "";
+  window.MemberAccount?.start(supabaseClient, userId, { logout: handleLogout, restricted: true, profile });
+  window.CenterMemberAccess?.resetAdmin();
+  window.CenterMemberAccess?.startMember(supabaseClient, userId, profile);
+  window.LoginTiming?.finish(timingRun, "ready");
+}
+document.getElementById("restrictedManageAccount").addEventListener("click", () => window.MemberAccount?.openHome());
+document.getElementById("restrictedWithdraw").addEventListener("click", () => window.MemberAccount?.openWithdrawal());
+document.getElementById("restrictedLogout").addEventListener("click", () => void handleLogout());
+
+async function showWorkoutApp(userId, displayName = "", timingRun = null, screenRequestId = null, screenAuthRevision = null, accessProfile = null) {
+  document.getElementById("restrictedScreen").hidden = true;
+  window.CenterMemberAccess?.resetAdmin();
+  window.CenterMemberAccess?.startMember(supabaseClient, userId, accessProfile);
   window.CenterAttendance?.reset();
   memberRoutineIdentity = { userId, name: typeof displayName === "string" ? displayName.trim() : "" };
   memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
@@ -9243,6 +9261,7 @@ async function showWorkoutApp(userId, displayName = "", timingRun = null, screen
     if (!appScreen.hidden && memberRoutineIdentity.userId === userId && memberTabPanels[tab]?.hidden) showMemberTab(tab);
   });
   window.MemberAccount?.start(supabaseClient, userId, { logout: handleLogout, refreshInquiries: loadMemberInquiries });
+  window.PaymentFulfillment?.start(supabaseClient, userId);
   window.AdminUsage?.reset();
   window.AppUsage?.start(supabaseClient, userId);
 
@@ -9879,6 +9898,9 @@ adminMemberSearch.addEventListener("input", function () {
 
 // 관리자 화면 표시
 async function showAdminApp(userId, timingRun = null, screenRequestId = null, screenAuthRevision = null) {
+  document.getElementById("restrictedScreen").hidden = true;
+  window.CenterMemberAccess?.resetMember();
+  window.CenterMemberAccess?.startAdmin(supabaseClient, userId);
   window.RoutineApplication?.resetAdmin();
   window.CenterAttendance?.startAdmin(supabaseClient, userId);
   memberRoutineIdentity = { userId: "", name: "" };
@@ -9901,6 +9923,7 @@ async function showAdminApp(userId, timingRun = null, screenRequestId = null, sc
   window.LoginTiming?.finish(timingRun, "ready");
   window.PayAppCheckout?.reset();
   window.MemberAccount?.reset();
+  window.PaymentFulfillment?.reset();
   window.AppUsage?.reset();
   window.AdminUsage?.reset();
   resetAdminMemberStatistics();
@@ -9959,8 +9982,7 @@ async function showScreenForCurrentUser(session = null, timingRun = null) {
   renderMemberAccountEmail();
   const hint = typeof session?.user?.id === "string" ? session.user.id : "";
   const token = typeof session?.access_token === "string" ? session.access_token : "";
-  const readProfile = id => supabaseClient.from("profiles")
-    .select("role,email,display_name").eq("id", id).maybeSingle();
+  const readProfile = id => supabaseClient.rpc("center_my_access_profile");
   let userResult, profileResult;
   if (hint && token) {
     // Explicit JWT still goes to Auth /user, while avoiding the SDK session lock
@@ -9985,7 +10007,7 @@ async function showScreenForCurrentUser(session = null, timingRun = null) {
   }
   const profile = profileResult?.data;
   const profileError = profileResult?.error;
-  if (profileError || !profile || !["member", "admin"].includes(profile.role)) {
+  if (profileError || !window.CenterMemberAccess?.validProfile(profile, user.id)) {
     console.error("회원 역할 확인 실패:", profileError);
     loginMessage.textContent = profileError
       ? `회원 정보 오류: ${profileError.message}`
@@ -9998,9 +10020,13 @@ async function showScreenForCurrentUser(session = null, timingRun = null) {
     await showAdminApp(user.id, timingRun, requestId, authRevision);
     return;
   }
+  if (profile.restricted) {
+    showRestrictedMemberApp(user.id, profile, timingRun);
+    return;
+  }
   naverAuth?.renderUser(user, profile.role);
   renderMemberAccountEmail(user.email || profile.email);
-  await showWorkoutApp(user.id, profile.display_name, timingRun, requestId, authRevision);
+  await showWorkoutApp(user.id, profile.display_name, timingRun, requestId, authRevision, profile);
 }
 
 // 기존 단일 이미지와 새 이미지 목록을 같은 형태로 정리
@@ -10215,6 +10241,7 @@ async function loadSelectedAdminMemberRoutine() {
   window.RoutineComponents?.resetAdminPreview();
   const userId = adminMemberSelect.value;
   window.CenterAttendance?.selectAdminMember(userId);
+  window.CenterMemberAccess?.selectAdminMember(userId);
 
   const selectedOption =
     adminMemberSelect.options[
@@ -10998,6 +11025,7 @@ async function handleLogout() {
   window.LoginTiming?.cancel();
   logoutButton.disabled = true;
   adminLogoutButton.disabled = true;
+  document.getElementById("restrictedLogout").disabled = true;
 
   try {
     const { error } = await supabaseClient.auth.signOut();
@@ -11017,6 +11045,7 @@ async function handleLogout() {
     window.StretchingVideos?.reset();
     window.PayAppCheckout?.reset();
     window.MemberAccount?.reset();
+  window.PaymentFulfillment?.reset();
     window.AppUsage?.reset();
     window.AdminUsage?.reset();
     window.AdminPayments?.reset();
@@ -11040,6 +11069,9 @@ async function handleLogout() {
     renderWorkoutCalendar();
 
     resetAdminInquirySearch();
+    window.CenterMemberAccess?.resetMember();
+    window.CenterMemberAccess?.resetAdmin();
+    document.getElementById("restrictedScreen").hidden = true;
     // 회원·관리자 화면을 숨기고 로그인 화면 표시
     naverAuth?.reset();
     renderMemberAccountEmail();
@@ -11139,6 +11171,7 @@ async function handleLogout() {
 
   } finally {
     logoutButton.disabled = false;
+    document.getElementById("restrictedLogout").disabled = false;
     adminLogoutButton.disabled = false;
   }
 }

@@ -30,6 +30,7 @@
       selectedMember === member && $("adminMemberSelect")?.value === member && !$("adminScreen")?.hidden;
   }
   function reset() {
+    window.CenterMemberships?.reset();
     sessionEpoch++; monthRequest++; adminRequest++;
     monthAbort?.abort(); monthAbort = null; loadingMonth = ""; monthError = "";
     client = null; userId = ""; role = ""; monthCache.clear(); view = { key: "", selected: "" };
@@ -46,6 +47,7 @@
   }
   function start(connection, id, nextRole) {
     reset(); client = connection; userId = String(id || ""); role = nextRole;
+    if (role === "member") window.CenterMemberships?.start(connection, userId);
     if (client?.auth?.onAuthStateChange) {
       const result = client.auth.onAuthStateChange((event, session) => {
         if (event === "SIGNED_OUT" || (session?.user?.id && session.user.id !== userId)) reset();
@@ -105,9 +107,9 @@
     } else if (data.month_state === "future") {
       message = "센터 출석은 이용 후 표시됩니다.";
     } else {
-      count = `${data.month_state === "syncing" ? "확인된 출석" : "센터 출석"} ${data.attendance_days}일`;
+      count = `이번달 출석 ${data.attendance_days}일`;
       message = data.month_state === "syncing"
-        ? data.collection_enabled ? "이전 출석 기록을 연결하고 있어요." : "센터에서 출석 기록 연동을 준비 중이에요."
+        ? ""
         : data.last_synced_at ? "최근 확인: " + stampFormat.format(new Date(data.last_synced_at)) : "날짜를 누르면 입장 시간을 볼 수 있어요.";
       if (monthError) message = "새로 불러오지 못해 이전에 확인한 출석을 표시하고 있어요.";
     }
@@ -167,7 +169,7 @@
     const key = `${year}-${String(monthIndex + 1).padStart(2, "0")}-01`;
     if (view.key !== key) { monthRequest++; monthAbort?.abort(); monthAbort = null; loadingMonth = ""; monthError = ""; }
     view = { key, selected: validDay(selected) && selected.slice(0, 7) === key.slice(0, 7) ? selected : "" };
-    renderMonth(); void loadMonth();
+    renderMonth(); void loadMonth(); void window.CenterMemberships?.load();
   }
 
   function showAdminMessage(message, state = "") {
@@ -278,15 +280,15 @@
     }
   }
 
-  $("refreshCenterAttendance")?.addEventListener("click", () => { void loadMonth(true); });
+  $("refreshCenterAttendance")?.addEventListener("click", () => { void loadMonth(true); void window.CenterMemberships?.load(true); });
   $("adminAttendanceLookup")?.addEventListener("click", () => { void lookup(); });
   $("adminAttendanceConfirm")?.addEventListener("click", () => { void confirmLink(); });
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") void loadMonth(); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { void loadMonth(); void window.CenterMemberships?.load(); } });
   window.CenterAttendance = Object.freeze({ reset,
     startMember: (connection, id) => start(connection, id, "member"),
     startAdmin: (connection, id) => start(connection, id, "admin"),
     onCalendar, onTab: () => {
       if (!memberVisible()) { monthRequest++; monthAbort?.abort(); monthAbort = null; loadingMonth = ""; }
-      renderMonth(); void loadMonth();
+      renderMonth(); void loadMonth(); void window.CenterMemberships?.load();
     }, selectAdminMember });
 })();

@@ -1,21 +1,21 @@
 .center-attendance-meta { display:flex; flex-wrap:wrap; align-items:center; gap:5px 8px; margin-top:7px; padding-top:7px; border-top:1px solid #e1e7ef; }
 .center-attendance-count { margin:0; color:#15243e; font-size:12px; font-weight:800; }
-.center-attendance-legend { display:flex; align-items:center; gap:8px; margin-left:auto; color:#69778e; font-size:10px; }
+.center-attendance-legend { display:flex; align-items:center; gap:8px; margin-left:auto; color:#69778e; font-size:12px; }
 .center-attendance-legend span { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 .center-attendance-record-dot { width:5px; height:5px; border-radius:50%; background:#ff6b00; }
-.center-attendance-marker { width:6px; height:6px; border:1.5px solid #138165; border-radius:2px; box-sizing:border-box; }
+.center-attendance-marker { width:5px; height:5px; background:#138165; border-radius:50%; }
 #refreshCenterAttendance { display:grid; place-items:center; width:28px; min-height:28px; padding:0; color:#536680; background:#f5f8fc; border:1px solid #d9e2ed; border-radius:8px; font:inherit; font-size:19px; cursor:pointer; }
 #refreshCenterAttendance:disabled { opacity:.5; cursor:wait; }
 .center-attendance-status { margin:4px 0 0; color:#748199; font-size:10px; line-height:1.5; overflow-wrap:anywhere; }
 .center-attendance-status:empty { display:none; }
-.center-attendance-details { display:flex; flex-wrap:wrap; align-items:center; gap:4px 9px; margin-top:7px; padding:7px 9px; border-radius:9px; background:#edf7f2; color:#1c6553; font-size:12px; line-height:1.5; }
-.center-attendance-details strong { font-size:12px; }
+.center-attendance-details { display:flex; flex-wrap:wrap; align-items:center; gap:4px 9px; margin-top:7px; padding:7px 9px; border-radius:9px; background:#edf7f2; color:#1c6553; font-size:13.2px; line-height:1.5; }
+.center-attendance-details strong { font-size:13.2px; }
 .center-attendance-details span { overflow-wrap:anywhere; }
 .center-attendance-details[hidden],.admin-attendance-panel[hidden],.admin-attendance-candidate[hidden] { display:none; }
-.workout-calendar-day.has-center-attendance::before { position:absolute; left:50%; bottom:2px; width:5px; height:5px; border:1.5px solid #138165; border-radius:1.5px; box-sizing:border-box; transform:translateX(-50%); content:""; }
+.workout-calendar-day.has-center-attendance::before { position:absolute; left:50%; bottom:3px; width:5px; height:5px; background:#138165; border-radius:50%; transform:translateX(-50%); content:""; }
 .workout-calendar-day.has-center-attendance.has-record::before { left:calc(50% - 4px); }
 .workout-calendar-day.has-center-attendance.has-record::after { left:calc(50% + 4px); }
-.workout-calendar-day.has-center-attendance.is-selected::before { border-color:white; }
+.workout-calendar-day.has-center-attendance.is-selected::before { background:#138165; }
 .admin-attendance-panel { margin-top:12px; padding-top:12px; border-top:1px solid #dce4ef; }
 .admin-attendance-panel h3 { margin:0 0 7px; color:#15243e; font-size:14px; }
 .admin-attendance-status { margin:0 0 8px; color:#60718a; font-size:12px; line-height:1.65; overflow-wrap:anywhere; }

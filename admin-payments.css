@@ -29,3 +29,10 @@
 .admin-payment-options { margin: 0 0 4px; color: #a64a04; font-size: 13px; line-height: 1.6; font-weight: 700; }
 
 #adminPayments .one-day-pt-exercises { margin: 4px 0 6px; }
+
+.admin-payment-application { margin-top:12px; padding-top:12px; border-top:1px solid #e2e7ee; }
+.admin-application-note { margin:0 0 8px; color:#7a612f; font-size:12px; line-height:1.6; }
+.admin-application-applied { color:#277052; font-size:13px; }
+.admin-application-time { margin:5px 0 0; color:#697586; font-size:12px; line-height:1.6; }
+.admin-application-button { width:auto; min-height:38px; margin:0; padding:8px 14px; border:1px solid #ed6c13; border-radius:9px; background:#fff4e9; color:#9b480d; font:inherit; font-size:13px; font-weight:700; }
+.admin-application-button:disabled { opacity:.55; cursor:default; }

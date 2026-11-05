@@ -1,0 +1,25 @@
+.restricted-screen{max-width:540px;margin:0 auto;padding:24px 18px;min-height:100dvh;box-sizing:border-box;background:#edf0f4;color:#17243c}
+.restricted-brand{display:block;width:195px;max-width:70%;height:auto;margin:8px auto 28px}
+.restricted-account{padding:24px 20px;border:1px solid #dce3ec;border-radius:22px;background:#fff}
+.restricted-account h1{font-size:24px;margin:0 0 24px}
+.restricted-account strong{display:block;font-size:18px;overflow-wrap:anywhere}
+.restricted-account p{font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+.restricted-account .restricted-help{margin-top:24px;padding:14px;background:#fff5eb;border-radius:12px;color:#6c4b30}
+.restricted-actions{display:grid;gap:10px;margin-top:20px}
+.restricted-actions button{min-height:46px;border-radius:12px;border:1px solid #d4dce7;background:#fff;color:#17243c;font:inherit;font-weight:700;cursor:pointer}
+.restricted-actions button:first-child{background:#f56a00;border-color:#f56a00;color:#fff}
+.center-access-notice{width:calc(100% - 32px);max-width:400px;padding:24px;box-sizing:border-box;border:1px solid #dce3ec;border-radius:22px;color:#17243c}
+.center-access-notice::backdrop{background:rgba(20,31,51,.55)}
+.center-access-notice h2{margin:8px 30px 18px 0;font-size:21px;line-height:1.5;word-break:keep-all}
+.center-access-notice p{font-size:15px;line-height:1.75;word-break:keep-all}
+.center-access-notice .center-access-subtext{color:#657087;font-size:13px}
+#centerAccessNoticeClose{position:absolute;right:14px;top:12px;width:34px;height:34px;border:0;background:transparent;color:#657087;font-size:26px;cursor:pointer}
+#centerAccessNoticeConfirm{width:100%;min-height:46px;margin-top:8px;border:0;border-radius:12px;background:#f56a00;color:#fff;font:inherit;font-weight:800;cursor:pointer}
+#centerAccessNoticeStatus{color:#a33d20;font-size:13px}
+.admin-member-access{margin-top:18px;padding-top:18px;border-top:1px solid #dce3ec}
+.admin-member-access h3{font-size:15px;margin:0 0 10px}
+.admin-member-access p{font-size:13px;line-height:1.7;color:#657087;margin:8px 0}
+.admin-member-access[data-restricted=true] #adminMemberAccessState{color:#a33d20;font-weight:700}
+.admin-member-access button{padding:10px 12px;min-height:40px;border:1px solid #d4dce7;border-radius:10px;background:#f7f9fc;color:#23344e;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.admin-member-access #adminMemberAccessRestrict{border-color:#efc5ad;background:#fff7ef;color:#a44d14}
+.center-access-notice button:disabled,.admin-member-access button:disabled{opacity:.55;cursor:wait}

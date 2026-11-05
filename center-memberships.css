@@ -1,0 +1,24 @@
+.center-memberships { margin-top:12px; padding-top:12px; border-top:1px solid #e1e7ef; color:#15243e; }
+.center-memberships[hidden] { display:none; }
+.center-membership-message { margin:0; color:#69778e; font-size:11px; line-height:1.6; overflow-wrap:anywhere; }
+.center-membership-message[hidden] { display:none; }
+.center-membership-list { list-style:none; margin:0; padding:9px 10px; background:#f6f8fb; border:1px solid #e8edf3; border-radius:9px; }
+.center-membership-list:empty { display:none; }
+.center-membership-list:not(:empty) + .center-membership-message { margin-top:5px; }
+.center-membership-item { padding:0; font-size:12px; line-height:1.7; overflow-wrap:anywhere; }
+.center-membership-item + .center-membership-item { margin-top:3px; }
+.center-membership-label { color:#53647b; }
+.center-membership-expiry { color:#15243e; white-space:nowrap; }
+.guest-demo-membership-note { margin:12px 0 18px; padding:13px 14px; border:1px solid #e1e7ef; border-radius:12px; background:#f6f8fb; }
+.guest-demo-membership-note > strong { display:block; font-size:14px; line-height:1.6; color:#15243e; }
+.guest-demo-membership-note > p { margin:5px 0 0; color:#60718a; font-size:13px; line-height:1.7; word-break:keep-all; }
+.guest-demo-calendar-example { margin:14px -8px 0; }
+.guest-demo-calendar-card { margin:0; padding-right:10px; padding-left:10px; box-shadow:none; pointer-events:none; }
+.guest-demo-calendar-month { color:#15243e; font-size:16px; font-weight:800; text-align:center; white-space:nowrap; }
+.guest-demo-calendar-card .workout-calendar-day { width:min(34px,100%); cursor:default; }
+.guest-demo-calendar-card .calendar-month-button { cursor:default; }
+.guest-demo-calendar-card .center-attendance-legend { gap:6px; font-size:11px; }
+.guest-demo-calendar-card .center-attendance-legend span { gap:3px; }
+.guest-demo-calendar-card .center-membership-list { padding-right:7px; padding-left:7px; }
+.guest-demo-calendar-card .center-membership-item { font-size:11px; }
+.guest-demo-calendar-example figcaption { margin:8px 2px 0; color:#748199; font-size:10.5px; line-height:1.6; text-align:center; word-break:keep-all; }

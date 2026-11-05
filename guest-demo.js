@@ -30,6 +30,7 @@
   let bodyStyle = null, returnFocus = null, nextAction = "", closing = false;
   let scrollPosition = { left: 0, top: 0 };
   let hasHistoryEntry = false;
+  let closeTimer = null;
   const historyKey = "guest-demo-v1";
 
   function build() {
@@ -87,11 +88,28 @@
     if (!dialog.open || closing) return;
     closing = true;
     nextAction = action;
-    if (hasHistoryEntry && history.state?.guestDemo === historyKey) history.back();
-    else finishClose();
+    if (hasHistoryEntry && history.state?.guestDemo === historyKey) {
+      // Some embedded previews accept pushState but never complete back().
+      // Keep normal browser Back behavior, with a bounded local close fallback.
+      const closeLocally = () => {
+        if (!dialog.open || !closing) return;
+        if (history.state?.guestDemo === historyKey) {
+          try {
+            const state = { ...history.state };
+            delete state.guestDemo;
+            history.replaceState(state, "", location.href);
+          } catch (_) { /* Closing the UI must not depend on history support. */ }
+        }
+        finishClose();
+      };
+      closeTimer = setTimeout(closeLocally, 200);
+      try { history.back(); } catch (_) { closeLocally(); }
+    } else finishClose();
   }
 
   function cleanup() {
+    clearTimeout(closeTimer);
+    closeTimer = null;
     if (bodyStyle === null) return;
     window.RoutineComponents?.closeMediaWithin(dialog);
     cards.replaceChildren();

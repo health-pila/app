@@ -37,3 +37,8 @@
 #memberAccountDialog .account-withdraw-link{display:block;width:100%;min-height:44px;margin:6px 0 0;padding:10px;border:0;border-radius:8px;background:transparent;color:#657188;font:inherit;font-size:14px;font-weight:700;line-height:24px;text-align:center;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 @media(hover:hover){.account-dialog .account-nav button:hover,#memberAccountDialog #logoutButton:hover,#memberAccountDialog .account-withdraw-link:hover{background:#f7f9fc}}
 @media(max-width:360px){.account-dialog[data-account-view="home"] .account-body{padding-right:14px;padding-left:14px}.account-dialog .account-nav button{gap:10px;padding-right:12px;padding-left:12px;font-size:15px}.account-dialog[data-account-view="home"] .account-identity strong{font-size:21px}}
+
+.account-payment-card .account-application-state { display:inline-block; margin:0 0 7px; padding:4px 8px; border-radius:7px; color:#526078; background:#eef2f7; font-size:12px; font-weight:700; }
+.account-payment-card .account-application-state.is-applied { color:#286b51; background:#e7f4ec; }
+.account-payment-card .account-application-state.is-pending { color:#9a571c; background:#fff1e1; }
+.account-payment-card .account-application-time { color:#657188; font-size:12px; }

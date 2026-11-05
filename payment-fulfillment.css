@@ -1,0 +1,16 @@
+.payment-applied-dialog { box-sizing:border-box; width:min(390px,calc(100% - 32px)); max-height:calc(100dvh - 48px); overflow:auto; padding:24px; border:0; border-radius:20px; color:#17233e; background:#fff; box-shadow:0 18px 60px #17233e33; overscroll-behavior:contain; }
+.payment-applied-dialog::backdrop { background:#17233e80; }
+.payment-applied-top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.payment-applied-check { display:grid; place-items:center; width:44px; height:44px; border-radius:50%; color:#287052; background:#e7f5ec; font-size:25px; font-weight:800; }
+#paymentAppliedClose { width:auto; margin:0; padding:8px 10px; border:0; border-radius:9px; color:#697586; background:#f2f5f9; font:inherit; font-size:12px; }
+.payment-applied-dialog h2 { margin:18px 0 10px; font-size:22px; line-height:1.4; }
+.payment-applied-product { margin:0 0 14px; color:#a84d13; font-size:15px; font-weight:700; line-height:1.6; overflow-wrap:anywhere; }
+.payment-applied-copy { margin:0; color:#33445f; font-size:16px; line-height:1.8; word-break:keep-all; }
+.payment-applied-time { margin:12px 0 0; color:#748199; font-size:11px; line-height:1.6; }
+.payment-applied-message { margin:12px 0 0; color:#a04324; font-size:12px; line-height:1.6; }
+.payment-applied-message:empty { display:none; }
+.payment-applied-actions { display:grid; gap:8px; margin-top:22px; }
+.payment-applied-actions button { width:100%; min-height:44px; margin:0; padding:11px 12px; border:1px solid #dce3ed; border-radius:11px; background:#fff; color:#526078; font:inherit; font-size:14px; font-weight:700; }
+.payment-applied-actions #paymentAppliedConfirm { border-color:#f56a00; color:#fff; background:#f56a00; }
+.payment-applied-dialog button:disabled { opacity:.6; cursor:wait; }
+.payment-applied-dialog button:focus-visible { outline:3px solid #f56a00; outline-offset:3px; }

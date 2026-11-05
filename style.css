@@ -935,7 +935,7 @@ button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outlin
   border-radius: 12px;
 
   font: inherit;
-  font-size: 12px;
+  font-size: 13.2px;
   font-weight: 700;
   line-height: 1.2;
 
@@ -1132,25 +1132,25 @@ button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outlin
   aspect-ratio: 1;
 }
 
-/* 달력 세로 높이 줄이기 */
+/* 날짜 영역의 세로 높이 15% 확대 */
 .workout-calendar-card {
-  padding-top: 9.72px;
-  padding-bottom: 9.72px;
+  padding-top: 11.178px;
+  padding-bottom: 11.178px;
 }
 
 .workout-calendar-header {
   grid-template-columns: 27.54px 1fr 27.54px;
-  margin-bottom: 8.1px;
+  margin-bottom: 9.315px;
 }
 
 .calendar-month-button {
   width: 27.54px;
-  height: 27.54px;
+  height: 31.671px;
   font-size: 24px;
 }
 
 .workout-calendar-weekdays {
-  margin-bottom: 3.24px;
+  margin-bottom: 3.726px;
 }
 
 .workout-calendar-days {
@@ -1160,12 +1160,12 @@ button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outlin
 .workout-calendar-day {
   justify-self: center;
   width: 34px;
-  height: 27.54px;
+  height: 31.671px;
   aspect-ratio: auto;
 }
 
 .workout-calendar-empty {
-  height: 27.54px;
+  height: 31.671px;
   aspect-ratio: auto;
 }
 
@@ -4401,6 +4401,10 @@ body.camera-open {
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
+/* Native vector accent keeps the approved artwork crisp without an image download. */
+.member-routine-application-top { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; }
+.member-routine-plan-icon { display:block; flex:none; width:52px; height:52px; margin-top:-5px; margin-bottom:-3px; }
+.member-routine-application h2 span { display:block; }
 .member-routine-free-badge {
   display: inline-block;
   padding: 4px 11px;
@@ -4427,26 +4431,19 @@ body.camera-open {
 }
 .member-routine-application .routine-request-button {
   height: auto;
-  min-height: 48px;
+  min-height: 52.8px;
   margin: 0;
-  padding: 12px 8px;
-  font-size: 16px;
+  padding: 13.2px 8px;
+  font-size: 17.6px;
   line-height: 1.4;
-}
-.member-routine-application-note {
-  margin: 8px 0 0;
-  color: #657087;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.5;
-  text-align: center;
+  box-shadow: 0 5px 13px rgba(245, 106, 0, 0.16);
 }
 .is-unrequested .member-routine-request-area { display: none; }
 .is-unrequested .member-workout-heading { justify-content: flex-start; gap: 8px; margin-bottom: 6px; }
 .is-unrequested .member-workout-heading h3 { padding: 0; font-size: 16px; line-height: 1.6; word-break: keep-all; }
 @media (max-width: 360px) {
   .member-routine-application { margin-right: 10px; margin-left: 10px; padding: 12px; }
-  .member-routine-application .routine-request-button { font-size: 15px; }
+  .member-routine-application .routine-request-button { font-size: 16.5px; }
   .is-unrequested .member-workout-heading h3 { font-size: 15px; }
 }
 #memberRoutineComponents.is-tutorial .routine-component-actions {

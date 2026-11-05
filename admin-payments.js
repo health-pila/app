@@ -15,16 +15,17 @@
   });
   let client = null, userId = '', generation = 0, requestId = 0, timer = null;
   let busy = false, blocked = false, offset = 0, hasMore = false, entries = [];
+  let applicationStates = new Map(), applyingId = '';
   const active = () => Boolean(client && userId && !screen.hidden);
   const live = (token, serial) => token === generation && serial === requestId && active();
   function stop() { clearTimeout(timer); timer = null; }
   function status(text, error = false) { message.textContent = text; message.classList.toggle('is-error', error); }
   function controls() {
     const enabled = active() && !blocked;
-    filter.disabled = !enabled;
-    refresh.disabled = !enabled || busy;
-    previous.disabled = !enabled || busy || offset === 0;
-    next.disabled = !enabled || busy || !hasMore;
+    filter.disabled = !enabled || Boolean(applyingId);
+    refresh.disabled = !enabled || busy || Boolean(applyingId);
+    previous.disabled = !enabled || busy || Boolean(applyingId) || offset === 0;
+    next.disabled = !enabled || busy || Boolean(applyingId) || !hasMore;
     pageLabel.textContent = `${Math.floor(offset / 20) + 1}페이지`;
     list.setAttribute('aria-busy', String(busy));
   }
@@ -60,6 +61,21 @@
         const row = document.createElement('div'); row.append(textNode('dt', '', label), textNode('dd', '', time(value))); details.append(row);
       }
       card.append(details);
+      if (entry.payment_state === 'paid') {
+        const application=applicationStates.get(entry.id), state=application?.state;
+        const box=textNode('div','admin-payment-application','');
+        if(state==='applied'){
+          box.append(textNode('strong','admin-application-applied','상품 적용 완료'));
+          box.append(textNode('p','admin-application-time','적용 일시: '+time(application.applied_at)));
+          box.append(textNode('p','admin-application-time',application.acknowledged_at?'회원 확인: '+time(application.acknowledged_at):'회원 알림 확인 대기'));
+        }else{
+          box.append(textNode('p','admin-application-note',state==='pending'?'결제 완료 · 상품 적용 대기':state==='legacy'?'도입 이전 결제 · 적용 여부 미확인':'상품 적용 상태를 확인하지 못했어요. 새로고침해 주세요.'));
+          const button=textNode('button','admin-application-button',applyingId===entry.id?'적용 처리 중…':'CRM 적용 완료');
+          button.type='button';button.disabled=!['pending','legacy'].includes(state)||Boolean(applyingId)||busy;
+          button.addEventListener('click',()=>{void markApplied(entry);});box.append(button);
+        }
+        card.append(box);
+      }
       if (entry.payment_state === 'partial_refund') card.append(textNode('p', 'admin-payment-note', '일부 취소 금액과 잔액은 페이앱 판매자 내역에서 확인해 주세요.'));
       fragment.append(card);
     }
@@ -67,10 +83,23 @@
   }
   function schedule() {
     stop();
-    if (active() && !blocked && !document.hidden) timer = setTimeout(() => { void load(offset, true); }, 15000);
+    if (active() && !blocked && !document.hidden && !applyingId) timer = setTimeout(() => { void load(offset, true); }, 15000);
+  }
+  async function markApplied(entry) {
+    if(!active()||blocked||busy||applyingId||entry.payment_state!=='paid')return;
+    if(!window.confirm(entry.member_name+' 회원님의 '+entry.product_name+' 상품과 추가 옵션을 CRM에 모두 적용하셨나요?\n완료 처리하면 회원에게 상품 적용 알림이 표시됩니다.'))return;
+    const token=generation,db=client,owner=userId;applyingId=entry.id;stop();render();
+    try{
+      const {data,error}=await window.PaymentFulfillment.request(db,'payapp_mark_order_applied',{p_order_id:entry.id});
+      if(token!==generation||owner!==userId||!active())return;
+      if(error||data?.ok!==true||data.version!==1||data.order_id!==entry.id||data.state!=='applied'||!Number.isFinite(Date.parse(data.applied_at)))throw Error('UNCONFIRMED');
+      applicationStates.set(entry.id,{order_id:entry.id,state:'applied',applied_at:data.applied_at,acknowledged_at:data.acknowledged_at});
+      status('상품 적용 완료로 표시했어요. 회원에게 안내가 표시됩니다.');
+    }catch(_){if(token===generation&&owner===userId&&active())status('적용 처리 결과를 확인하지 못했어요. 새로고침 후 상태를 확인해 주세요.',true);}
+    finally{if(token===generation&&owner===userId&&active()){applyingId='';render();schedule();}}
   }
   async function load(target = offset, quiet = false) {
-    if (!active() || document.hidden || blocked) return;
+    if (!active() || document.hidden || blocked || applyingId) return;
     stop();
     const token = generation, serial = ++requestId, expectedUserId = userId, activeClient = client;
     const selectedFilter = filter.value;
@@ -92,8 +121,12 @@
       }
       if (!Array.isArray(data.entries) || data.offset !== target || data.page_size !== 20 || typeof data.has_more !== 'boolean') throw new Error('BAD_RESPONSE');
       if (!data.entries.length && target > 0) { void load(Math.max(0, target - 20)); return; }
+      let nextStates=new Map(),stateError=false;
+      try{nextStates=await window.PaymentFulfillment.getStatuses(activeClient,data.entries.map(row=>row.id),true);}catch(_){stateError=true;}
+      if(!live(token,serial))return;
+      applicationStates=nextStates;
       offset = target; entries = data.entries; hasMore = data.has_more; render();
-      status(entries.length ? '' : '표시할 결제 완료·취소 내역이 없어요.');
+      status(entries.length ? stateError?'상품 적용 상태를 불러오지 못했어요. 새로고침해서 확인해 주세요.':'' : '표시할 결제 완료·취소 내역이 없어요.',stateError);
     } catch (error) {
       if (!live(token, serial)) return;
       if (['AUTH_REQUIRED', 'ADMIN_REQUIRED'].includes(error.code)) {
@@ -103,12 +136,13 @@
         status(entries.length ? '새로 불러오지 못했어요. 현재 표시된 내역은 이전 조회 결과예요.' : '결제 내역을 불러오지 못했어요. 잠시 후 새로고침해 주세요.', true);
       }
     } finally {
-      if (live(token, serial)) { busy = false; controls(); schedule(); }
+      if (live(token, serial)) { busy = false; render(); schedule(); }
     }
   }
   function reset() {
     generation++; requestId++; stop(); client = null; userId = '';
     busy = false; blocked = false; offset = 0; hasMore = false; entries = [];
+    applicationStates=new Map();applyingId='';
     filter.value = 'all'; status(''); render();
   }
   function start(nextClient, nextUserId) {
