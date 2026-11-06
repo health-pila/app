@@ -142,7 +142,7 @@
   align-items: center;
   gap: 7px;
   color: #697586;
-  font-size: 14px;
+  font-size: 15.4px;
   font-weight: 700;
 }
 .cardio-level-bars {
@@ -166,7 +166,7 @@
   align-items: center;
   gap: 4px;
   color: #697586;
-  font-size: 15px;
+  font-size: 16.5px;
   line-height: 1.5;
 }
 .cardio-program-time svg { width: 13px; height: 13px; }
@@ -188,7 +188,7 @@
   padding-top: 10px;
   border-top: 1px solid #e0e6ee;
   color: #ce570a;
-  font-size: 15px;
+  font-size: 16.5px;
   font-weight: 700;
   line-height: 1.5;
 }
@@ -201,7 +201,7 @@
 .cardio-program-equipment {
   margin: 1px 0 11px;
   color: #697586;
-  font-size: 14px;
+  font-size: 15.4px;
   line-height: 1.5;
 }
 .cardio-program-steps { margin: 0; padding: 0; list-style: none; }
@@ -221,25 +221,25 @@
   border-radius: 50%;
   background: #fff2e7;
   color: #ce570a;
-  font-size: 14px;
+  font-size: 15.4px;
 }
 .cardio-step-description { min-width: 0; }
 .cardio-step-description strong {
   color: var(--brand-navy);
-  font-size: 15px;
+  font-size: 16.5px;
   font-weight: 700;
   line-height: 1.6;
 }
 .cardio-step-description p {
   margin: 4px 0 0;
   color: #697586;
-  font-size: 14px;
+  font-size: 15.4px;
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
 .cardio-step-time {
   color: var(--brand-navy);
-  font-size: 15px;
+  font-size: 16.5px;
   line-height: 1.6;
   white-space: nowrap;
 }
@@ -249,7 +249,7 @@
   border-radius: 8px;
   background: #edf1f6;
   color: #697586;
-  font-size: 14px;
+  font-size: 15.4px;
   line-height: 1.6;
   word-break: keep-all;
 }

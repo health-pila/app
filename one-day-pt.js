@@ -3,6 +3,7 @@
   "use strict";
   const $ = id => document.getElementById(id);
   const dialog = $("oneDayPtDialog");
+  const enabled = () => document.documentElement.dataset.oneDayPtEnabled !== "false";
   const MAX_ITEMS = 5;
   const LABELS = { pending: "접수 완료", contacted: "예약 조율 중", completed: "진행 완료", cancelled: "취소" };
   const FIELDS = "id,user_id,exercises,status,created_at,updated_at";
@@ -58,7 +59,7 @@
     updateAddButton(button);
 
     button.addEventListener("click", () => {
-      if (role !== "member" || submitting) return;
+      if (!enabled() || role !== "member" || submitting) return;
 
       const exercise = resolveExercise(exerciseId);
       if (!exercise) return;
@@ -140,7 +141,7 @@
     return admin ? "신청 내역을 불러오지 못했습니다. 새로고침해 주세요." : "신청 내역을 확인하지 못했어요. 새로고침 후 다시 시도해 주세요.";
   }
   async function loadMember() {
-    if (role !== "member" || submitting) return;
+    if (!enabled() || role !== "member" || submitting) return;
     const ticket = generation, seq = ++memberSequence;
     memberLoading = true; renderCart();
     $("oneDayPtHistoryMessage").textContent = "신청 내역을 확인하고 있어요…";
@@ -163,7 +164,7 @@
     }
   }
   function submit() {
-    if ($("submitOneDayPt").disabled || role !== "member") return;
+    if (!enabled() || $("submitOneDayPt").disabled || role !== "member") return;
     const exercises = cart.map(id => ({ exerciseId: id, name: resolveExercise(id).name }));
     if (!window.PayAppCheckout?.openPT(exercises)) {
       $("oneDayPtSubmitMessage").textContent = "결제창을 준비하지 못했어요. 잠시 후 다시 눌러 주세요.";
@@ -309,14 +310,14 @@
     }).subscribe();
   }
   async function showMember(db, id) {
-    reset(); client = db; userId = id; role = "member";
+    reset(); if (!enabled()) return; client = db; userId = id; role = "member";
     const ticket = generation;
     await window.MemberCustomExercises?.ready();
     if (!current(ticket, "member")) return;
     restoreCart(); renderCart(); subscribe(); await loadMember();
   }
   async function showAdmin(db, id) {
-    reset(); client = db; userId = id || "admin"; role = "admin";
+    reset(); if (!enabled()) return; client = db; userId = id || "admin"; role = "admin";
     $("adminOneDayPtFilter").value = "active";
     const ticket = generation;
     subscribe();
@@ -324,7 +325,7 @@
     if (isCurrentAdmin(ticket)) scheduleAdminAlertPoll(ticket);
   }
   $("openOneDayPtCart").addEventListener("click", () => {
-    if (role !== "member") return;
+    if (!enabled() || role !== "member") return;
     renderCart(); if (!dialog.open) dialog.showModal(); loadMember();
   });
   $("closeOneDayPtCart").addEventListener("click", () => dialog.close());
@@ -351,6 +352,6 @@
     if (JSON.stringify(selected) === JSON.stringify(paid.exercises)) { cart = []; requestId = ""; saveCart(); renderCart(); }
     $("oneDayPtSubmitMessage").textContent = "결제가 완료됐어요. 센터에서 일정 조율을 위한 문자를 드립니다.";
   });
-  window.OneDayPT = Object.freeze({ showMember, showAdmin, reset, createAddButton });
+  window.OneDayPT = Object.freeze({ showMember, showAdmin, reset, createAddButton, isEnabled: enabled });
 })();
 

@@ -796,7 +796,7 @@
     });
     if (!personal) actions.append(detailsButton, videoButton);
 
-    if (options?.oneDayPT && window.OneDayPT) {
+    if (options?.oneDayPT && window.OneDayPT && window.OneDayPT.isEnabled?.() !== false) {
       actions.append(window.OneDayPT.createAddButton(entry.exerciseId));
     }
 

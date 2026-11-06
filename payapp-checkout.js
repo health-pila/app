@@ -320,6 +320,7 @@
   }
   async function purchase(event) {
     event.preventDefault();
+    if (product.cartOnly && document.documentElement.dataset.oneDayPtEnabled === 'false') return;
     if (!active() || busy || checking || choiceBlocked) return;
     if (current && !editing) {
       if (!matchesChoice(current, product, selection(), ptSelection)) { displayOrder(current, true); return; }
@@ -438,6 +439,7 @@
   const app = byId('appScreen');
   if (app) new MutationObserver(() => { if (app.hidden && userId) reset(); }).observe(app, { attributes: true, attributeFilter: ['hidden'] });
   function openPT(exercises) {
+    if (document.documentElement.dataset.oneDayPtEnabled === "false") return false;
     if (!active() || busy || checking) return false;
     try { wantedPT = validatePT(exercises); } catch (_) { return false; }
     ptSelection = wantedPT;
