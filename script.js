@@ -17,7 +17,8 @@ if (isPasswordRecoveryReturn) {
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY,
-  { auth: { detectSessionInUrl: !isPasswordRecoveryReturn } }
+  { auth: { detectSessionInUrl: !isPasswordRecoveryReturn },
+    global: { fetch: window.AppUsage?.createFetch?.(SUPABASE_URL) || window.fetch.bind(window) } }
 );
 
   const routineCarousel =
@@ -8172,8 +8173,8 @@ function getRoutineApplicationModule() {
     document.head.append(node);
   });
   routineApplicationModulePromise = Promise.all([
-    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=280"),
-    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=280")
+    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=282"),
+    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=282")
   ]).then(() => {
     if (!window.RoutineApplication) throw new Error("APPLICATION_MODULE_UNAVAILABLE");
     return window.RoutineApplication;
