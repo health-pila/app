@@ -27,4 +27,10 @@
 .admin-attendance-panel .admin-attendance-confirm { background:#f56a00; border-color:#f56a00; color:white; }
 
 /* Enlarge the live calendar legend without changing the guest example. */
-#workoutLogTabPanel .center-attendance-legend { font-size:13.2px; }
+#workoutLogTabPanel .center-attendance-legend { font-size:14.52px; }
+
+/* v280: enlarge the live attendance summary text by 10%. */
+#workoutLogTabPanel .center-attendance-count { font-size:13.2px; }
+#workoutLogTabPanel .center-attendance-status { font-size:11px; }
+#workoutLogTabPanel .center-attendance-details,
+#workoutLogTabPanel .center-attendance-details strong { font-size:14.52px; }

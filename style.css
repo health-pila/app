@@ -6023,3 +6023,6 @@ textarea.routine-weight-cell {
 /* v276: 1DAY PT UI pause. Existing code, saved carts and financial history are retained. */
 html[data-one-day-pt-enabled="false"] :is(#memberOneDayPtEntry,#oneDayPtDialog,#oneDayPtFeedback,#adminOneDayPtManagement,[data-one-day-pt-ui],.one-day-pt-add-button) { display:none !important; }
 html[data-one-day-pt-enabled="false"] :is(#appScreen #memberRoutineComponents,#guestDemoRoutineCards,#adminRoutineJsonPreview) .routine-card-disclosure:not(.is-personal-exercise) .routine-component-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+
+/* v279: bottom routine reapplication CTA only; preserve the top first-application CTA. */
+#appScreen .member-routine-request-area #routineRequestButton { min-height:55.2px; padding-top:16.1px; padding-bottom:16.1px; font-size:17.25px; }
