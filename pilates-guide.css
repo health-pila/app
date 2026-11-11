@@ -1,0 +1,86 @@
+/* 로그인 전·후 공통 공개 가이드와 커뮤니티 메뉴. 기존 라이트 화면의 나머지 영역은 유지합니다. */
+#loginScreen .login-guide-entry { width: 100%; margin-top: 14px; }
+#loginScreen .login-guide-button {
+  display: flex; align-items: center; gap: 11px; width: 100%; min-height: 88px;
+  margin: 0; padding: 16px 14px; border: 1px solid #eea56e; border-radius: 17px;
+  color: var(--brand-navy); background: #fffaf5; text-align: left; font: inherit;
+  box-shadow: 0 3px 0 #f3d9c4, 0 6px 14px #b860190a; cursor: pointer;
+}
+.login-guide-icon { flex: 0 0 38px; width: 38px; height: 38px; color: #ed6a0a; }
+.login-guide-copy { display: grid; min-width: 0; gap: 4px; }
+.login-guide-copy strong { font-size: 17px; line-height: 1.4; letter-spacing: -.4px; font-weight: 800; word-break: keep-all; }
+.login-guide-copy > span { color: #667085; font-size: 12px; line-height: 1.5; word-break: keep-all; }
+.login-guide-arrow { flex: 0 0 18px; width: 18px; height: 18px; margin-left: auto; color: #ed6a0a; }
+#loginScreen .login-guide-button:active { transform: translateY(2px); box-shadow: 0 1px 0 #f3d9c4; }
+#loginScreen .login-guide-button:focus-visible { outline: 3px solid #ec6a1a; outline-offset: 3px; }
+
+/* 운동 구성의 중분류와 같은 입체 버튼: 3열·아이콘·선택한 주황색 테두리. */
+#communityTabPanel .community-menu {
+  grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+  padding: 7px 7px 11px; border: 1px solid #e0e6ee; border-radius: 15px;
+  background: #fff; margin-bottom: 20px;
+}
+.community-page-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-column: span 2; gap: 8px; min-width: 0; }
+#communityTabPanel .community-menu-button {
+  --community-edge: #bdcadb; --community-shadow: #17233e21;
+  width: 100%; min-height: 96px; margin: 0; padding: 6px 2px 7px; gap: 4px;
+  border: 1px solid #b8c6d8; border-radius: 11px;
+  color: #4b5769; background: linear-gradient(180deg, #fff, #f3f6fa);
+  box-shadow: 0 3px 0 var(--community-edge), 0 5px 9px var(--community-shadow), inset 0 1px 0 #ffffffd9;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+#communityTabPanel .community-menu-icon { width: 36px; height: 36px; opacity: 1; }
+#communityTabPanel .community-menu-label {
+  display: flex; flex-direction: column; justify-content: center; min-height: 36px;
+  color: inherit; font-size: 15px; font-weight: 800; line-height: 1.2; text-align: center; word-break: keep-all;
+}
+#communityTabPanel .community-menu-label > span { display: block; }
+#communityTabPanel .community-menu-button::after { display: none; }
+#communityTabPanel .community-menu-button:is(.is-active, .is-guide-open) {
+  --community-edge: #df5d0b; --community-shadow: #ec6a1a2e;
+  border-color: var(--brand-orange); color: #a94200;
+  background: linear-gradient(180deg, #fff0df, #ffe0c5);
+}
+#communityTabPanel .community-menu-button:active { transform: translateY(3px); box-shadow: 0 0 0 var(--community-edge), inset 0 1px 2px #17233e12; }
+#communityTabPanel .community-menu-button:focus-visible { outline: 3px solid var(--brand-orange); outline-offset: 2px; }
+#communityTabPanel .community-menu-button:disabled { color: #9299a3; background: #f1f2f4; border-color: #d8dfe8; box-shadow: 0 3px 0 #d8dfe8; transform: none; }
+#communityTabPanel .community-menu-button:disabled .community-menu-icon { opacity: .35; }
+
+.pilates-guide-dialog {
+  box-sizing: border-box; position: fixed; inset: 0; margin: 0; padding: 0; border: 0; border-radius: 0;
+  width: 100%; max-width: none; height: 100vh; height: 100dvh; max-height: none;
+  color: var(--brand-navy, #17233e); background: #fff; font-family: inherit; overflow: hidden;
+}
+.pilates-guide-dialog[open] { display: flex; flex-direction: column; }
+.pilates-guide-dialog::backdrop { background: #17233eaa; }
+.pilates-guide-heading {
+  display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; gap: 8px;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid #e0e6ee; background: #fffaf5;
+}
+.pilates-guide-heading h2 { min-width: 0; margin: 0; font-size: clamp(15px, 4vw, 18px); font-weight: 800; line-height: 1.4; word-break: keep-all; }
+.pilates-guide-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.pilates-guide-actions button {
+  width: auto; min-width: 44px; min-height: 44px; margin: 0; padding: 8px 11px;
+  border: 1px solid #d5dde8; border-radius: 11px; color: #344054; background: #fff;
+  font: inherit; font-size: 14px; line-height: 1.4; font-weight: 700; cursor: pointer;
+}
+.pilates-guide-actions button svg { display: block; width: 20px; height: 20px; }
+.pilates-guide-actions button:focus-visible { outline: 3px solid #ec6a1a; outline-offset: 2px; }
+.pilates-guide-actions button:disabled { opacity: .45; cursor: default; }
+.pilates-guide-status { flex: 0 0 auto; margin: 0; padding: 10px 16px; border-bottom: 1px solid #e6ebf2; color: #5e6b7f; background: #f5f7fa; font-size: 13px; line-height: 1.6; }
+.pilates-guide-viewport { flex: 1 1 0; min-height: 0; padding-bottom: env(safe-area-inset-bottom, 0px); background: #fff; }
+.pilates-guide-frame { display: block; box-sizing: border-box; width: 100%; height: 100%; margin: 0; border: 0; background: #fff; }
+@media (max-width: 360px) {
+  #communityTabPanel .community-menu { gap: 6px; padding-right: 5px; padding-left: 5px; }
+  .community-page-tabs { gap: 6px; }
+  #communityTabPanel .community-menu-label { font-size: 13.5px; }
+  #loginScreen .login-guide-button { gap: 9px; padding-right: 11px; padding-left: 11px; }
+  .login-guide-icon { flex-basis: 32px; width: 32px; height: 32px; }
+  .login-guide-copy strong { font-size: 16px; }
+  .pilates-guide-heading { gap: 6px; padding-right: 8px; padding-left: 12px; }
+  .pilates-guide-actions { gap: 4px; }
+  .pilates-guide-actions button { padding-right: 8px; padding-left: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { #communityTabPanel .community-menu-button { transition: none; } }

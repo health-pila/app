@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://cithfqbzszgiqjifhrqy.supabase.co wss://cithfqbzszgiqjifhrqy.supabase.co; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com; media-src 'self' blob: https:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://cithfqbzszgiqjifhrqy.supabase.co wss://cithfqbzszgiqjifhrqy.supabase.co; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://healthnpila.notion.site; media-src 'self' blob: https:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="color-scheme" content="only light">
   <meta name="theme-color" content="#ffffff">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,24 +16,26 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=282">
-  <script src="pull-to-refresh-guard.js?v=282" defer></script>
-  <link rel="stylesheet" href="cardio-programs.css?v=282">
-  <link rel="stylesheet" href="stretching-videos.css?v=282">
-  <link rel="stylesheet" href="member-exercise-replacements.css?v=282">
-  <link rel="stylesheet" href="member-workout-completion.css?v=282">
-  <link rel="stylesheet" href="member-services.css?v=282">
-  <link rel="stylesheet" href="payapp-checkout.css?v=282">
-  <link rel="stylesheet" href="admin-payments.css?v=282">
-  <link rel="stylesheet" href="naver-login.css?v=282">
-  <link rel="stylesheet" href="member-account.css?v=282">
-  <link rel="stylesheet" href="center-member-access.css?v=282">
-  <link rel="stylesheet" href="admin-usage.css?v=282">
-  <link rel="stylesheet" href="admin-member-alerts.css?v=282">
-  <link rel="stylesheet" href="center-memberships.css?v=282">
-  <link rel="stylesheet" href="payment-fulfillment.css?v=282">
-  <link rel="stylesheet" href="center-attendance.css?v=282">
-  <link rel="stylesheet" href="login-timing.css?v=282">
+  <link rel="stylesheet" href="style.css?v=285">
+  <script src="pull-to-refresh-guard.js?v=285" defer></script>
+  <link rel="stylesheet" href="cardio-programs.css?v=285">
+  <link rel="stylesheet" href="stretching-videos.css?v=285">
+  <link rel="stylesheet" href="member-exercise-replacements.css?v=285">
+  <link rel="stylesheet" href="member-workout-completion.css?v=285">
+  <link rel="stylesheet" href="member-services.css?v=285">
+  <link rel="stylesheet" href="payapp-checkout.css?v=285">
+  <link rel="stylesheet" href="admin-payments.css?v=285">
+  <link rel="stylesheet" href="naver-login.css?v=285">
+  <link rel="stylesheet" href="member-account.css?v=285">
+  <link rel="stylesheet" href="center-member-access.css?v=285">
+  <link rel="stylesheet" href="admin-usage.css?v=285">
+  <link rel="stylesheet" href="admin-member-alerts.css?v=285">
+  <link rel="stylesheet" href="center-memberships.css?v=285">
+  <link rel="stylesheet" href="payment-fulfillment.css?v=285">
+  <link rel="stylesheet" href="center-attendance.css?v=285">
+  <link rel="stylesheet" href="login-timing.css?v=285">
+  <link rel="stylesheet" href="pilates-guide.css?v=285">
+  <script src="pilates-guide.js?v=285" defer></script>
   <link rel="manifest" href="manifest.json">
 
   <link rel="apple-touch-icon" href="images/icon-192.png">
@@ -154,6 +156,13 @@
         <svg class="login-preview-arrow" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false"><path d="m7 4 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
       </button>
     </div>
+    <div class="login-guide-entry">
+      <button id="openLoginPilatesGuide" class="login-guide-button" type="button" data-open-pilates-guide aria-haspopup="dialog" aria-controls="pilatesGuideDialog">
+        <svg class="login-guide-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c-5-4-10-4-16-2v23c6-2 11-2 16 2 5-4 10-4 16-2V8c-6-2-11-2-16 2Zm0 0v23" /></svg>
+        <span class="login-guide-copy"><strong>그룹 필라테스 이용 가이드</strong><span>예약 방법과 수업 이용 규정을 확인하세요.</span></span>
+        <svg class="login-guide-arrow" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false"><path d="m7 4 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </button>
+    </div>
     <footer class="login-footer">
       <div id="loginInstallArea" class="login-install-area" hidden>
         <button id="loginInstallButton" type="button">📲 홈 화면에 앱 설치</button>
@@ -166,7 +175,7 @@
   </section>
   <main id="appScreen" class="app" hidden>
     <div class="member-app-topbar">
-      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=282" alt="헬스와 필라테스 화곡점">
+      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=285" alt="헬스와 필라테스 화곡점">
       <div class="member-topbar-actions">
         <button id="refreshMemberAppButton" class="member-refresh-button" type="button" aria-label="앱 새로고침"
           title="새로고침">
@@ -217,13 +226,13 @@
       <div class="member-routine-menu" role="tablist" aria-label="운동 구성 메뉴">
         <button id="memberAssignedRoutineMenuButton" class="member-routine-menu-button is-active" type="button"
           role="tab" data-routine-menu="assigned" aria-controls="memberAssignedRoutinePanel" aria-selected="true"
-          tabindex="0"><img class="member-routine-menu-image" src="images/routine-tab.png?v=282" width="72" height="60" alt="" aria-hidden="true" decoding="async"><span class="member-routine-menu-label">나의 루틴</span></button>
+          tabindex="0"><img class="member-routine-menu-image" src="images/routine-tab.png?v=285" width="72" height="60" alt="" aria-hidden="true" decoding="async"><span class="member-routine-menu-label">나의 루틴</span></button>
         <button id="memberCardioMenuButton" class="member-routine-menu-button" type="button"
           role="tab" data-routine-menu="cardio" aria-controls="memberCardioPanel" aria-selected="false"
-          tabindex="-1" aria-label="유산소 프로그램"><img class="member-routine-menu-image" src="images/cardio-tab.png?v=282" width="72" height="60" alt="" aria-hidden="true" decoding="async"><span class="member-routine-menu-label">유산소</span></button>
+          tabindex="-1" aria-label="유산소 프로그램"><img class="member-routine-menu-image" src="images/cardio-tab.png?v=285" width="72" height="60" alt="" aria-hidden="true" decoding="async"><span class="member-routine-menu-label">유산소</span></button>
         <button id="memberStretchingMenuButton" class="member-routine-menu-button" type="button"
           role="tab" data-routine-menu="stretching" aria-controls="memberStretchingPanel" aria-selected="false"
-          tabindex="-1"><img class="member-routine-menu-image" src="images/stretching-tab.png?v=282" width="72" height="60" alt="" aria-hidden="true" decoding="async"><span class="member-routine-menu-label">스트레칭</span></button>
+          tabindex="-1"><img class="member-routine-menu-image" src="images/stretching-tab.png?v=285" width="72" height="60" alt="" aria-hidden="true" decoding="async"><span class="member-routine-menu-label">스트레칭</span></button>
       </div>
 
       <section id="memberInstallCard" class="member-install-card" aria-labelledby="memberInstallTitle" hidden>
@@ -429,7 +438,8 @@
     <section id="communityTabPanel" class="member-tab-panel" role="tabpanel" aria-labelledby="communityTabButton"
       hidden>
       <!-- 센터 커뮤니티 중분류 메뉴 -->
-      <div class="community-menu" role="tablist" aria-label="센터 커뮤니티 메뉴">
+      <div class="community-menu" role="group" aria-label="센터 커뮤니티 메뉴">
+        <div class="community-page-tabs" role="tablist" aria-label="센터 소식과 문의">
 
         <button id="communityNewsMenuButton" class="community-menu-button is-active" type="button" role="tab"
           data-community-menu="news" aria-controls="communityPostList" aria-selected="true" tabindex="0">
@@ -465,6 +475,11 @@
           </small>
         </button>
 
+        </div>
+        <button id="openMemberPilatesGuide" class="community-menu-button" type="button" data-open-pilates-guide aria-haspopup="dialog" aria-controls="pilatesGuideDialog">
+          <svg class="community-menu-icon" width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#ec6a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c-5-4-10-4-16-2v23c6-2 11-2 16 2 5-4 10-4 16-2V8c-6-2-11-2-16 2Z" fill="#fff0df"/><path d="M20 10v23M9 13c3-.5 5 0 7 1M24 14c2-1 4-1.5 7-1M9 19c3-.5 5 0 7 1M24 20c2-1 4-1.5 7-1"/></svg>
+          <span class="community-menu-label">그룹 필라테스<span>가이드</span></span>
+        </button>
       </div>
 
       <!-- 회원 1:1 문의 -->
@@ -556,13 +571,13 @@
     <nav class="member-bottom-nav" role="tablist" aria-label="회원 메뉴">
       <button id="routineTabButton" class="member-tab-button is-active" type="button" role="tab"
         data-member-tab="routine" aria-controls="routineTabPanel" aria-selected="true">
-        <img class="member-nav-image" src="images/nav-routine.png?v=282" width="34" height="27" alt="" aria-hidden="true" decoding="async">
+        <img class="member-nav-image" src="images/nav-routine.png?v=285" width="34" height="27" alt="" aria-hidden="true" decoding="async">
         <span>운동 구성</span>
       </button>
 
       <button id="workoutLogTabButton" class="member-tab-button" type="button" role="tab" data-member-tab="workoutLog"
         aria-controls="workoutLogTabPanel" aria-selected="false">
-        <img class="member-nav-image" src="images/nav-workout-log.png?v=282" width="34" height="27" alt="" aria-hidden="true" decoding="async">
+        <img class="member-nav-image" src="images/nav-workout-log.png?v=285" width="34" height="27" alt="" aria-hidden="true" decoding="async">
         <span>운동 기록</span>
         <span id="workoutCaptureSavedBadge" class="member-workout-record-badge" role="img"
           aria-label="새로 저장된 캡처 사진 0장" hidden></span>
@@ -570,13 +585,13 @@
 
       <button id="memberServicesTabButton" class="member-tab-button" type="button" role="tab" data-member-tab="services"
         aria-controls="memberServicesTabPanel" aria-selected="false">
-        <img class="member-nav-image" src="images/nav-services.webp?v=282" width="34" height="27" alt="" aria-hidden="true" decoding="async">
+        <img class="member-nav-image" src="images/nav-services.webp?v=285" width="34" height="27" alt="" aria-hidden="true" decoding="async">
         <span>이용권·결제</span>
       </button>
 
       <button id="communityTabButton" class="member-tab-button" type="button" role="tab" data-member-tab="community"
         aria-controls="communityTabPanel" aria-selected="false">
-        <img class="member-nav-image" src="images/nav-community.png?v=282" width="34" height="27" alt="" aria-hidden="true" decoding="async">
+        <img class="member-nav-image" src="images/nav-community.png?v=285" width="34" height="27" alt="" aria-hidden="true" decoding="async">
         <span>센터 커뮤니티</span>
       </button>
     </nav>
@@ -584,7 +599,7 @@
 
   <main id="adminScreen" class="app admin-screen" hidden>
     <div class="member-app-topbar admin-app-topbar">
-      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=282" alt="헬스와 필라테스 화곡점">
+      <img class="screen-logo screen-logo-top" src="images/center-logo-plate.png?v=285" alt="헬스와 필라테스 화곡점">
       <div class="member-topbar-actions">
         <button id="refreshAdminAppButton" class="member-refresh-button" type="button" aria-label="관리자 화면 새로고침"
           title="새로고침">
@@ -1108,6 +1123,18 @@
     </section>
   </div>
 
+  <dialog id="pilatesGuideDialog" class="pilates-guide-dialog" aria-labelledby="pilatesGuideTitle" data-notion-embed-url="https://healthnpila.notion.site/ebd//2ac953e9039280fa8543ecbe20fd95e6">
+    <header class="pilates-guide-heading">
+      <h2 id="pilatesGuideTitle">그룹 필라테스 이용 가이드</h2>
+      <div class="pilates-guide-actions">
+        <button id="reloadPilatesGuide" type="button" aria-label="가이드 다시 불러오기" title="다시 불러오기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 7a8 8 0 1 0 1 8M20 3v5h-5"/></svg></button>
+        <button id="closePilatesGuide" type="button" aria-label="그룹 필라테스 이용 가이드 닫기">닫기 ×</button>
+      </div>
+    </header>
+    <p id="pilatesGuideStatus" class="pilates-guide-status" role="status" aria-live="polite" hidden></p>
+    <div id="pilatesGuideViewport" class="pilates-guide-viewport"></div>
+  </dialog>
+
   <dialog id="guestDemoDialog" class="guest-demo-dialog" aria-labelledby="guestDemoTitle">
     <header class="guest-demo-header">
       <span class="guest-demo-label">가입 전 미리보기</span>
@@ -1286,7 +1313,7 @@
         <h3 tabindex="-1"><span>1</span> ‘세부정보 더보기’를 눌러 주세요</h3>
         <p class="samsung-install-caption">글자와 아래쪽 화살표 부분을 누를 수 있어요.</p>
         <figure class="samsung-install-photo samsung-install-photo-first">
-          <img src="images/install-samsung-blocked.png?v=282" width="461" height="889"
+          <img src="images/install-samsung-blocked.png?v=285" width="461" height="889"
             alt="설치 차단 안내 예시. 확인 버튼 바로 위의 ‘세부정보 더보기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
       </section>
@@ -1294,7 +1321,7 @@
         <h3 tabindex="-1"><span>2</span> ‘무시하고 설치하기’를 선택해 주세요</h3>
         <p class="samsung-install-caption">세부정보를 펼치면 이 문구가 나타나요.</p>
         <figure class="samsung-install-photo samsung-install-photo-second">
-          <img src="images/install-samsung-details.png?v=282" width="463" height="897"
+          <img src="images/install-samsung-details.png?v=285" width="463" height="897"
             alt="세부정보를 펼친 설치 차단 안내 예시. 확인 버튼 바로 위의 ‘무시하고 설치하기’가 주황색 동그라미로 표시되어 있습니다.">
         </figure>
         <p class="samsung-install-app-check">설치할 앱 이름이 <strong>헬스와필라테스</strong>인지 확인해 주세요.</p>
@@ -1432,45 +1459,46 @@
     </div>
   </dialog>
 
-  <script src="login-timing.js?v=282"></script>
+  <script src="login-timing.js?v=285"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
 
-  <script src="exercise-data.js?v=282"></script>
-  <script src="member-custom-exercises.js?v=282"></script>
-<script src="exercise-content-sync.js?v=282"></script>
-  <script src="workout-exercise-history.js?v=282"></script>
-  <script src="weight-record-capture.js?v=282"></script>
-  <script src="member-workout-completion.js?v=282"></script>
-  <script src="routine-components.js?v=282"></script>
-  <script src="member-routine-tutorial.js?v=282"></script>
-  <script src="member-exercise-replacements.js?v=282"></script>
-  <script src="one-day-pt.js?v=282"></script>
-  <script src="admin-routine-alerts.js?v=282"></script>
-  <script src="admin-member-alerts.js?v=282"></script>
-  <script src="admin-member-picker.js?v=282"></script>
-  <script src="member-community-badges.js?v=282"></script>
-  <script src="stretching-videos.js?v=282"></script>
-  <script src="cardio-programs.js?v=282"></script>
-  <script src="workout-record-dates.js?v=282"></script>
-  <script src="workout-set-records.js?v=282"></script>
-  <script src="workout-text-records.js?v=282"></script>
-  <script src="member-services.js?v=282"></script>
-  <script src="payapp-checkout.js?v=282"></script>
-  <script src="payment-fulfillment.js?v=282"></script>
-  <script src="admin-payments.js?v=282"></script>
-  <script src="naver-login.js?v=282"></script>
-  <script src="member-account.js?v=282"></script>
-  <script src="center-member-access.js?v=282"></script>
-  <script src="app-usage.js?v=282"></script>
-  <script src="admin-usage.js?v=282"></script>
-  <script src="center-memberships.js?v=282"></script>
-  <script src="center-attendance.js?v=282"></script>
-  <script src="script.js?v=282"></script>
-  <script src="guest-demo.js?v=282"></script>
+  <script src="exercise-data.js?v=285"></script>
+  <script src="member-custom-exercises.js?v=285"></script>
+<script src="exercise-content-sync.js?v=285"></script>
+  <script src="workout-exercise-history.js?v=285"></script>
+  <script src="weight-record-capture.js?v=285"></script>
+  <script src="member-workout-completion.js?v=285"></script>
+  <script src="routine-components.js?v=285"></script>
+  <script src="member-routine-tutorial.js?v=285"></script>
+  <script src="member-exercise-replacements.js?v=285"></script>
+  <script src="one-day-pt.js?v=285"></script>
+  <script src="admin-routine-alerts.js?v=285"></script>
+  <script src="admin-member-alerts.js?v=285"></script>
+  <script src="admin-member-picker.js?v=285"></script>
+  <script src="member-community-badges.js?v=285"></script>
+  <script src="stretching-videos.js?v=285"></script>
+  <script src="cardio-programs.js?v=285"></script>
+  <script src="workout-record-dates.js?v=285"></script>
+  <script src="workout-set-records.js?v=285"></script>
+  <script src="workout-text-records.js?v=285"></script>
+  <script src="member-services.js?v=285"></script>
+  <script src="payapp-checkout.js?v=285"></script>
+  <script src="payment-fulfillment.js?v=285"></script>
+  <script src="admin-payments.js?v=285"></script>
+  <script src="naver-login.js?v=285"></script>
+  <script src="member-account.js?v=285"></script>
+  <script src="center-member-access.js?v=285"></script>
+  <script src="app-usage.js?v=285"></script>
+  <script src="admin-usage.js?v=285"></script>
+  <script src="center-memberships.js?v=285"></script>
+  <script src="center-attendance.js?v=285"></script>
+  <script src="script.js?v=285"></script>
+  <script src="guest-demo.js?v=285"></script>
 </body>
 
 
 </html>
+
 
 
 

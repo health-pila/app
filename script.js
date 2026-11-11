@@ -1938,11 +1938,7 @@ loadMoreMemberInquiriesButton.addEventListener(
   }
 );
 
-// 센터 커뮤니티 중분류 메뉴: 문의하기를 첫 번째로 배치
-const inquiryMenuButton = document.getElementById(
-  "communityInquiryMenuButton"
-);
-inquiryMenuButton.parentElement.prepend(inquiryMenuButton);
+// 센터 커뮤니티는 마크업 순서(센터 소식 → 문의하기 → 그룹 필라테스 가이드)를 유지합니다.
 
 const communityMenuButtons = Array.from(
   document.querySelectorAll("[data-community-menu]")
@@ -8173,8 +8169,8 @@ function getRoutineApplicationModule() {
     document.head.append(node);
   });
   routineApplicationModulePromise = Promise.all([
-    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=282"),
-    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=282")
+    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=285"),
+    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=285")
   ]).then(() => {
     if (!window.RoutineApplication) throw new Error("APPLICATION_MODULE_UNAVAILABLE");
     return window.RoutineApplication;
@@ -11756,6 +11752,7 @@ initializeLogin();
   });
   syncVisibility();
 })();
+
 
 
 

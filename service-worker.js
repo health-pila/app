@@ -1,5 +1,5 @@
 // 배포할 때 index.html의 ?v= 숫자와 함께 변경합니다.
-const APP_VERSION = "282";
+const APP_VERSION = "285";
 const APP_SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `workout-check:${APP_SCOPE.pathname}:`;
 // Cache generation only: retire older cache entries that may include auth-related query URLs.
@@ -8,6 +8,8 @@ const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}-authquery1`;
 const APP_SHELL_URL = new URL("index.html", APP_SCOPE).href;
 
 const APP_FILES = [
+  `./pilates-guide.js?v=${APP_VERSION}`,
+  `./pilates-guide.css?v=${APP_VERSION}`,
   `./center-member-access.js?v=${APP_VERSION}`,
   `./center-member-access.css?v=${APP_VERSION}`,
   `./payment-fulfillment.js?v=${APP_VERSION}`,
@@ -217,6 +219,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(responsePromise);
   event.waitUntil(responsePromise.then(() => cacheWrite));
 });
+
 
 
 
