@@ -23,7 +23,7 @@
 .community-page-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-column: span 2; gap: 8px; min-width: 0; }
 #communityTabPanel .community-menu-button {
   --community-edge: #bdcadb; --community-shadow: #17233e21;
-  width: 100%; min-height: 96px; margin: 0; padding: 6px 2px 7px; gap: 4px;
+  width: 100%; min-height: 86.4px; margin: 0; padding: 3px 2px; gap: 4px;
   border: 1px solid #b8c6d8; border-radius: 11px;
   color: #4b5769; background: linear-gradient(180deg, #fff, #f3f6fa);
   box-shadow: 0 3px 0 var(--community-edge), 0 5px 9px var(--community-shadow), inset 0 1px 0 #ffffffd9;
@@ -70,8 +70,11 @@
 .pilates-guide-actions button:focus-visible { outline: 3px solid #ec6a1a; outline-offset: 2px; }
 .pilates-guide-actions button:disabled { opacity: .45; cursor: default; }
 .pilates-guide-status { flex: 0 0 auto; margin: 0; padding: 10px 16px; border-bottom: 1px solid #e6ebf2; color: #5e6b7f; background: #f5f7fa; font-size: 13px; line-height: 1.6; }
-.pilates-guide-viewport { flex: 1 1 0; min-height: 0; padding-bottom: env(safe-area-inset-bottom, 0px); background: #fff; }
-.pilates-guide-frame { display: block; box-sizing: border-box; width: 100%; height: 100%; margin: 0; border: 0; background: #fff; }
+/* 노션의 공유·지금 시작하기·메뉴 줄은 표시 영역 위에 둡니다.
+   iframe 높이도 같은 만큼 늘려 본문 아래쪽이 잘리지 않도록 합니다. */
+.pilates-guide-viewport { --pilates-guide-notion-header-height: 48px; flex: 1 1 0; min-height: 0; padding-bottom: env(safe-area-inset-bottom, 0px); background: #fff; overflow: hidden; }
+.pilates-guide-frame { display: block; box-sizing: border-box; width: 100%; height: calc(100% + var(--pilates-guide-notion-header-height)); margin: calc(-1 * var(--pilates-guide-notion-header-height)) 0 0; border: 0; background: #fff; }
+.pilates-guide-frame:fullscreen { height: 100%; margin: 0; }
 @media (max-width: 360px) {
   #communityTabPanel .community-menu { gap: 6px; padding-right: 5px; padding-left: 5px; }
   .community-page-tabs { gap: 6px; }
@@ -84,3 +87,4 @@
   .pilates-guide-actions button { padding-right: 8px; padding-left: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { #communityTabPanel .community-menu-button { transition: none; } }
+
