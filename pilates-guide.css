@@ -33,8 +33,9 @@
 #communityTabPanel .community-menu-icon { width: 36px; height: 36px; opacity: 1; }
 #communityTabPanel .community-menu-label {
   display: flex; flex-direction: column; justify-content: center; min-height: 36px;
-  color: inherit; font-size: 15px; font-weight: 800; line-height: 1.2; text-align: center; word-break: keep-all;
+  color: inherit; font-size: 18px; font-weight: 800; line-height: 1.2; text-align: center; word-break: keep-all;
 }
+#communityTabPanel #openMemberPilatesGuide .community-menu-label { font-size: 15.75px; }
 #communityTabPanel .community-menu-label > span { display: block; }
 #communityTabPanel .community-menu-button::after { display: none; }
 #communityTabPanel .community-menu-button:is(.is-active, .is-guide-open) {
@@ -78,7 +79,8 @@
 @media (max-width: 360px) {
   #communityTabPanel .community-menu { gap: 6px; padding-right: 5px; padding-left: 5px; }
   .community-page-tabs { gap: 6px; }
-  #communityTabPanel .community-menu-label { font-size: 13.5px; }
+  #communityTabPanel .community-menu-label { font-size: 16.2px; }
+  #communityTabPanel #openMemberPilatesGuide .community-menu-label { font-size: 14.175px; }
   #loginScreen .login-guide-button { gap: 9px; padding-right: 11px; padding-left: 11px; }
   .login-guide-icon { flex-basis: 32px; width: 32px; height: 32px; }
   .login-guide-copy strong { font-size: 16px; }

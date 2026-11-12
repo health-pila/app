@@ -5810,8 +5810,8 @@ textarea.routine-weight-cell {
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-info {
   display: flex; flex-direction: column; min-height: 0; justify-content: flex-start; gap: 0;
 }
-.routine-card-disclosure .routine-component-title { padding-right: 32px; }
-:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-body-parts { margin: 2.94px 0 0; padding-right: 32px; }
+.routine-card-disclosure .routine-component-title { padding-right: 44px; }
+:is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-body-parts { margin: 2.94px 0 0; padding-right: 44px; }
 /* 운동 부위가 없어도 한 줄 높이를 확보해 기록 버튼과 펼침 표식의 간격을 유지합니다. */
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-body-parts:empty { display: block; min-height: 1.5em; }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure :is(.routine-component-number, .routine-component-name) { font-size: 19.2px; }
@@ -5826,11 +5826,12 @@ textarea.routine-weight-cell {
 .routine-card-dose-record .routine-weight-button .routine-action-icon { width: 14px; height: 14px; flex-basis: 14px; }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-dose-record .routine-weight-button[aria-expanded="true"] { background: #fff3e8; color: var(--brand-orange); }
 .routine-card-toggle {
-  position: absolute; top: 12px; right: 0; display: grid; place-items: center;
-  width: 32px; height: 38px; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 7px; background: transparent; color: #526078; cursor: pointer;
+  position: absolute; top: 8px; right: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  width: 44px; height: 44px; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 7px; background: transparent; color: #526078; font: inherit; cursor: pointer;
 }
-.routine-card-toggle span { width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); }
-.routine-card-toggle[aria-expanded="true"] span { transform: translateY(3px) rotate(225deg); }
+.routine-card-toggle-mark { width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+.routine-card-toggle[aria-expanded="true"] .routine-card-toggle-mark { transform: translateY(3px) rotate(225deg); }
+.routine-card-toggle-label { font-size: 10px; font-weight: 500; line-height: 14px; white-space: nowrap; }
 .routine-card-expanded { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e4e8ef; cursor: default; }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-expanded .routine-component-rest { margin: 0 0 10px; font-size: 14.3px; line-height: 1.5; }
 .routine-card-edit-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }

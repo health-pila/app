@@ -645,9 +645,11 @@
     toggle.setAttribute("aria-controls", expanded.id);
     toggle.setAttribute("aria-expanded", "false");
     toggle.setAttribute("aria-label", exercise.name + " 더 보기");
-    const toggleMark = element("span");
+    const toggleMark = element("span", "routine-card-toggle-mark");
     toggleMark.setAttribute("aria-hidden", "true");
-    toggle.append(toggleMark);
+    const toggleLabel = element("span", "routine-card-toggle-label", "내려보기");
+    toggleLabel.setAttribute("aria-hidden", "true");
+    toggle.append(toggleMark, toggleLabel);
     main.append(toggle);
     expanded.append(element("p", "routine-component-rest", "세트 사이 권장 휴식: " + entry.restSec + "초"));
     const tools = element("div", "routine-card-edit-actions");
@@ -834,6 +836,7 @@
         card.classList.toggle("is-expanded", willOpen);
         toggle.setAttribute("aria-expanded", String(willOpen));
         toggle.setAttribute("aria-label", exercise.name + (willOpen ? " 접기" : " 더 보기"));
+        toggleLabel.textContent = willOpen ? "접기" : "내려보기";
       });
     }
     toggle.addEventListener("click", toggleCard);

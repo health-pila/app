@@ -130,7 +130,7 @@
     else if (view.selected < (data?.initial_from || FIRST_DAY)) body.textContent = "출석 기록 제공 시작일 이전이에요.";
     else if (view.selected > koreanDate(Date.now())) body.textContent = "이용 후 출석 기록이 표시됩니다.";
     else if (!data || monthError) body.textContent = refreshing ? "출석을 확인하고 있어요." : "출석을 다시 확인해 주세요.";
-    else if (!data.is_linked) body.textContent = "회원 연결 후 확인할 수 있어요.";
+    else if (!data.is_linked) body.textContent = "출석정보를 확인 중입니다.";
     else if ((data.history_through && view.selected <= data.history_through) ||
         (view.selected === data.live_date && data.last_synced_at)) body.textContent = "확인된 센터 출석 기록이 없어요.";
     else body.textContent = "이 날짜의 출석 기록은 아직 확인 중이에요.";

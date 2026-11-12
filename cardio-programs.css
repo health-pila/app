@@ -25,8 +25,8 @@
   justify-content: center;
   gap: 0;
   min-width: 0;
-  min-height: 74px;
-  height: 74px;
+  min-height: 81.4px;
+  height: 81.4px;
   padding: 1px 2px;
   border: 1px solid #b8c6d8;
   border-radius: 11px;
@@ -58,6 +58,10 @@
 .member-routine-menu-label {
   display: inline-block;
   transform: scale(1.0582010582, 1.1111111111);
+}
+/* 배정된 루틴의 안내글까지 여백: 메뉴 아래 20px + 내부 22px = 42px에서 29.4px로 줄입니다. */
+#routineTabPanel:has(> #memberAssignedRoutinePanel:not([hidden]) #memberWorkoutTitle.is-personalized) > .member-routine-menu {
+  margin-bottom: 7.4px;
 }
 .member-routine-menu-button.is-active {
   --menu-button-edge: #df5d0b;
