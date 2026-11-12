@@ -279,15 +279,23 @@ let communityRealtimeRefreshTimer = null;
 let communitySubscriptionGeneration = 0;
 let communityLoadRequestId = 0;
 const memberCommunityCards = new Map();
+const memberCommunityImageUrls = new Map();
+let memberCommunityImageGeneration = 0;
+let memberCommunityOwner = "";
+let memberCommunityDetailsReady = false;
+let memberCommunityFetch = null;
+function memberNewsVisible() {
+  return !appScreen.hidden && !memberTabPanels.community.hidden && !communityMenuPanels.news.hidden;
+}
 
 function scheduleCommunityRealtimeRefresh() {
-  if (appScreen.hidden || !communityRealtimeChannel) return;
+  if (appScreen.hidden || !memberRoutineIdentity.userId) return;
   communityLoadRequestId += 1;
   clearTimeout(communityRealtimeRefreshTimer);
   const channel = communityRealtimeChannel;
   communityRealtimeRefreshTimer = setTimeout(function () {
     communityRealtimeRefreshTimer = null;
-    if (appScreen.hidden || channel !== communityRealtimeChannel) return;
+    if (appScreen.hidden || (channel && channel !== communityRealtimeChannel)) return;
     if (document.visibilityState === "hidden") return;
     loadCommunityPosts(true);
   }, 500);
@@ -330,6 +338,7 @@ async function startCommunityRealtimeSubscription() {
       console.error("센터 소식 실시간 연결 실패:", status);
     }
   });
+  if (memberNewsVisible() && !memberCommunityDetailsReady) void loadCommunityPosts(true);
 }
 
 function resetMemberCommunityPosts() {
@@ -338,6 +347,11 @@ function resetMemberCommunityPosts() {
     activeCommunityVideoArea.resetCommunityVideo();
   }
   memberCommunityCards.clear();
+  memberCommunityImageUrls.clear();
+  memberCommunityImageGeneration += 1;
+  memberCommunityOwner = "";
+  memberCommunityDetailsReady = false;
+  memberCommunityFetch = null;
   communityPostList.replaceChildren();
 }
 
@@ -1961,8 +1975,6 @@ function showCommunityMenu(menuName) {
     return;
   }
 
-  if (menuName === "news") scheduleCommunityRealtimeRefresh();
-
   // 문의하기로 이동하면 소식 영상 정지
   if (
     menuName !== "news" &&
@@ -1995,6 +2007,8 @@ function showCommunityMenu(menuName) {
       isSelected && !button.disabled ? 0 : -1;
   });
   updateMemberCommunityBadges("checkSoon");
+  if (memberNewsVisible()) void loadCommunityPosts(true);
+  window.DeferredImages?.refresh();
 }
 
 // 중분류 버튼 클릭 및 키보드 조작
@@ -2149,6 +2163,8 @@ function showMemberTab(tabName) {
   window.AppUsage?.screen(tabName);
   if (tabName === "workoutLog") workoutCaptureBadge.markSeen();
   window.CenterAttendance?.onTab();
+  if (memberNewsVisible()) void loadCommunityPosts(true);
+  window.DeferredImages?.refresh();
 }
 
 // 하단 탭 버튼 클릭 기능
@@ -2406,7 +2422,28 @@ function createCommunityImageCarousel(
       const postImage =
         document.createElement("img");
 
-      postImage.src = image.signedUrl;
+      const owner = memberRoutineIdentity.userId;
+      const generation = memberCommunityImageGeneration;
+      let retried = false;
+      const current = () => imageSlide.isConnected && !appScreen.hidden &&
+        owner === memberRoutineIdentity.userId && generation === memberCommunityImageGeneration;
+      async function prepareImage(retry = false) {
+        if (!current()) return;
+        try {
+          const url = await getMemberCommunityImageUrl(image.storage_path, owner, generation, retry);
+          if (!current()) return;
+          postImage.src = url;
+        } catch (error) {
+          if (current()) postImage.alt = "사진을 불러오지 못했어요. " + (image.alt_text || postTitle);
+        }
+      }
+      postImage.addEventListener("error", () => {
+        if (retried || !current()) return;
+        retried = true; void prepareImage(true);
+      });
+      if (window.DeferredImages) window.DeferredImages.observe(imageSlide, prepareImage);
+      else queueMicrotask(() => void prepareImage());
+      postImage.decoding = "async";
       postImage.alt =
         image.alt_text ||
         `${postTitle} 이미지 ${index + 1}`;
@@ -2841,74 +2878,78 @@ function renderCommunityPosts(posts) {
   }
 }
 
-function preloadCommunityImage(url) {
-  return new Promise(function (resolve) {
-    const image = new Image();
-    let done = false;
-    function finish() {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      image.onload = null;
-      image.onerror = null;
-      resolve();
-    }
-    const timer = setTimeout(finish, 8000);
-    image.onload = finish;
-    image.onerror = finish;
-    image.src = url;
-  });
+// Signed addresses stay in memory for this member and are issued only for visible images.
+async function getMemberCommunityImageUrl(path, owner, generation, force = false) {
+  const cached = memberCommunityImageUrls.get(path);
+  if (!force && cached && cached.expiresAt > Date.now() + 60000) return cached.url;
+  if (!force && cached?.pending) return cached.pending;
+  const pending = (async () => {
+    const { data, error } = await supabaseClient.storage.from("community-images").createSignedUrl(path, 3600);
+    if (owner !== memberRoutineIdentity.userId || generation !== memberCommunityImageGeneration) throw new Error("STALE_IMAGE");
+    if (error || !data?.signedUrl) throw error || new Error("IMAGE_URL_UNAVAILABLE");
+    const url = new URL(data.signedUrl, location.href);
+    if (force) url.searchParams.set("cacheNonce", Date.now().toString(36));
+    memberCommunityImageUrls.set(path,{url:url.href,expiresAt:Date.now()+3300000});
+    return url.href;
+  })();
+  const entry = {pending}; memberCommunityImageUrls.set(path,entry);
+  try { return await pending; }
+  catch (error) { if (memberCommunityImageUrls.get(path) === entry) memberCommunityImageUrls.delete(path); throw error; }
 }
 
-// 자동 갱신 중에는 로딩 문구나 빈 목록으로 기존 화면을 교체하지 않습니다.
-async function loadCommunityPosts(preserveCurrentList = false) {
+// IDs keep badges current in the background. Details are fetched only for the open news tab.
+function loadCommunityPosts(preserveCurrentList = false) {
+  const owner = memberRoutineIdentity.userId;
+  const details = owner && memberNewsVisible();
+  if (memberCommunityFetch && memberCommunityFetch.owner === owner &&
+      memberCommunityFetch.details === details && memberCommunityFetch.requestId === communityLoadRequestId) {
+    return memberCommunityFetch.promise;
+  }
+  const promise = readMemberCommunityPosts(preserveCurrentList);
+  const task = {owner,details,requestId:communityLoadRequestId,promise};
+  memberCommunityFetch = task;
+  promise.finally(() => { if (memberCommunityFetch === task) memberCommunityFetch = null; }).catch(() => {});
+  return promise;
+}
+async function readMemberCommunityPosts(preserveCurrentList = false) {
+  const owner = memberRoutineIdentity.userId;
+  if (!owner || appScreen.hidden) return;
+  if (memberCommunityOwner !== owner) { resetMemberCommunityPosts(); memberCommunityOwner = owner; }
+  const details = memberNewsVisible();
   const requestId = ++communityLoadRequestId;
-  const isCurrent = function () { return requestId === communityLoadRequestId && !appScreen.hidden; };
-  if (!preserveCurrentList && memberCommunityCards.size === 0) {
+  const isCurrent = () => requestId === communityLoadRequestId && !appScreen.hidden &&
+    memberRoutineIdentity.userId === owner;
+  if (details && memberCommunityCards.size === 0) {
     communityStatusMessage.textContent = "센터 소식을 불러오고 있습니다.";
     communityPostList.replaceChildren(communityStatusMessage);
   }
   try {
-    const { data: posts, error } = await supabaseClient.from("community_posts").select(`
+    const { data: posts, error } = await supabaseClient.from("community_posts").select(details ? `
       id, title, body, video_url, display_order, published_at,
       community_post_images (id, storage_path, alt_text, sort_order)
-    `).eq("is_published", true)
+    ` : "id").eq("is_published", true)
       .order("display_order", { ascending: true })
       .order("published_at", { ascending: false })
       .order("id", { ascending: true });
     if (!isCurrent()) return;
     if (error) throw error;
-    const prepared = await Promise.all((posts || []).map(async function (post) {
-      const images = [...(post.community_post_images || [])].sort(function (a, b) {
-        return a.sort_order - b.sort_order || String(a.id).localeCompare(String(b.id));
-      });
-      const existing = memberCommunityCards.get(String(post.id));
-      // 순서만 바뀐 경우에는 사진 주소를 다시 발급하거나 이미지를 다시 만들지 않습니다.
-      if (existing && existing.imagesKey === getCommunityImagesKey(images)) {
-        return { ...post, community_post_images: existing.post.community_post_images };
-      }
-      const oldImages = existing ? existing.post.community_post_images : [];
-      const readyImages = await Promise.all(images.map(async function (image) {
-        const cached = oldImages.find(function (old) {
-          return old.storage_path === image.storage_path && old.signedUrlExpiresAt > Date.now();
-        });
-        if (cached) return { ...image, signedUrl: cached.signedUrl, signedUrlExpiresAt: cached.signedUrlExpiresAt };
-        const { data, error: imageError } = await supabaseClient.storage.from("community-images")
-          .createSignedUrl(image.storage_path, 3600);
-        if (imageError) throw imageError;
-        if (!data || !data.signedUrl) throw new Error("센터 소식 사진 주소를 불러오지 못했습니다.");
-        await preloadCommunityImage(data.signedUrl);
-        return { ...image, signedUrl: data.signedUrl, signedUrlExpiresAt: Date.now() + 3300000 };
-      }));
-      return { ...post, community_post_images: readyImages };
+    if (!details) {
+      memberCommunityDetailsReady = false;
+      updateMemberCommunityBadges("syncNews", posts || []);
+      if (memberNewsVisible()) void loadCommunityPosts(true);
+      return;
+    }
+    const prepared = (posts || []).map(post => ({...post,
+      community_post_images:[...(post.community_post_images || [])].sort((a,b) =>
+        a.sort_order-b.sort_order || String(a.id).localeCompare(String(b.id)))
     }));
-    if (!isCurrent()) return;
     renderCommunityPosts(prepared);
+    memberCommunityDetailsReady = true;
     updateMemberCommunityBadges("syncNews", prepared);
   } catch (error) {
     if (!isCurrent()) return;
     console.error("센터 소식 불러오기 실패:", error);
-    if (memberCommunityCards.size === 0) {
+    if (details && memberCommunityCards.size === 0) {
       communityStatusMessage.textContent = "센터 소식을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
       communityPostList.replaceChildren(communityStatusMessage);
     }

@@ -602,9 +602,14 @@
       placeholder.hidden = false;
       placeholder.textContent = "사진을 불러오지 못했어요";
     });
-    const imageUrl = personal ? new URL("images/personal-exercise-note.png", document.baseURI).href : options?.imageUrls?.[entry.exerciseId] || window.ExerciseDB.getExerciseImageUrl(entry.exerciseId);
+    let imageUrl = personal ? new URL("images/personal-exercise-note.png", document.baseURI).href : options?.imageUrls?.[entry.exerciseId] || window.ExerciseDB.getExerciseImageUrl(entry.exerciseId);
+    const beginImage = () => { if (imageUrl) image.src = imageUrl; };
+    const scheduleImage = () => {
+      if (window.DeferredImages) window.DeferredImages.observe(imageArea, beginImage);
+      else beginImage();
+    };
     if (imageUrl) {
-      image.src = imageUrl;
+      scheduleImage();
     } else {
       placeholder.textContent = personal ? "직접 입력한 운동" : "사진 준비 중";
     }
@@ -848,8 +853,10 @@
         zoomMark.hidden = true;
         placeholder.hidden = false;
         placeholder.textContent = '사진 불러오는 중';
-        image.src = nextImage;
+        imageUrl = nextImage;
+        scheduleImage();
       } else if (!nextImage) {
+        imageUrl = null;
         image.removeAttribute('src');
         image.hidden = true;
         imageArea.disabled = true;
