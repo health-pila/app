@@ -9827,6 +9827,7 @@ async function loadAdminMembers(preserveCurrentState = false) {
     const selectedValue = preserveCurrentState ? adminMemberSelect.value : "";
     const searchText = preserveCurrentState ? adminMemberSearch.value.trim().toLowerCase() : "";
     adminMemberOptionCache = memberOptions;
+    window.AdminMemberPicker?.setRoster(memberOptions.map(option => option.value));
     renderAdminMemberOptions(selectedValue, searchText);
     return true;
   } catch (error) {
@@ -9835,6 +9836,7 @@ async function loadAdminMembers(preserveCurrentState = false) {
     resetAdminMemberStatistics("회원 현황을 불러오지 못했어요. 새로고침해 주세요.");
     if (!preserveCurrentState) {
       adminMemberOptionCache = [];
+      window.AdminMemberPicker?.setRoster([]);
       adminMemberSelect.innerHTML =
         '<option value="">회원 목록을 불러오지 못했습니다.</option>';
     }
@@ -9851,12 +9853,14 @@ function adminMemberSearchMode(searchText) {
 function renderAdminMemberOptions(selectedValue = "", searchText = "") {
   searchText = searchText.trim().toLowerCase();
   const searchMode = adminMemberSearchMode(searchText);
+  const eligibilityFilter = window.AdminMemberPicker?.filter() || "all";
   const previousSelection = Array.from(adminMemberSelect.options)
     .find(option => option.value === selectedValue && selectedValue);
 
   const matchingOptions = adminMemberOptionCache.filter(
     (option) => {
       if (option.value === selectedValue) return true;
+      if (eligibilityFilter !== "all" && window.AdminMemberPicker?.eligibilityState(option.value).state !== eligibilityFilter) return false;
       if (searchMode === "unlinked") return window.AdminMemberPicker?.linkState(option.value) === false;
       if (searchMode === "linked") return window.AdminMemberPicker?.linkState(option.value) === true;
       if (searchMode === "no-routine") return !option.dataset.currentRoutineName;
@@ -9898,6 +9902,11 @@ function renderAdminMemberOptions(selectedValue = "", searchText = "") {
         ? "출석 연결 상태를 확인하고 있어요."
         : "출석 연결 상태를 확인하지 못했어요. 상단 새로고침 버튼으로 다시 확인해 주세요.";
     }
+    if (eligibilityFilter !== "all" && !window.AdminMemberPicker?.eligibilityReady()) {
+      noResultOption.textContent = window.AdminMemberPicker?.isEligibilityLoading()
+        ? "이용권 분류를 확인하고 있어요."
+        : "이용권 분류를 확인하지 못했어요. 분류 새로고침을 눌러 주세요.";
+    }
     noResultOption.disabled = true;
 
     adminMemberSelect.append(noResultOption);
@@ -9918,6 +9927,9 @@ adminMemberSelect.addEventListener("attendance-status-change", () => {
   if (!adminScreen.hidden && ["unlinked", "linked"].includes(adminMemberSearchMode(adminMemberSearch.value.trim()))) {
     renderAdminMemberOptions(adminMemberSelect.value, adminMemberSearch.value);
   }
+});
+adminMemberSelect.addEventListener("eligibility-status-change", () => {
+  if (!adminScreen.hidden) renderAdminMemberOptions(adminMemberSelect.value, adminMemberSearch.value);
 });
 adminMemberSearch.addEventListener("input", function () {
   renderAdminMemberOptions("", adminMemberSearch.value.trim().toLowerCase());

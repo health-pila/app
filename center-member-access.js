@@ -81,7 +81,7 @@
     $('adminMemberAccessRestrict').disabled=adminBusy;$('adminMemberAccessRelease').disabled=adminBusy;$('adminMemberAccessRefresh').disabled=adminBusy;
     panel.dataset.restricted=String(restricted);
     if(!adminState)return;
-    $('adminMemberAccessState').textContent=restricted?'이용 제한 중 · 내 정보와 탈퇴 요청만 이용할 수 있어요.':'일반 이용 · 회원 확인이 필요한 경우에만 지정해 주세요.';
+    $('adminMemberAccessState').textContent=restricted?'앱 이용 상태: 제한 중 · 내 정보와 탈퇴 요청만 이용할 수 있어요.':'앱 이용 상태: 일반 이용';
     const at=adminState.acknowledged_at;
     $('adminMemberAccessRead').textContent=!restricted?'':at?'안내 확인: '+new Date(at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}):'안내 미확인 · 다음 앱 이용 시 표시됩니다.';
   }
@@ -101,20 +101,22 @@
   async function changeAccess(restricted){
     const id=selected,s=selection,g=adminGeneration;if(!adminCurrent(g,s,id)||!adminState||adminBusy)return;
     const name=adminState.display_name||'선택 회원';
-    const prompt=restricted?name+' 님에게 센터 회원 확인 안내를 표시하고 앱 이용을 제한할까요?\n내 정보·탈퇴 요청·로그아웃만 이용할 수 있습니다.\n가입 이름과 전화번호 끝 4자리를 먼저 확인해 주세요.':name+' 님의 센터 회원 확인을 완료하고 앱 이용 제한을 해제할까요?';
+    const classification=window.AdminMemberPicker?.eligibilityState(id);
+    const label=classification?({valid:'유효',expired:'만료·유효권 없음',review:'확인 필요'})[classification.state]:'확인 필요';
+    const prompt=restricted?name+' 님에게 이용권 확인 안내를 표시하고 앱 이용을 제한할까요?\n이용권 분류: '+label+'\n내 정보·탈퇴 요청·로그아웃만 이용할 수 있습니다.\n브로제이의 현재 이용권과 가입 이름·전화번호 끝 4자리를 확인해 주세요.':name+' 님의 이용권 확인을 완료하고 앱 이용 제한을 해제할까요?';
     if(!window.confirm(prompt))return;
     adminBusy=true;renderAdmin();$('adminMemberAccessStatus').textContent='변경 내용을 저장하고 있어요.';
     try{
       const data=await rpc(admin.db,'center_admin_set_member_access',{p_user_id:id,p_restricted:restricted});
       if(!adminCurrent(g,s,id))return;
       if(data?.user_id!==id||data.restricted!==restricted)throw Error('INVALID_STATE');
-      adminState=data;renderAdmin();$('adminMemberAccessStatus').textContent=restricted?'안내와 이용 제한이 설정됐어요.':'회원 확인 완료 · 이용 제한을 해제했어요.';
+      adminState=data;renderAdmin();$('adminMemberAccessStatus').textContent=restricted?'안내와 이용 제한이 설정됐어요.':'이용권 확인 완료 · 이용 제한을 해제했어요.';
     }catch(_){if(adminCurrent(g,s,id))$('adminMemberAccessStatus').textContent='변경 결과를 확인하지 못했어요. 회원을 다시 선택해 상태를 확인해 주세요.';}
     finally{if(adminCurrent(g,s,id)){adminBusy=false;renderAdmin();}}
   }
   $('adminMemberAccessRestrict').addEventListener('click',()=>void changeAccess(true));
   $('adminMemberAccessRelease').addEventListener('click',()=>void changeAccess(false));
-  $('adminMemberAccessRefresh').addEventListener('click',()=>void selectAdminMember(selected));
+  $('adminMemberAccessRefresh').addEventListener('click',()=>{void selectAdminMember(selected);void window.AdminMemberPicker?.loadEligibility(true);});
   window.CenterMemberAccess=Object.freeze({startMember,resetMember,startAdmin,resetAdmin,selectAdminMember,refresh,
     isRestricted:()=>member?.profile.restricted===true,
     validProfile});
