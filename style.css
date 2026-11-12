@@ -3565,13 +3565,13 @@ body.camera-open {
 .routine-component-summary h4 {
   margin: 0 0 10px;
   color: var(--brand-navy);
-  font-size: 16px;
+  font-size: 18.4px;
 }
 
 .routine-component-summary p {
   margin: 0;
   color: #475467;
-  font-size: 15px;
+  font-size: 16.5px;
   line-height: 1.8;
   white-space: pre-line;
   word-break: keep-all;
@@ -4032,17 +4032,17 @@ body.camera-open {
   position: absolute;
   bottom: calc(100% + 10px);
   right: 0;
-  width: min(320px, calc(100vw - 16px));
-  max-width: 320px;
+  width: min(256px, calc(80vw - 12.8px));
+  max-width: 256px;
   max-height: calc(100vh - 180px - env(safe-area-inset-bottom));
   max-height: calc(100dvh - 180px - env(safe-area-inset-bottom));
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 16px 16px 4px;
+  padding: 12.8px 12.8px 3.2px;
   color: var(--brand-navy);
   background: #fff;
   border: 1px solid var(--brand-border);
-  border-radius: 16px;
+  border-radius: 12.8px;
   box-shadow: 0 8px 28px rgba(23, 35, 62, 0.18);
 }
 
@@ -4050,8 +4050,8 @@ body.camera-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 6.4px;
+  margin-bottom: 8px;
 }
 
 .rest-timer-header h3 {
@@ -4060,8 +4060,8 @@ body.camera-open {
 }
 
 .rest-timer-close {
-  min-height: 40px;
-  padding: 6px 10px;
+  min-height: 32px;
+  padding: 4.8px 8px;
   color: #667085;
   background: transparent;
   border: 0;
@@ -4075,21 +4075,22 @@ body.camera-open {
 .rest-timer-actions {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6.4px;
 }
 
 .rest-timer-presets button,
 .rest-timer-actions button {
   min-width: 0;
-  min-height: 44px;
-  padding: 9px 6px;
+  min-height: 35.2px;
+  padding: 7.2px 3px;
   color: var(--brand-navy);
   background: #f5f6f8;
   border: 1px solid var(--brand-border);
-  border-radius: 10px;
+  border-radius: 8px;
   font: inherit;
   font-size: 14px;
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -4100,7 +4101,7 @@ body.camera-open {
 }
 
 .rest-timer-display {
-  margin: 14px 0 4px;
+  margin: 4px 0 3.2px;
   color: var(--brand-navy);
   font-size: 44px;
   font-weight: 800;
@@ -4110,8 +4111,8 @@ body.camera-open {
 }
 
 .rest-timer-status {
-  min-height: 36px;
-  margin: 0 0 12px;
+  min-height: 18px;
+  margin: 0 0 9.6px;
   color: #667085;
   font-size: 12px;
   line-height: 1.5;
@@ -4125,8 +4126,8 @@ body.camera-open {
 .rest-timer-footer {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 6.4px;
+  margin-top: 3.2px;
 }
 
 .rest-timer-footer .rest-timer-close {
@@ -4369,7 +4370,7 @@ body.camera-open {
   border: 0;
   border-radius: 9px;
   font: inherit;
-  font-size: 13px;
+  font-size: 14.95px;
   font-weight: 700;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -4399,17 +4400,31 @@ body.camera-open {
 .member-routine-application {
   min-width: 0;
   margin: 0 14px 16px;
-  padding: 14px;
+  padding: 20px;
   border: 1px solid #dfe5ed;
-  border-radius: 20px;
+  border-radius: 22px;
   background: #fff;
   color: var(--brand-navy);
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
-/* Native vector accent keeps the approved artwork crisp without an image download. */
-.member-routine-application-top { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; }
-.member-routine-plan-icon { display:block; flex:none; width:52px; height:52px; margin-top:-5px; margin-bottom:-3px; }
+/* Keep the illustration beside the explanation, aligned with the card content. */
+.member-routine-application-details {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.member-routine-plan-art {
+  display: grid;
+  place-items: center;
+  flex: 0 0 76px;
+  width: 76px;
+  height: 76px;
+  border-radius: 18px;
+  background: #fff0e1;
+}
+.member-routine-plan-icon { display:block; width:72px; height:72px; }
 .member-routine-application h2 span { display:block; }
 .member-routine-free-badge {
   display: inline-block;
@@ -4422,34 +4437,46 @@ body.camera-open {
   line-height: 1.5;
 }
 .member-routine-application h2 {
-  margin: 7px 0 6px;
-  font-size: clamp(18px, 5.2vw, 23px);
+  margin: 14px 0 16px;
+  font-size: clamp(19px, 5.2vw, 23px);
   font-weight: 800;
-  line-height: 1.4;
+  line-height: 1.45;
   letter-spacing: -0.7px;
 }
 .member-routine-application-description {
-  margin: 0 0 13px;
+  min-width: 0;
+  margin: 0;
   color: #5b687d;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.7;
 }
 .member-routine-application .routine-request-button {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 8px;
   height: auto;
-  min-height: 52.8px;
+  min-height: 54px;
   margin: 0;
-  padding: 13.2px 8px;
+  padding: 14px 16px;
   font-size: 17.6px;
   line-height: 1.4;
   box-shadow: 0 5px 13px rgba(245, 106, 0, 0.16);
 }
+.member-routine-application .routine-request-button > span { grid-column: 2; }
+.member-routine-request-arrow { display:block; grid-column:3; width:22px; height:22px; }
 .is-unrequested .member-routine-request-area { display: none; }
 .is-unrequested .member-workout-heading { justify-content: flex-start; gap: 8px; margin-bottom: 6px; }
 .is-unrequested .member-workout-heading h3 { padding: 0; font-size: 16px; line-height: 1.6; word-break: keep-all; }
 @media (max-width: 360px) {
-  .member-routine-application { margin-right: 10px; margin-left: 10px; padding: 12px; }
-  .member-routine-application .routine-request-button { font-size: 16.5px; }
+  .member-routine-application { margin-right: 10px; margin-left: 10px; padding: 18px; }
+  .member-routine-application-details { gap: 12px; }
+  .member-routine-plan-art { flex-basis:64px; width:64px; height:64px; border-radius:16px; }
+  .member-routine-plan-icon { width:62px; height:62px; }
+  .member-routine-application-description { font-size: 13px; }
+  .member-routine-application .routine-request-button { grid-template-columns:18px minmax(0, 1fr) 18px; gap:6px; padding-right:12px; padding-left:12px; font-size:16.5px; }
+  .member-routine-request-arrow { width:18px; height:18px; }
   .is-unrequested .member-workout-heading h3 { font-size: 15px; }
 }
 #memberRoutineComponents.is-tutorial .routine-component-actions {
@@ -4549,7 +4576,7 @@ body.camera-open {
   min-height: 56px;
   padding: 15px 0;
   color: var(--brand-navy);
-  font-size: 14px;
+  font-size: 16.1px;
   font-weight: 700;
   line-height: 1.5;
   list-style: none;
@@ -4577,7 +4604,7 @@ body.camera-open {
 :is(#appScreen, #adminRoutineJsonPreview, #guestDemoDialog) .routine-component-summary p {
   padding-bottom: 16px;
   color: #475467;
-  font-size: 14px;
+  font-size: 15.4px;
   line-height: 1.8;
 }
 

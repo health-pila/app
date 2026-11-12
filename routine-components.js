@@ -953,7 +953,7 @@
     const summaryToggle = element("summary");
     const chevron = element("span", "routine-summary-chevron");
     chevron.setAttribute("aria-hidden", "true");
-    summaryToggle.append(element("span", "", "이번 운동 루틴 안내"), chevron);
+    summaryToggle.append(element("span", "", "이번 운동 루틴 설명"), chevron);
     summary.append(summaryToggle, element("p", "", routine.routineSummary.replace(/([.!?。！？])[ \t]+/g, "$1\n")));
     root.append(summary);
     return root;
@@ -1009,7 +1009,7 @@
     });
     const summary = element("section", "routine-component-summary");
     summary.append(
-      element("h4", "", "이번 운동 루틴 안내"),
+      element("h4", "", "이번 운동 루틴 설명"),
       element("p", "", routine.routineSummary.replace(/([.!?。！？])[ \t]+/g, "$1\n"))
     );
     root.append(summary);

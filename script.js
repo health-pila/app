@@ -11599,7 +11599,7 @@ initializeLogin();
     widget.style.bottom = "auto";
 
     if (!panel.hidden) {
-      const width = Math.min(320, bounds.right - bounds.left);
+      const width = Math.min(320, bounds.right - bounds.left) * 0.8;
       panel.style.width = Math.max(1, width) + "px";
       const above = Math.max(1, y - bounds.top - 10);
       const below = Math.max(1, bounds.bottom - y - button.height - 10);
