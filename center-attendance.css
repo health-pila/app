@@ -27,10 +27,11 @@
 .admin-attendance-panel .admin-attendance-confirm { background:#f56a00; border-color:#f56a00; color:white; }
 
 /* Enlarge the live calendar legend without changing the guest example. */
-#workoutLogTabPanel .center-attendance-legend { font-size:14.52px; }
+#workoutLogTabPanel .center-attendance-legend { font-size:15.972px; }
 
-/* v280: enlarge the live attendance summary text by 10%. */
-#workoutLogTabPanel .center-attendance-count { font-size:13.2px; }
-#workoutLogTabPanel .center-attendance-status { font-size:11px; }
+/* v292: enlarge all live attendance footer text by another 10%. */
+#workoutLogTabPanel .center-attendance-count { font-size:14.52px; }
+#workoutLogTabPanel .center-attendance-status { font-size:12.1px; }
+#workoutLogTabPanel #refreshCenterAttendance { font-size:20.9px; }
 #workoutLogTabPanel .center-attendance-details,
-#workoutLogTabPanel .center-attendance-details strong { font-size:14.52px; }
+#workoutLogTabPanel .center-attendance-details strong { font-size:15.972px; }

@@ -2225,6 +2225,9 @@ body.camera-open {
   line-height: 1.4;
 }
 
+.member-inquiry-header h4 { font-size: 17.6px; }
+.member-inquiry-availability-message:empty { display: none; }
+
 .member-inquiry-header p {
   margin: 8px 0 0;
   color: #667085;
@@ -5831,7 +5834,7 @@ textarea.routine-weight-cell {
 }
 .routine-card-toggle-mark { width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); }
 .routine-card-toggle[aria-expanded="true"] .routine-card-toggle-mark { transform: translateY(3px) rotate(225deg); }
-.routine-card-toggle-label { font-size: 10px; font-weight: 500; line-height: 14px; white-space: nowrap; }
+.routine-card-toggle-label { font-size: 9px; font-weight: 500; line-height: 14px; white-space: nowrap; }
 .routine-card-expanded { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e4e8ef; cursor: default; }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-expanded .routine-component-rest { margin: 0 0 10px; font-size: 14.3px; line-height: 1.5; }
 .routine-card-edit-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }

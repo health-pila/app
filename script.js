@@ -1032,7 +1032,7 @@ async function loadMemberInquirySetting() {
 
     memberInquiryAvailabilityMessage.textContent =
       isMemberInquiryEnabled
-        ? "문의와 답변은 본인만 확인할 수 있습니다."
+        ? ""
         : "현재 1:1 문의 접수가 중단되어 있습니다.";
   } catch (settingError) {
     console.error(
