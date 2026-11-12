@@ -8,7 +8,7 @@
 .workout-record-entry-actions .workout-camera-button,
 .workout-record-entry-actions .workout-text-button,
 .workout-record-entry-actions .workout-record-filter-button,
-.workout-record-entry-actions .show-all-workout-records-button { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-width: 0; height: auto; min-height: 40.392px; margin: 0; padding: 3px 6px; border: 1px solid var(--brand-orange); border-radius: 12px; font: inherit; font-size: 13px; font-weight: 700; line-height: 1.3; word-break: keep-all; cursor: pointer; }
+.workout-record-entry-actions .show-all-workout-records-button { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-width: 0; height: auto; min-height: 40.392px; margin: 0; padding: 3px 6px; border: 1px solid var(--brand-orange); border-radius: 12px; font: inherit; font-size: 14.3px; font-weight: 700; line-height: 1.3; word-break: keep-all; cursor: pointer; }
 .workout-record-entry-actions .workout-record-filter-button { color: var(--brand-navy); border-color: var(--brand-border); border-radius: 12px; background: var(--brand-white); }
 .workout-record-entry-actions .workout-record-filter-button[aria-pressed="true"] { color: var(--brand-navy); border-color: var(--brand-navy); box-shadow: inset 0 0 0 1px var(--brand-navy); }
 .workout-record-filter-button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
@@ -20,7 +20,7 @@
 .workout-record-entry-actions .workout-camera-button:active,
 .workout-record-entry-actions .show-all-workout-records-button:active { transform: translateY(1px); }
 .workout-record-entry-actions > button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
-@media(max-width:360px){.workout-record-entry-actions :is(.workout-camera-button,.workout-text-button,.workout-record-filter-button,.show-all-workout-records-button){font-size:12px;line-height:1.2;gap:4px}}
+@media(max-width:360px){.workout-record-entry-actions :is(.workout-camera-button,.workout-text-button,.workout-record-filter-button,.show-all-workout-records-button){font-size:13.2px;line-height:1.2;gap:4px}}
 .workout-text-button > [aria-hidden="true"] { flex: 0 0 auto; }
 .workout-text-button:disabled { opacity: .5; cursor: default; }
 .workout-text-button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
@@ -29,6 +29,7 @@
 .workout-text-dialog::backdrop { background: #18243bb3; }
 .workout-text-dialog .workout-text-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
 .workout-text-heading h2 { margin: 0; color: #c24c00; font-size: 19px; line-height: 1.5; }
+.workout-text-heading [data-text-close] { flex: 0 0 auto; white-space: nowrap; }
 .workout-text-dialog label { display: block; margin-bottom: 6px; color: #526078; font-size: 13px; }
 .workout-text-tools { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 8px; background: #fff; }
 .workout-text-tools label { margin: 0; }
@@ -2226,6 +2227,8 @@ body.camera-open {
 }
 
 .member-inquiry-header h4 { font-size: 17.6px; }
+#memberInquiryHeading > span { display: block; line-height: 1.55; }
+#memberInquiryHeading > span + span { margin-top: 6px; }
 .member-inquiry-availability-message:empty { display: none; }
 
 .member-inquiry-header p {
@@ -3503,7 +3506,7 @@ body.camera-open {
 .routine-component-details h5 {
   margin: 12px 0 5px;
   color: var(--brand-navy);
-  font-size: 14px;
+  font-size: 15.4px;
 }
 
 .routine-component-details h5.routine-component-key-points {
@@ -3514,7 +3517,7 @@ body.camera-open {
 .routine-component-checklist {
   margin: 0;
   color: #475467;
-  font-size: 14px;
+  font-size: 15.4px;
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: keep-all;
@@ -5842,13 +5845,13 @@ textarea.routine-weight-cell {
   display: inline-flex; align-items: center; justify-content: center; gap: 4px; box-sizing: border-box;
   width: 100%; min-width: 0; min-height: 38px; margin: 0; padding: 6px 4px;
   border: 1px solid #dce2eb; border-radius: 8px; background: #f8fafc; color: #526078;
-  font: inherit; font-size: 13.2px; font-weight: 600; line-height: 1.4; cursor: pointer;
+  font: inherit; font-size: 14.52px; font-weight: 600; line-height: 1.4; cursor: pointer;
 }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-actions {
   grid-template-columns: 1fr 1fr 1.5fr; gap: 6px; margin-top: 10px;
 }
 :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-actions > button {
-  grid-column: auto; grid-row: auto; min-height: 42px; height: auto; padding: 6px 4px; font-size: 13.2px; line-height: 1.4; gap: 3px;
+  grid-column: auto; grid-row: auto; min-height: 42px; height: auto; padding: 6px 4px; font-size: 14.52px; line-height: 1.4; gap: 3px;
 }
 .routine-card-disclosure .routine-component-actions .routine-action-label { white-space: normal; }
 .routine-card-disclosure .routine-component-actions .routine-action-chevron { display: none; }
@@ -5860,7 +5863,7 @@ textarea.routine-weight-cell {
 @media (max-width: 360px) {
   :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-main { grid-template-columns: 90.2px minmax(0, 1fr); gap: 9px; }
   :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-disclosure .routine-component-image-area { width: 90.2px; height: 90.2px; }
-  :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-edit-actions > button { font-size: 13.2px; gap: 2px; }
+  :is(#appScreen #memberRoutineComponents, #guestDemoRoutineCards, #adminRoutineJsonPreview) .routine-card-edit-actions > button { font-size: 14.52px; gap: 2px; }
 }
 
 /* 가장 좁은 화면의 줄바꿈 배치에서도 간격을 30% 더 줄입니다. */
@@ -5930,7 +5933,16 @@ textarea.routine-weight-cell {
 .workout-set-table input[type=checkbox] { width:18px; height:18px; accent-color:#2baa57; vertical-align:middle; }
 .workout-text-dialog .workout-set-table input:not([type=checkbox]),.workout-text-dialog .workout-set-table textarea { box-sizing:border-box; width:100%; min-height:38px; margin:0; padding:6px; border:1px solid #dce2eb; border-radius:6px; background:#fff; font:inherit; font-size:16px; resize:vertical; }
 .workout-text-dialog .workout-set-table textarea { min-height:68px; }
-.workout-text-dialog [data-add-sets] { margin-top:12px; width:100%; color:#a94200; background:#fff4ea; border-color:#f56a00; font-weight:700; }
+.workout-text-dialog [data-add-sets] { display:flex; align-items:center; gap:10px; width:100%; min-height:64px; margin:0 0 18px; padding:11px 12px; border:1px solid #ec6a1a; border-radius:12px; color:#fff; background:#ec6a1a; box-shadow:0 3px 0 #c54c06,0 6px 12px #ec6a1a24; font:inherit; text-align:left; cursor:pointer; }
+.workout-set-entry-icon { display:grid; place-items:center; flex:0 0 32px; width:32px; height:32px; border-radius:50%; color:#ec6a1a; background:#fff; font-size:25px; line-height:1; }
+.workout-set-entry-copy { display:grid; min-width:0; gap:3px; }
+.workout-set-entry-copy strong { font-size:16px; line-height:1.35; font-weight:800; }
+.workout-set-entry-copy small { color:#fff; font-size:11.5px; line-height:1.4; font-weight:500; }
+.workout-set-entry-arrow { flex:0 0 18px; width:18px; height:18px; margin-left:auto; }
+.workout-text-dialog [data-add-sets]:active:not(:disabled) { transform:translateY(2px); box-shadow:0 1px 0 #c54c06; }
+.workout-text-dialog [data-add-sets]:focus-visible { outline:3px solid #f59a57; outline-offset:3px; }
+.workout-text-dialog [data-add-sets]:disabled { opacity:.5; box-shadow:none; cursor:default; }
+.workout-text-dialog [data-set-editors]:not(:empty) { margin-bottom:18px; }
 .workout-saved-exercise { margin:0 0 16px; }
 .workout-saved-exercise h3 { margin:0 0 8px; font-size:17px; color:#17233e; }
 .workout-saved-sets { margin-bottom:8px; }

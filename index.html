@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- 1DAY PT 재노출: 아래 data-one-day-pt-enabled를 true로 변경합니다. -->
-<html lang="ko" data-one-day-pt-enabled="false">
+<html lang="ko" prefix="og: https://ogp.me/ns#" data-one-day-pt-enabled="false">
 
 <head>
   <meta charset="UTF-8">
@@ -9,19 +9,34 @@
   <meta name="theme-color" content="#ffffff">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>헬스와 필라테스</title>
-  <meta name="app-version" content="292">
+  <title>헬스와 필라테스 화곡점 공식 앱</title>
+  <meta name="description" content="맞춤 운동 루틴부터 운동 기록·출석·회원권 확인까지">
+  <link rel="canonical" href="https://health-pila.github.io/app/">
+  <!-- Link previews use the original center logo with its white backing. -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="헬스와 필라테스 화곡점">
+  <meta property="og:title" content="헬스와 필라테스 화곡점 공식 앱">
+  <meta property="og:description" content="맞춤 운동 루틴부터 운동 기록·출석·회원권 확인까지">
+  <meta property="og:url" content="https://health-pila.github.io/app/">
+  <meta property="og:image" content="https://health-pila.github.io/app/images/center-logo-plate.png?v=0070aac4afe1b547807ef7f6e048efe29dc99cc7fbbf92200fcfa9344c7ac781">
+  <meta property="og:image:secure_url" content="https://health-pila.github.io/app/images/center-logo-plate.png?v=0070aac4afe1b547807ef7f6e048efe29dc99cc7fbbf92200fcfa9344c7ac781">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1271">
+  <meta property="og:image:height" content="422">
+  <meta property="og:image:alt" content="헬스와 필라테스 화곡점 글자와 주황색 운동 심벌이 함께 있는 센터 로고">
+  <meta name="app-version" content="296">
   <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png?v=468131089e169951c9e69bd2da2438b9936a820229a0946a0780a358f6713fbe">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=a1331575539fef0a698a938698d9ff12fa1391cab0733cfce608eba133385d21">
+  <link rel="stylesheet" href="style.css?v=a0cfefe620187d56c4a9a2998b22c3f86edac1e6e67be1e0123bcf6687e8bc42">
   <script src="pull-to-refresh-guard.js?v=589f4dc678016b6b9c0179220c23481e552204c5ad1ca69e36e58ed441790f8b" defer></script>
   <link rel="stylesheet" href="cardio-programs.css?v=3b5139b5beda957a031a1ab41293e67d39cce69f4c58c2d9d5e0ade1d794cc47">
   <link rel="stylesheet" href="stretching-videos.css?v=fec1b0112239ebce321696b347f742ad56217c87277242c6128a6a55690ea069">
-  <link rel="stylesheet" href="member-exercise-replacements.css?v=79f3683274f4b2360f19a8f2f4090246702b9b5d31962c4f91a28f2cd4c4ad47">
+  <link rel="stylesheet" href="member-exercise-replacements.css?v=89f704367830c9b0d7fac337b48da78258c664b5d518883c0164bcbe4c77e009">
   <link rel="stylesheet" href="member-workout-completion.css?v=a51d564c3be06b98d67f52f190908cd1061918be148e44d4afd7f2cbd9f996f9">
   <link rel="stylesheet" href="member-services.css?v=3e03d77dce79af0bae48e8571e2d5ee257d5aa80a891fa606289bd823c7d254b">
   <link rel="stylesheet" href="payapp-checkout.css?v=be88535ba0d89e2ee55dc842b1787d16c154ca705d0c71bc8f2ed0869dd0e0b1">
@@ -398,13 +413,13 @@
         </button>
         <button id="openWorkoutTextButton" class="workout-text-button" type="button" aria-haspopup="dialog" aria-controls="workoutTextDialog" disabled>
           <span aria-hidden="true">⏳</span>
-          <span>운동 시간∙세트 기록하기</span>
+          <span>시간·세트 기록하기</span>
         </button>
         <button id="showPhotoWorkoutRecordsButton" class="workout-record-filter-button" type="button" aria-pressed="false" aria-controls="workoutRecordList">
           사진 기록만 모아보기
         </button>
         <button id="showTextWorkoutRecordsButton" class="workout-record-filter-button" type="button" aria-pressed="false" aria-controls="workoutRecordList">
-          운동 시간∙세트만 모아보기
+          시간·세트 모아보기
         </button>
         <button id="showSetWorkoutRecordsButton" class="workout-record-filter-button" type="button" aria-pressed="false" aria-controls="workoutRecordList">
           세트별 기록만 모아보기
@@ -485,7 +500,9 @@
         aria-labelledby="communityInquiryMenuButton" tabindex="0" hidden>
         <header class="member-inquiry-header">
           <h4 id="memberInquiryHeading">
-            홀딩 / 그룹필테↔1:1 전환 등을 자유롭게 문의해주세요.
+            <span>🔸 홀딩 신청</span>
+            <span>🔸 그룹 필라테스 ↔ 1:1 전환 신청</span>
+            <span>🔸 기타 문의 / 건의사항</span>
           </h4>
 
         </header>
@@ -1457,7 +1474,7 @@
     </div>
   </dialog>
 
-  <script src="app-assets.js?v=310debb593c78a2812d55afed041fe89b7f9286850f34320a97a1a9fdd396dc9"></script>
+  <script src="app-assets.js?v=d38124f955d1164c1f467846faffb857cbb8e7ee94059f53505b515b1f531bd7"></script>
   <script src="deferred-images.js?v=663181d66366be28299e333f15b39eff5f1f4d79844e3b2eb3b3131358e7e18a"></script>
   <script src="login-timing.js?v=bf62a9708baa815f23755757b4ba7a3c7bfe54d2d6a678bab613c169e4e4afe4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
@@ -1473,10 +1490,10 @@
   <script src="member-exercise-replacements.js?v=542f1e36c03392551590230d9076f55d5ed4aa37f526deeacb493b0f6d727440"></script>
   <script src="member-community-badges.js?v=483e9ddc2c381b63209e01c79927e1e5b8c75d5fe610110a08cd48a4aa8d09d2"></script>
   <script src="stretching-videos.js?v=91c23a391819d052ec3562d25a8ee87d05b84dba70ae6ecaab9c3080d397399c"></script>
-  <script src="cardio-programs.js?v=13924e29aeadb56a026d187df914423dcdfb1b3e019d30722f61cecdfa577c31"></script>
+  <script src="cardio-programs.js?v=70d208b5176c8046e997868f7c171280a0f041e273b5cb4dbceea2305b89329b"></script>
   <script src="workout-record-dates.js?v=b662cf88225b0d07c8eb555562fef176748add76367078d0385a8452ac2afc52"></script>
   <script src="workout-set-records.js?v=6b052ef85363c15c3c939126c274a5e5a71bae7eb2894cb039d7971f964bfa89"></script>
-  <script src="workout-text-records.js?v=485b6e3ac5c064ad18591570b7eeb8ae4d40fdab48df95e5424632bc4fff6b78"></script>
+  <script src="workout-text-records.js?v=a18852eb111f0f24fa12799653bdd90bc48188083d2ee5ec0f6e1d7c5e526496"></script>
   <script src="member-services.js?v=5fcf08efee275561a69c71816b3d4317bdb5ff2edbda7f4c83ccd1f654544841"></script>
   <script src="payapp-checkout.js?v=625fd31566f98813f761342efb86965acb1ece2a05beab5503d3676d36602e04"></script>
   <script src="payment-fulfillment.js?v=f27dcc38971071bc17081d6a3ae237ad7379397f2dba5768b60aaa1258b7c92d"></script>

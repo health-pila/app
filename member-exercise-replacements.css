@@ -9,33 +9,35 @@
 .exercise-replacement-notice { margin: 0 0 12px; padding: 11px; border: 1px solid #e1e6ee; border-radius: 10px; background: #f8fafc; }
 .exercise-replacement-notice p { margin: 0 0 7px; color: #526078; font-size: 13px; line-height: 1.7; }
 .exercise-replacement-notice.is-error p { color: #a13c25; }
-.exercise-replacement-dialog { box-sizing: border-box; width: min(460px, calc(100vw - 24px)); max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); margin: auto; padding: 0; border: 0; border-radius: 20px; overflow: hidden; color: #17233e; background: #fff; font-family: inherit; box-shadow: 0 20px 70px #0005; }
+.exercise-replacement-dialog { box-sizing: border-box; width: min(460px, calc(100vw - 24px)); max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); margin: auto; padding: 0; border: 0; border-radius: 20px; overflow: hidden; color: #17233e; background: #fff; font-family: inherit; font-size: 17.6px; box-shadow: 0 20px 70px #0005; }
+.exercise-replacement-dialog button { font-size: 13.2px; }
+.exercise-replacement-dialog select option { font: inherit; }
 .exercise-replacement-dialog[open] { display: flex; flex-direction: column; }
 .exercise-replacement-dialog::backdrop { background: #18243bb3; }
 .exercise-replacement-heading { display: flex; flex: 0 0 auto; justify-content: space-between; align-items: center; gap: 10px; padding: 16px 16px 12px; border-bottom: 1px solid #e4e8ef; }
-.exercise-replacement-heading h2 { margin: 0; color: #c24c00; font-size: 19px; line-height: 1.5; }
+.exercise-replacement-heading h2 { margin: 0; color: #c24c00; font-size: 20.9px; line-height: 1.5; }
 .exercise-replacement-content { padding: 14px 16px 20px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-.exercise-replacement-content h3 { margin: 16px 0 10px; font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
-.exercise-replacement-safety { margin: 0; padding: 11px; border-radius: 10px; color: #526078; background: #f3f6fa; font-size: 12px; line-height: 1.7; word-break: keep-all; }
-.exercise-replacement-current { margin: 12px 0; color: #17233e; font-size: 13px; font-weight: 700; line-height: 1.6; }
+.exercise-replacement-content h3 { margin: 16px 0 10px; font-size: 16.5px; line-height: 1.6; overflow-wrap: anywhere; }
+.exercise-replacement-safety { margin: 0; padding: 11px; border-radius: 10px; color: #526078; background: #f3f6fa; font-size: 13.2px; line-height: 1.7; word-break: keep-all; }
+.exercise-replacement-current { margin: 12px 0; color: #17233e; font-size: 14.3px; font-weight: 700; line-height: 1.6; }
 .exercise-replacement-list { display: grid; gap: 7px; }
 .exercise-replacement-dialog .exercise-replacement-option { display: grid; gap: 4px; width: 100%; min-width: 0; padding: 12px; border-radius: 11px; text-align: left; }
-.exercise-replacement-option strong { color: #17233e; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
-.exercise-replacement-option span { color: #697586; font-size: 12px; line-height: 1.6; }
+.exercise-replacement-option strong { color: #17233e; font-size: 15.4px; line-height: 1.5; overflow-wrap: anywhere; }
+.exercise-replacement-option span { color: #697586; font-size: 13.2px; line-height: 1.6; }
 .exercise-replacement-all { margin-top: 18px; border-top: 1px solid #e4e8ef; padding-top: 14px; }
-.exercise-replacement-all summary { min-height: 40px; color: #a94200; font-size: 14px; font-weight: 700; cursor: pointer; }
-.exercise-replacement-dialog label { display: block; margin: 10px 0 5px; color: #526078; font-size: 12px; line-height: 1.6; }
-.exercise-replacement-dialog input, .exercise-replacement-dialog select { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; margin-top: 4px; padding: 10px; border: 1px solid #dce2eb; border-radius: 9px; background: #f8fafc; color: #17233e; font: inherit; font-size: 16px; }
-.exercise-replacement-help, .exercise-replacement-status { margin: 8px 0; color: #697586; font-size: 12px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
+.exercise-replacement-all summary { min-height: 40px; color: #a94200; font-size: 15.4px; font-weight: 700; cursor: pointer; }
+.exercise-replacement-dialog label { display: block; margin: 10px 0 5px; color: #526078; font-size: 13.2px; line-height: 1.6; }
+.exercise-replacement-dialog input, .exercise-replacement-dialog select { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; margin-top: 4px; padding: 10px; border: 1px solid #dce2eb; border-radius: 9px; background: #f8fafc; color: #17233e; font: inherit; font-size: 17.6px; }
+.exercise-replacement-help, .exercise-replacement-status { margin: 8px 0; color: #697586; font-size: 13.2px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
 .exercise-replacement-status { color: #a13c25; }
 .exercise-replacement-help:empty, .exercise-replacement-status:empty { display: none; }
 .exercise-replacement-dose-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.exercise-replacement-dialog .exercise-replacement-save { width: 100%; min-height: 46px; margin-top: 12px; color: #fff; background: #ec6a1a; border-color: #ec6a1a; font-size: 14px; }
+.exercise-replacement-dialog .exercise-replacement-save { width: 100%; min-height: 46px; margin-top: 12px; color: #fff; background: #ec6a1a; border-color: #ec6a1a; font-size: 15.4px; }
 .exercise-replacement-dialog button:focus-visible, .exercise-replacement-dialog summary:focus-visible, .exercise-replacement-change:focus-visible, .exercise-replacement-controls button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
 
 /* 개인 운동은 공식 카드의 안내/영상 자리를 남기지 않고 두 버튼을 나란히 표시합니다. */
 .exercise-replacement-personal { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e4e8ef; }
-.exercise-replacement-personal summary { min-height: 40px; color: #a94200; font-size: 14px; font-weight: 700; cursor: pointer; }
+.exercise-replacement-personal summary { min-height: 40px; color: #a94200; font-size: 15.4px; font-weight: 700; cursor: pointer; }
 .exercise-replacement-personal [data-personal-choose] { width: 100%; margin-top: 8px; background: #fff4ea; color: #a94200; }
 .routine-component-card.is-personal-exercise .routine-component-body-parts { display: none; }
 .routine-component-card.is-personal-exercise .routine-component-actions > button { grid-column: auto; grid-row: auto; }
