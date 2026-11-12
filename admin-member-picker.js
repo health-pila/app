@@ -1,6 +1,7 @@
 /* Original native dropdown; only append the server-confirmed attendance label. */
 (() => {
   'use strict';
+  if (window.AdminMemberPicker) return;
   const select=document.getElementById('adminMemberSelect'),screen=document.getElementById('adminScreen');
   if(!select||!screen)return;
   let client=null,user='',epoch=0,seq=0,ready=false,busy=false,lastRead=0,linked=new Set(),revision=0,updates=new Map();

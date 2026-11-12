@@ -1,6 +1,7 @@
 /* 신청/조회 버튼을 눌렀을 때만 불러옵니다. 답변은 브라우저 저장소에 남기지 않습니다. */
 (() => {
   "use strict";
+  if (window.RoutineApplication) return;
   const choices = Object.freeze({
     gender: ["여자", "남자"],
     experience: ["1개월 미만", "1~3개월", "3~6개월", "6개월~1년", "1년 이상", "2년 이상"],

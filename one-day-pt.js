@@ -1,6 +1,7 @@
 /* 1DAY PT: 운동 선택 → 페이앱 결제 → 센터의 문자 연락. 이전 신청 내역은 유지합니다. */
 (function () {
   "use strict";
+  if (window.OneDayPT) return;
   const $ = id => document.getElementById(id);
   const dialog = $("oneDayPtDialog");
   const enabled = () => document.documentElement.dataset.oneDayPtEnabled !== "false";

@@ -1,5 +1,6 @@
 (() => {
   'use strict';
+  if (window.AdminPayments) return;
   const section = document.getElementById('adminPayments');
   const screen = document.getElementById('adminScreen');
   if (!section || !screen) return;

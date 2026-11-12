@@ -1,6 +1,7 @@
 /* Shared signup notices; browser storage is used only to import the old pending list once. */
 (() => {
   'use strict';
+  if (window.AdminMemberAlerts) return;
   const screen = document.getElementById('adminScreen');
   const list = document.getElementById('adminMemberSignupList');
   const count = document.getElementById('adminMemberSignupCount');

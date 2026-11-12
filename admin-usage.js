@@ -1,5 +1,6 @@
 (() => {
   'use strict';
+  if (window.AdminUsage) return;
   const $=id=>document.getElementById(id), panel=$('adminUsagePanel');
   if(!panel)return;
   let state=null;

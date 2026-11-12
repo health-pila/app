@@ -101,7 +101,7 @@
       else if (refreshing) count = "센터 출석 확인 중";
     } else if (data.month_state === "not_linked") {
       count = "센터 출석 연결 전";
-      message = "센터 출석은 데스크에서 회원 연결 후 표시됩니다.";
+      message = "센터 출석은 앱 가입 후 1시간 정도 후에 표시됩니다.";
     } else if (data.month_state === "before_start") {
       message = "센터 출석 기록은 2026년 9월 1일부터 표시됩니다.";
     } else if (data.month_state === "future") {

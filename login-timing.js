@@ -1,7 +1,7 @@
 /* Opt-in, device-local duration diagnostics. Never reads credentials or profile data. */
 (() => {
   'use strict';
-  const scriptVersion = new URL(document.currentScript?.src || location.href).searchParams.get('v');
+  const scriptVersion = document.querySelector('meta[name="app-version"]')?.content || new URL(document.currentScript?.src || location.href).searchParams.get('v');
   const VERSION = /^[0-9]{1,5}$/.test(scriptVersion || '') ? scriptVersion : '258';
   const KEY = 'centerLoginTiming:v1';
   const MAX_AGE = 7 * 86400000;
@@ -9,6 +9,7 @@
   const modes = {restore:'자동로그인·인증 복귀',email:'이메일 로그인'};
   const outcomes = {ready:'화면 표시 완료',error:'확인 실패',signed_out:'저장된 로그인 없음',cancelled:'다른 로그인·로그아웃으로 취소'};
   let enabled = false, until = 0, records = [], current = null, sequence = 0;
+  let cacheInfo = null;
   let codeReady = null, dialog = null, output = null, tick = null;
   const buttons = [];
   const now = () => performance.now();
@@ -18,7 +19,7 @@
         !Number.isFinite(row.at) || row.at < Date.now()-MAX_AGE || row.at > Date.now()+60000 ||
         !Array.isArray(row.stages) || row.stages.length > 8) return null;
     return {version:row.version,at:row.at,mode:row.mode,result:row.result,total:rounded(row.total),code:row.code==null?null:rounded(row.code),
-      refresh:row.refresh==null?null:rounded(row.refresh),stages:row.stages.filter(s=>s && Object.hasOwn(labels,s.name) && ['ok','error'].includes(s.status))
+      content:row.content==null?null:rounded(row.content),refresh:row.refresh==null?null:rounded(row.refresh),stages:row.stages.filter(s=>s && Object.hasOwn(labels,s.name) && ['ok','error'].includes(s.status))
         .map(s=>({name:s.name,ms:rounded(s.ms),status:s.status}))};
   }
   try {
@@ -70,8 +71,20 @@
   }
   function finish(run,result='ready') {
     if (!run || current!==run || !live() || !Object.hasOwn(outcomes,result)) return;
-    records.push({version:run.version,at:run.at,mode:run.mode,result,total:rounded(now()-run.start),code:run.code,refresh:refreshDuration(run),stages:run.stages.slice()});
+    run.record={version:run.version,at:run.at,mode:run.mode,result,total:rounded(now()-run.start),code:run.code,refresh:refreshDuration(run),stages:run.stages.slice()};
+    records.push(run.record);
     records=records.slice(-5);current=null;save();render();
+  }
+  function contentReady(run) {
+    if (!run?.record || !live() || !records.includes(run.record)) return;
+    // The data/rendering operation has finished; this is separate from authentication.
+    run.record.content = rounded(now()); save(); render();
+  }
+  function cacheReady(info) {
+    if (!live() || !Number.isFinite(info.ms) || info.ms<0 || info.ms>3600000 ||
+        !Number.isInteger(info.reused) || !Number.isInteger(info.downloaded) ||
+        info.reused<0 || info.downloaded<0 || info.reused+info.downloaded>500) return;
+    cacheInfo={ms:rounded(info.ms), reused:info.reused, downloaded:info.downloaded}; render();
   }
   function cancel() { if(current) finish(current,'cancelled'); }
   const seconds = ms => (ms/1000).toFixed(2)+'초';
@@ -84,10 +97,12 @@
       lines.push('',new Date(row.at).toLocaleString('ko-KR')+' · v'+row.version,modes[row.mode]+' · '+(outcomes[row.result]||'확인 중'),
         '로그인 처리 경과: '+seconds(row.total));
       if(row.code!=null)lines.push('앱 코드 준비(페이지 시작부터): '+seconds(row.code));
+      if(row.content!=null)lines.push('첫 화면 콘텐츠 조회·구성 완료(페이지 시작부터): '+seconds(row.content));
       for(const s of row.stages)lines.push(labels[s.name]+': '+seconds(s.ms)+(s.status==='error'?' · 실패':''));
       for(const s of row.pending||[])lines.push(labels[s.name]+': '+seconds(s.ms)+' · 진행 중');
       if(row.refresh!=null)lines.push('로그인 갱신 요청(브라우저 관측): '+seconds(row.refresh));
     }
+    if(cacheInfo)lines.push('','이번 실행 중 백그라운드 캐시 준비: '+seconds(cacheInfo.ms),'기존 파일 재사용: '+cacheInfo.reused+'개 · 새로 준비: '+cacheInfo.downloaded+'개');
     if(!all.length)lines.push('','다음 로그인부터 결과가 표시됩니다.');
     return lines.join('\n');
   }
@@ -129,5 +144,5 @@
       button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',open);parent.append(button);buttons.push(button);
     }
   }
-  window.LoginTiming=Object.freeze({ready,begin,measure,finish,cancel});
+  window.LoginTiming=Object.freeze({ready,begin,measure,finish,cancel,contentReady,cacheReady});
 })();

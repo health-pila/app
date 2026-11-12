@@ -1,6 +1,7 @@
 /* 관리자 루틴 신청·회원 문의·1DAY PT 신청 알림. 데이터는 읽기만 하며 배정/답변 기능과 분리합니다. */
 (function () {
   "use strict";
+  if (window.AdminRoutineAlerts) return;
   const screen = document.getElementById("adminScreen");
   const sections = [
     { kind: "routine", prefix: "adminRoutine", storagePrefix: "adminRoutineAlerts:v1:", label: "루틴 신청" },

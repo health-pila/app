@@ -8159,18 +8159,9 @@ let routineApplicationStylesReady = false;
 function getRoutineApplicationModule() {
   if (window.RoutineApplication && routineApplicationStylesReady) return Promise.resolve(window.RoutineApplication);
   if (routineApplicationModulePromise) return routineApplicationModulePromise;
-  const load = (tag, url) => new Promise((resolve, reject) => {
-    const node = document.createElement(tag);
-    if (tag === "link") { node.rel = "stylesheet"; node.href = url; }
-    else { node.src = url; node.async = true; }
-    const timer = setTimeout(() => { node.remove(); reject(new Error("APPLICATION_LOAD_TIMEOUT")); }, 12000);
-    node.onload = () => { clearTimeout(timer); if (tag === "link") routineApplicationStylesReady = true; resolve(); };
-    node.onerror = () => { clearTimeout(timer); node.remove(); reject(new Error("APPLICATION_LOAD_FAILED")); };
-    document.head.append(node);
-  });
   routineApplicationModulePromise = Promise.all([
-    routineApplicationStylesReady ? Promise.resolve() : load("link", "./routine-application.css?v=286"),
-    window.RoutineApplication ? Promise.resolve() : load("script", "./routine-application.js?v=286")
+    window.AppAssets.load("routine-application.css").then(() => { routineApplicationStylesReady = true; }),
+    window.AppAssets.load("routine-application.js")
   ]).then(() => {
     if (!window.RoutineApplication) throw new Error("APPLICATION_MODULE_UNAVAILABLE");
     return window.RoutineApplication;
@@ -9267,10 +9258,14 @@ async function showWorkoutApp(userId, displayName = "", timingRun = null, screen
 
   clearRoutineRequestReturnFlag();
 
+  // Fetch the selected screen's content first; badges, authentication and usage collection stay active.
+  const firstIsRecords = memberTabBeforeRefresh === "workoutLog";
+  await (firstIsRecords ? loadWorkoutRecords(userId) : loadMemberRoutine(userId));
+  if (screenRequestId !== null && (screenRequestId !== loginScreenRequestId || screenAuthRevision !== loginAuthRevision)) return;
+  window.LoginTiming?.contentReady(timingRun);
   await Promise.all([
-    window.OneDayPT.showMember(supabaseClient, userId),
-    loadMemberRoutine(userId),
-    loadWorkoutRecords(userId),
+    window.OneDayPT?.showMember(supabaseClient, userId),
+    firstIsRecords ? loadMemberRoutine(userId) : loadWorkoutRecords(userId),
     loadCommunityPosts(),
     loadMemberInquirySetting(),
     loadMemberInquiries()
@@ -9941,7 +9936,7 @@ async function showAdminApp(userId, timingRun = null, screenRequestId = null, sc
 
   await Promise.all([
     window.AdminPayments?.start(supabaseClient, userId),
-    window.OneDayPT.showAdmin(supabaseClient, userId),
+    window.OneDayPT?.showAdmin(supabaseClient, userId),
     window.StretchingVideos?.startAdmin(supabaseClient, userId),
     loadAdminRoutineRequests(),
     loadAdminMembers(),
@@ -10013,6 +10008,9 @@ async function showScreenForCurrentUser(session = null, timingRun = null) {
     return;
   }
   if (profile.role === "admin") {
+    await window.AppAssets.admin();
+    await window.AppAssets.optionalPT();
+    if (requestId !== loginScreenRequestId || authRevision !== loginAuthRevision) return;
     naverAuth?.renderUser(user, profile.role);
     await showAdminApp(user.id, timingRun, requestId, authRevision);
     return;
@@ -10021,6 +10019,8 @@ async function showScreenForCurrentUser(session = null, timingRun = null) {
     showRestrictedMemberApp(user.id, profile, timingRun);
     return;
   }
+  await window.AppAssets.optionalPT();
+  if (requestId !== loginScreenRequestId || authRevision !== loginAuthRevision) return;
   naverAuth?.renderUser(user, profile.role);
   renderMemberAccountEmail(user.email || profile.email);
   await showWorkoutApp(user.id, profile.display_name, timingRun, requestId, authRevision, profile);
@@ -11034,7 +11034,7 @@ async function handleLogout() {
 
     memberRoutineIdentity = { userId: "", name: "" };
   memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
-    window.OneDayPT.reset();
+    window.OneDayPT?.reset();
     window.CenterAttendance?.reset();
     window.WorkoutTextRecords?.reset();
     workoutCaptureBadge.reset();

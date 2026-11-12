@@ -34,7 +34,7 @@
     panel.hidden=!user;list.replaceChildren();
     let msg='헬스회원권 만료일을 확인하고 있어요.';
     if(!cache){if(error)msg='헬스회원권 만료일을 불러오지 못했어요. 새로고침해 주세요.';}
-    else if(!cache.is_linked)msg='센터 회원 연결 후 헬스회원권 만료일을 확인할 수 있어요.';
+    else if(!cache.is_linked)msg='앱 가입 후 1시간 정도 후에 만료일을 확인할 수 있어요.';
     else if(!cache.synced_at)msg='헬스회원권 정보를 연결하고 있어요.';
     else {
       const ends=expiries(cache.tickets,today());
