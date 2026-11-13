@@ -268,10 +268,14 @@
       if (!adminCurrent(epoch, request, member)) return;
       candidate = null;
       if (!error && data?.ok === true && ["linked", "already_linked"].includes(data.code)) {
-        window.AdminWorkspace?.memberLinked(member);
         window.AdminMemberPicker?.setLink(member, true);
         window.AdminMemberAlerts?.linked(member);
-        adminBusy = false; await selectAdminMember(member, true); return;
+        adminBusy = false;
+        window.AdminWorkspace?.memberLinked(member);
+        // The request workspace may have released this completed selection.
+        // Do not restore its CRM context after the empty-selection handler ran.
+        if (!adminCurrent(epoch, request, member)) return;
+        await selectAdminMember(member, true); return;
       }
       if (data?.code === "profile_changed" || data?.code === "identity_not_ready") {
         adminContext = null; showAdminMessage("회원 정보가 바뀌었어요. 회원을 다시 선택해 주세요.");
@@ -299,5 +303,5 @@
     onCalendar, onTab: () => {
       if (!memberVisible()) { monthRequest++; monthAbort?.abort(); monthAbort = null; loadingMonth = ""; }
       renderMonth(); void loadMonth(); void window.CenterMemberships?.load();
-    }, selectAdminMember });
+    }, selectAdminMember, isAdminBusy: () => role === "admin" && adminBusy });
 })();

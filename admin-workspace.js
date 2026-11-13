@@ -31,13 +31,13 @@
       <div id="awKinds" class="aw-kinds" role="group" aria-label="요청 종류"></div>
       <div id="awWorkspace" class="aw-workspace"><button id="awBack" class="aw-back" type="button">‹ 목록으로 돌아가기</button>
         <section id="awQueue" class="aw-queue" aria-label="요청 목록"><div id="awQueueHeading" class="aw-queue-heading"></div><div id="awQueueBody"></div></section>
-        <section id="awWork" class="aw-work" aria-label="선택한 요청의 작업"><header class="aw-work-heading"><div><p id="awContext"></p><h2 id="awMemberTitle">목록에서 요청을 선택해 주세요.</h2><div id="awMemberMeta"></div></div><div class="aw-work-actions"><button id="awOpenMember" class="aw-text-button" type="button" hidden>회원 관리에서 보기 ›</button><button id="awCloseInquiry" class="aw-secondary aw-inquiry-close" type="button" aria-label="문의 상세창 닫기" hidden>닫기 ×</button></div></header>
+        <section id="awWork" class="aw-work" aria-label="선택한 요청의 작업"><header class="aw-work-heading"><div><p id="awContext"></p><h2 id="awMemberTitle">목록에서 요청을 선택해 주세요.</h2><div id="awMemberMeta"></div></div><div class="aw-work-actions"><button id="awOpenMember" class="aw-text-button" type="button" hidden>회원 관리에서 보기 ›</button><button id="awClearMember" class="aw-secondary aw-inquiry-close" type="button" hidden>선택 해제</button><button id="awCloseInquiry" class="aw-secondary aw-inquiry-close" type="button" aria-label="문의 상세창 닫기" hidden>닫기 ×</button></div></header>
           <div id="awInquiryTools" class="aw-inquiry-tools" hidden><button id="awFilterInquiryMember" class="aw-secondary" type="button" aria-pressed="false">이 회원과의 대화 검색</button></div>
           <div id="awEmpty" class="aw-empty">목록에서 처리할 요청을 선택해 주세요.</div><div id="awCompletion" class="aw-completion" hidden></div>
           <div id="awMemberWork" class="aw-member-work" hidden><div id="awMemberTabs" class="aw-member-tabs" role="group" aria-label="회원 관리 항목"><button type="button" data-aw-member-tab="access">출석·이용권</button><button type="button" data-aw-member-tab="routine">운동 루틴</button><button type="button" data-aw-member-tab="inquiry">문의</button></div>
             <div id="awAccessSlot"></div><div id="awRoutineSlot"></div><div id="awApplicationSlot" hidden></div><section id="awMemberInquirySlot" hidden aria-label="선택 회원의 문의 내역"><div id="awMemberInquiryList"></div><section id="awMemberInquiryDetail" hidden><header class="aw-member-inquiry-heading"><h3 id="awMemberInquiryTitle">문의 상세</h3><button id="awMemberInquiryClose" class="aw-secondary" type="button">닫기 ×</button></header><div id="awMemberInquiryThread"></div><footer class="aw-member-inquiry-footer"><button id="awMemberInquiryCloseBottom" class="aw-secondary" type="button">닫기</button></footer></section></section></div>
           <div id="awInquiryWork" class="aw-inquiry-work" hidden></div><div id="awPaymentWork" class="aw-payment-work" hidden></div>
-          <footer id="awNextBar" class="aw-next-bar" hidden><button id="awCloseInquiryBottom" class="aw-secondary aw-inquiry-close" type="button" aria-label="문의 상세창 닫기" hidden>닫기</button><button id="awNext" class="aw-primary" type="button">다음 요청 보기 ›</button></footer>
+          <footer id="awNextBar" class="aw-next-bar" hidden><button id="awClearMemberBottom" class="aw-secondary aw-inquiry-close" type="button" hidden>선택 해제</button><button id="awCloseInquiryBottom" class="aw-secondary aw-inquiry-close" type="button" aria-label="문의 상세창 닫기" hidden>닫기</button><button id="awNext" class="aw-primary" type="button">다음 요청 보기 ›</button></footer>
         </section></div><section id="awOperations" class="aw-operations" hidden><nav class="aw-operation-nav" aria-label="센터 운영 항목"></nav><div id="awOperationBody"></div></section></div>
       <div id="awParking" hidden></div>`;
     const bar = screen.querySelector('.admin-app-topbar'); bar.after(root);
@@ -75,7 +75,7 @@
     browser.addEventListener('input', () => { memberLimit = 40; roster.dataset.limit = '40'; updateMemberBrowser(); });
     roster.dataset.limit = '40';
     moreMembers.addEventListener('click', () => { roster.dataset.limit = String(memberLimit); });
-    const memberFallback = el('details', 'aw-native-picker'); memberFallback.append(el('summary', '', '전체 회원 선택 메뉴'));
+    const memberFallback = el('div', 'aw-native-picker');
     const nativeSelect = $('adminMemberSelect'), nativeLabel = browser.querySelector('label[for="adminMemberSelect"]'); nativeSelect.before(memberFallback); if (nativeLabel) memberFallback.append(nativeLabel); memberFallback.append(nativeSelect);
     $('awParking').append(browser, $('adminMemberSignupAlerts'), $('adminRoutineRequestManagement'), $('adminInquiryManagement'));
     const routineWorkspace = $('adminRoutineWorkspace'); if (routineWorkspace) routineWorkspace.hidden = true;
@@ -102,6 +102,8 @@
     $('awBack').addEventListener('click', () => { detailOpen = false; present(); $('awQueue').scrollIntoView({ block: 'nearest' }); });
     $('awOpenMember').addEventListener('click', () => { if (member?.id) void chooseMember(member.id, 'members'); });
     $('awNext').addEventListener('click', next);
+    $('awClearMember').addEventListener('click', clearRequestMemberSelection);
+    $('awClearMemberBottom').addEventListener('click', clearRequestMemberSelection);
     $('awCloseInquiry').addEventListener('click', closeInquiry);
     $('awCloseInquiryBottom').addEventListener('click', closeInquiry);
     $('awMemberInquiryClose').addEventListener('click', closeInquiry);
@@ -154,6 +156,16 @@
     $('adminMemberSelect').value = '';
     $('adminMemberSelect').dispatchEvent(new Event('change'));
     notify(''); present(); return true;
+  }
+  function clearRequestMemberSelection() {
+    if (!active(generation) || page !== 'requests' || !['signup', 'routine'].includes(kind)) return;
+    if (selecting || hooks.isSaving?.() || window.CenterAttendance?.isAdminBusy?.()) {
+      notify('처리가 끝난 뒤 선택을 해제해 주세요.'); return;
+    }
+    if (clearMemberSelection()) {
+      $('awQueue').scrollIntoView({ block: 'nearest' });
+      $('awQueueBody').querySelector('button:not([disabled])')?.focus({ preventScroll: true });
+    }
   }
   function route(nextPage, nextKind = kind) {
     if (!owner) return;
@@ -258,7 +270,13 @@
     if (memberWork) renderMemberHeading();
     else if (kind === 'inquiry') renderInquiryHeading();
     else if (kind === 'payment') renderPaymentHeading();
-    $('awNextBar').hidden = !(page === 'requests' && (completion || kind === 'inquiry' && currentInquiry));
+    const canClearMember = page === 'requests' && ['signup', 'routine'].includes(kind) && !!(member || completion);
+    $('awClearMember').hidden = $('awClearMemberBottom').hidden = !canClearMember;
+    $('awClearMember').textContent = completion && !member ? '완료창 닫기' : '선택 해제';
+    $('awClearMemberBottom').textContent = completion && !member ? '닫기' : '선택 해제';
+    const hasNext = page === 'requests' && !!(completion || kind === 'inquiry' && currentInquiry);
+    $('awNext').hidden = !hasNext;
+    $('awNextBar').hidden = !(hasNext || canClearMember);
     $('awNext').textContent = kind === 'signup' ? '다음 가입 회원 연결 ›' : kind === 'routine' ? '다음 루틴 신청 보기 ›' : kind === 'inquiry' ? '다음 문의 보기 ›' : '다음 결제 보기 ›';
     syncSelection(); updateCounts();
     if (page === 'members') updateMemberBrowser();
@@ -268,7 +286,7 @@
   function memberLabel(row) { return row ? row.name + (row.last4 ? ' · ' + row.last4 : '') : '목록에서 요청을 선택해 주세요.'; }
   function renderMemberHeading() {
     $('awContext').textContent = page === 'members' ? '회원 관리' : kinds[kind][0] + ' · ' + kinds[kind][1];
-    $('awMemberTitle').textContent = memberLabel(member);
+    $('awMemberTitle').textContent = !member && completion?.type === 'signup' ? '센터 회원 연결 완료' : memberLabel(member);
     $('awOpenMember').hidden = page === 'members' || !member;
     const p = $('awAppIdentity').querySelector('p'); p.replaceChildren();
     if (member) { p.append(el('strong', '', member.name), el('span', '', '전화번호 끝자리 ' + (member.last4 || '미등록'))); }
@@ -321,8 +339,13 @@
   }
   function showCompletion(type, id, text) {
     if (!active(generation) || page !== 'requests' || kind !== type || member?.id !== id) return;
+    const identity = { ...member };
+    // A linked signup is finished work. Clear the actual native selection and
+    // original CRM/routine controllers, while retaining a separate receipt.
+    if (type === 'signup' && !clearMemberSelection()) return;
     completion = { type, id }; const box = $('awCompletion'); box.replaceChildren();
-    box.append(el('strong', '', text), el('p', '', '아래 버튼으로 다음 요청을 이어서 처리할 수 있어요.')); present();
+    detailOpen = true;
+    box.append(el('strong', '', text), el('p', '', (type === 'signup' ? memberLabel(identity) + '님의 연결을 마쳤어요. ' : '') + '아래 버튼으로 다음 요청을 이어서 처리할 수 있어요.')); present();
   }
   function syncSelection() {
     if (!mounted) return;
@@ -336,7 +359,7 @@
   }
   function next() {
     if (hooks.isSaving?.()) { notify('저장 완료 후 이동해 주세요.'); return; }
-    if (kind === 'signup') { const row = signup.find(r => r.id !== member?.id); if (row) void chooseMember(row.id, 'signup'); else { detailOpen = false; notify('다른 가입 대기가 없어요. 최신 목록을 확인해 주세요.'); present(); } }
+    if (kind === 'signup') { const row = signup.find(r => r.id !== (completion?.id || member?.id)); if (row) void chooseMember(row.id, 'signup'); else { detailOpen = false; notify('다른 가입 대기가 없어요. 최신 목록을 확인해 주세요.'); present(); } }
     else if (kind === 'routine') { const row = routines.find(r => r.user_id !== member?.id); if (row) void chooseMember(row.user_id, 'routine', row); else { detailOpen = false; notify('다른 루틴 신청 대기가 없어요.'); present(); } }
     else if (kind === 'inquiry') { const row = [...inquiryCache.values()].find(e => e.record.id !== currentInquiry && e.record.status === 'waiting' && !e.record.archived_at && $('adminInquiryList').querySelector(`[data-inquiry-id="${e.record.id}"]`)); if (row) openInquiry(row.record.id); else { detailOpen = false; notify('현재 목록에 다른 문의 대기가 없어요. 목록의 더 보기나 필터를 확인해 주세요.'); present(); } }
     else { const row = payments.find(r => r.id !== paymentSelected); if (row) openPayment(row.id); else { detailOpen = false; paymentSelected = ''; present(); } }
@@ -427,6 +450,13 @@
     const id = currentInquiry, entry = inquiryCache.get(id);
     if (entry) { entry.thread.hidden = true; moveTo(entry.thread, $('awParking')); }
     currentInquiry = ''; if (!local) member = null; completion = null; if (!local) detailOpen = false;
+    if (!local) {
+      // Closing a request conversation also releases a member left in the
+      // shared native picker. Keep the conversation filter and drafts intact.
+      $('adminMemberInfo').textContent = '';
+      $('adminMemberSelect').value = '';
+      $('adminMemberSelect').dispatchEvent(new Event('change'));
+    }
     notify(''); present();
     const focus = $('adminInquiryList').querySelector(`[data-inquiry-id="${id}"] .admin-inquiry-summary-button`) || $('adminInquiryFilters').querySelector('[aria-pressed="true"]');
     focus?.focus({ preventScroll: true }); (local ? $('awMemberInquiryList') : $('awQueue')).scrollIntoView({ block: 'nearest' });
