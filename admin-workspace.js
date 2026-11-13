@@ -450,7 +450,20 @@
     captureInquiryDrafts(); currentInquiry = id;
     if (!local) { page = 'requests'; kind = 'inquiry'; }
     completion = null; detailOpen = true;
-    attachInquiry(id); present(); (local ? $('awMemberInquiryDetail') : $('awWork')).scrollIntoView({ block: 'nearest' }); return true;
+    attachInquiry(id); present();
+    const ticket = generation;
+    requestAnimationFrame(() => {
+      if (!active(ticket) || currentInquiry !== id) return;
+      const thread = inquiryCache.get(id)?.thread;
+      if (!thread?.isConnected || thread.closest('[hidden]')) return;
+      const list = thread.querySelector('.admin-inquiry-message-list');
+      if (list) list.scrollTop = list.scrollHeight;
+      const input = thread.querySelector('.admin-inquiry-reply-area:not([hidden]) textarea');
+      const target = input || thread.querySelector('.member-inquiry-delete-area:not([hidden])') || thread;
+      target.scrollIntoView({ block: 'center', behavior: 'auto' });
+      input?.focus({ preventScroll: true });
+    });
+    return true;
   }
   function closeInquiry() {
     const local = page === 'members' && memberTab === 'inquiry';
