@@ -1185,13 +1185,6 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
       fragment.append(divider);
     }
     if (history && message.inquiry_id !== previousInquiry) {
-      const inquiry = history.inquiries.get(message.inquiry_id);
-      const context = document.createElement("div");
-      const selected = message.inquiry_id === history.selectedInquiryId;
-      context.className = "admin-inquiry-context" + (selected ? " is-current" : "");
-      context.textContent = (selected ? "선택한 문의 · " : "문의 · ") +
-        (inquiry?.title || "회원 문의") + (inquiry?.archived_at ? " · 보관함" : "");
-      fragment.append(context);
       previousInquiry = message.inquiry_id;
       previousSender = null;
     }
@@ -5739,7 +5732,7 @@ async function loadAdminInquiryMessages(
       if (!note) { note = document.createElement("p"); note.className = "admin-inquiry-history-note"; messageList.before(note); }
       note.textContent = `보관함 포함 ${inquiries.size}개 문의의 전체 대화 · 시간순`;
       const label = thread.querySelector(".admin-inquiry-reply-area label");
-      if (label) label.textContent = "관리자 답변 · " + (selected.title || "선택한 문의") + " (" + formatMemberInquiryDate(selected.created_at) + ")";
+      if (label) label.textContent = "관리자 답변";
     }
     messageList.adminInquiryHistory = { userId: selected.user_id, facts: new Map([...inquiries].map(([id, row]) =>
       [id, JSON.stringify([row.last_message_at, row.status, row.archived_at])])) };
