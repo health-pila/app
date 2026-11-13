@@ -271,6 +271,9 @@
 }
 
 /* Keep compact messages inside a taller conversation area in both admin views. */
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-history-note{margin:0 0 10px;color:var(--aw-muted);font-size:12px;line-height:1.5}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-context{margin:6px 0 2px;padding:5px 8px;border-left:3px solid #c6d0df;background:#eef2f7;color:#52617a;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-context.is-current{border-left-color:#f36a12;background:#fff2e6;color:#a94708}
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-message-list{height:clamp(760px,80vh,1200px);max-height:none;overflow:auto;align-content:start;grid-auto-rows:max-content;gap:4px;padding:0 3px 4px}
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message{max-width:min(94%,640px);padding:5px 8px}
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message-body{line-height:1.45}

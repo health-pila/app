@@ -1160,7 +1160,7 @@ function formatMemberInquiryDate(dateValue) {
 }
 
 // 관리자·회원 대화에서 같은 날짜/발신자 표기를 묶고 말풍선을 간결하게 표시합니다.
-function renderInquiryMessageCards(messages, messageList, memberName = "내 질문") {
+function renderInquiryMessageCards(messages, messageList, memberName = "내 질문", history = null) {
   const dayFormat = new Intl.DateTimeFormat("ko-KR", {
     timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "short"
   });
@@ -1169,6 +1169,7 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
   });
   let previousDay = null;
   let previousSender = null;
+  let previousInquiry = null;
   const fragment = document.createDocumentFragment();
   messages.forEach(function (message) {
     const date = message.created_at ? new Date(message.created_at) : null;
@@ -1183,10 +1184,22 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
       divider.append(dateText);
       fragment.append(divider);
     }
+    if (history && message.inquiry_id !== previousInquiry) {
+      const inquiry = history.inquiries.get(message.inquiry_id);
+      const context = document.createElement("div");
+      const selected = message.inquiry_id === history.selectedInquiryId;
+      context.className = "admin-inquiry-context" + (selected ? " is-current" : "");
+      context.textContent = (selected ? "선택한 문의 · " : "문의 · ") +
+        (inquiry?.title || "회원 문의") + (inquiry?.archived_at ? " · 보관함" : "");
+      fragment.append(context);
+      previousInquiry = message.inquiry_id;
+      previousSender = null;
+    }
     const messageCard = document.createElement("article");
     messageCard.className = "member-inquiry-message " +
       (message.sender_role === "admin" ? "is-admin" : "is-member");
     messageCard.dataset.messageId = String(message.id);
+    if (history) messageCard.dataset.inquiryId = message.inquiry_id;
     // 이전과 동일하게 메시지마다 카드를 하나씩 유지해 답변 읽음 배지가 정확히 연결되게 합니다.
     const sender = message.sender_role === "admin" ? "센터 답변" : memberName;
     messageCard.setAttribute("aria-label", sender);
@@ -5625,7 +5638,57 @@ async function updateAdminInquiryArchive(
   }
 }
 
-// 선택한 관리자 문의의 대화 내용 불러오기
+// 회원 계정 ID로 전체 문의와 메시지를 조회합니다. 목록의 필터/표시 개수와 무관합니다.
+async function fetchAdminMemberInquiryHistory(inquiryId, isCurrent) {
+  const { data: selected, error: selectedError } = await supabaseClient
+    .from("member_inquiries")
+    .select("id, user_id, title, status, archived_at, created_at, last_message_at")
+    .eq("id", inquiryId).single();
+  if (!isCurrent()) return null;
+  if (selectedError) throw selectedError;
+  if (!selected?.user_id || selected.id !== inquiryId) throw new Error("INQUIRY_OWNER_UNAVAILABLE");
+  const inquiries = new Map([[selected.id, selected]]);
+  const pageSize = 200;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabaseClient.from("member_inquiries")
+      .select("id, user_id, title, status, archived_at, created_at, last_message_at")
+      .eq("user_id", selected.user_id)
+      .order("created_at", { ascending: true }).order("id", { ascending: true })
+      .range(offset, offset + pageSize - 1);
+    if (!isCurrent()) return null;
+    if (error) throw error;
+    const page = data || [];
+    for (const row of page) {
+      if (row.user_id !== selected.user_id) throw new Error("INQUIRY_OWNER_MISMATCH");
+      inquiries.set(row.id, row);
+    }
+    if (page.length < pageSize) break;
+  }
+  const ids = [...inquiries.keys()], messagesById = new Map();
+  for (let start = 0; start < ids.length; start += 50) {
+    const batch = ids.slice(start, start + 50), allowed = new Set(batch);
+    for (let offset = 0; ; offset += pageSize) {
+      const { data, error } = await supabaseClient.from("inquiry_messages")
+        .select("id, inquiry_id, sender_id, sender_role, body, created_at")
+        .in("inquiry_id", batch)
+        .order("created_at", { ascending: true }).order("id", { ascending: true })
+        .range(offset, offset + pageSize - 1);
+      if (!isCurrent()) return null;
+      if (error) throw error;
+      const page = data || [];
+      for (const message of page) {
+        if (!allowed.has(message.inquiry_id)) throw new Error("INQUIRY_MESSAGE_MISMATCH");
+        messagesById.set(message.id, message);
+      }
+      if (page.length < pageSize) break;
+    }
+  }
+  const messages = [...messagesById.values()].sort((a, b) =>
+    (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0) || String(a.id).localeCompare(String(b.id)));
+  return { selected, inquiries, messages };
+}
+
+// 선택한 문의의 답변 입력창은 유지하고, 같은 회원의 다른 문의도 시간순으로 함께 표시합니다.
 async function loadAdminInquiryMessages(
   inquiryId,
   memberName,
@@ -5638,6 +5701,10 @@ async function loadAdminInquiryMessages(
   const isCurrent = () => messageList.isConnected && !adminScreen.hidden &&
     loginAuthRevision === authRevision && loginObservedAuthId === adminId &&
     messageList.adminInquiryLoadToken === loadToken;
+  const followLatest = messageList.dataset.loaded !== "true" ||
+    messageList.scrollHeight - messageList.clientHeight - messageList.scrollTop < 40;
+  const previousScrollTop = messageList.scrollTop;
+  window.AdminInquiryReadReceipts?.unwatch(messageList);
   messageList.replaceChildren();
 
   const loadingMessage =
@@ -5652,23 +5719,19 @@ async function loadAdminInquiryMessages(
   messageList.append(loadingMessage);
 
   try {
-    const {
-      data: messages,
-      error: messagesError
-    } = await supabaseClient
-      .from("inquiry_messages")
-      .select(
-        "id, sender_id, sender_role, body, created_at"
-      )
-      .eq("inquiry_id", inquiryId)
-      .order("created_at", {
-        ascending: true
-      });
-
-    if (!isCurrent()) return;
-    if (messagesError) {
-      throw messagesError;
+    const history = await fetchAdminMemberInquiryHistory(inquiryId, isCurrent);
+    if (!history || !isCurrent()) return;
+    const { selected, inquiries, messages } = history;
+    const thread = messageList.closest(".admin-inquiry-thread");
+    if (thread) {
+      let note = thread.querySelector(".admin-inquiry-history-note");
+      if (!note) { note = document.createElement("p"); note.className = "admin-inquiry-history-note"; messageList.before(note); }
+      note.textContent = `보관함 포함 ${inquiries.size}개 문의의 전체 대화 · 시간순`;
+      const label = thread.querySelector(".admin-inquiry-reply-area label");
+      if (label) label.textContent = "관리자 답변 · " + (selected.title || "선택한 문의") + " (" + formatMemberInquiryDate(selected.created_at) + ")";
     }
+    messageList.adminInquiryHistory = { userId: selected.user_id, facts: new Map([...inquiries].map(([id, row]) =>
+      [id, JSON.stringify([row.last_message_at, row.status, row.archived_at])])) };
 
     messageList.replaceChildren();
 
@@ -5688,13 +5751,15 @@ async function loadAdminInquiryMessages(
       return;
     }
 
-    renderInquiryMessageCards(messages, messageList, memberName);
+    renderInquiryMessageCards(messages, messageList, memberName, { inquiries, selectedInquiryId: inquiryId });
 
     messageList.dataset.loaded = "true";
-    window.AdminInquiryReadReceipts?.watch(inquiryId, messages, messageList);
+    window.AdminInquiryReadReceipts?.watchMany(messages, messageList);
+    messageList.scrollTop = followLatest ? messageList.scrollHeight : previousScrollTop;
 
   } catch (messagesError) {
     if (!isCurrent()) return;
+    delete messageList.dataset.loaded;
     console.error(
       "관리자 문의 대화 불러오기 실패:",
       messagesError
@@ -5709,9 +5774,13 @@ async function loadAdminInquiryMessages(
       "admin-inquiry-reply-message";
 
     errorMessage.textContent =
-      "대화 내용을 불러오지 못했습니다.";
+      "회원의 전체 대화를 불러오지 못했습니다.";
 
     messageList.append(errorMessage);
+    const retry = document.createElement("button");
+    retry.type = "button"; retry.className = "aw-secondary"; retry.textContent = "대화 다시 불러오기";
+    retry.addEventListener("click", () => { if (isCurrent()) void loadAdminInquiryMessages(inquiryId, memberName, messageList); });
+    messageList.append(retry);
   }
 }
 
@@ -6120,7 +6189,7 @@ async function loadAdminInquiryAlerts() {
     while (isCurrent()) {
       const { data, error, count } = await supabaseClient
         .from("member_inquiries")
-        .select("id, status, archived_at, created_at, updated_at, last_message_at", { count: "exact" })
+        .select("id, user_id, status, archived_at, created_at, updated_at, last_message_at", { count: "exact" })
         .order("id", { ascending: true })
         .range(offset, offset + pageSize - 1);
       if (!isCurrent()) return;

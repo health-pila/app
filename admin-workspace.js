@@ -503,7 +503,15 @@
   }
   function syncInquiryAlerts(rows) {
     if (!owner) return; inquiryTotal = rows.filter(r => r.status === 'waiting' && !r.archived_at).length; failed.delete('inquiry'); fresh.add('inquiry');
-    for (const row of rows) { const entry = inquiryCache.get(row.id); if (entry) { const changed = entry.record.last_message_at !== row.last_message_at; Object.assign(entry.record, row); if (row.id === currentInquiry && changed) { const list = entry.thread.querySelector('.admin-inquiry-message-list'); if (list) void hooks.loadInquiry?.(row.id, inquiryName(entry.record), list); } } }
+    const selected = inquiryCache.get(currentInquiry);
+    const list = selected?.thread.querySelector('.admin-inquiry-message-list');
+    const history = list?.adminInquiryHistory;
+    const memberRows = history ? rows.filter(row => row.user_id === history.userId) : [];
+    const historyChanged = history && (memberRows.length !== history.facts.size || memberRows.some(row =>
+      history.facts.get(row.id) !== JSON.stringify([row.last_message_at, row.status, row.archived_at])));
+    let selectedChanged = false;
+    for (const row of rows) { const entry = inquiryCache.get(row.id); if (entry) { if (row.id === currentInquiry && entry.record.last_message_at !== row.last_message_at) selectedChanged = true; Object.assign(entry.record, row); } }
+    if (list && (historyChanged || selectedChanged)) void hooks.loadInquiry?.(currentInquiry, inquiryName(selected.record), list);
     if (currentInquiry) attachInquiry(currentInquiry); if (page === 'requests' && kind === 'inquiry' || page === 'members' && memberTab === 'inquiry') present(); updateCounts();
   }
   function inquiryAnswered(id) { const entry = inquiryCache.get(id); if (entry) { entry.record.status = 'answered'; inquiryDrafts.delete(id); if (currentInquiry === id) { attachInquiry(id); if (page === 'members') present(); else renderInquiryHeading(); } } }

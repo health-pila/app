@@ -6,7 +6,7 @@
   const uuid = value => typeof value === "string" &&
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
   let client = null, adminId = "", generation = 0, timer = 0, frame = 0;
-  const threads = new Map();
+  const threads = new Set();
   const observer = typeof IntersectionObserver === "function"
     ? new IntersectionObserver(() => checkSoon()) : null;
 
@@ -15,8 +15,15 @@
         document.getElementById("adminScreen")?.hidden !== false ||
         !entry.list.isConnected || entry.list.closest("[hidden]")) return false;
     const rect = entry.list.getBoundingClientRect();
-    return rect.width > 0 && rect.height > 0 && rect.bottom > 0 &&
-      rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth;
+    if (!(rect.width > 0 && rect.height > 0 && rect.bottom > 0 &&
+        rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth)) return false;
+    if (!entry.grouped) return true;
+    // Combined history can contain many old inquiries. Poll only replies currently in view.
+    return [...entry.markers.values()].some(marker => {
+      const card = marker.closest(".member-inquiry-message")?.getBoundingClientRect();
+      return card && card.width > 0 && card.height > 0 &&
+        card.bottom > Math.max(0, rect.top) && card.top < Math.min(window.innerHeight, rect.bottom);
+    });
   }
 
   function paint(marker, state) {
@@ -33,7 +40,12 @@
   function forget(entry) {
     observer?.unobserve(entry.list);
     entry.controller?.abort();
-    threads.delete(entry.list);
+    threads.delete(entry);
+  }
+
+  function unwatch(list) {
+    for (const entry of threads) if (entry.list === list) forget(entry);
+    list?.querySelectorAll(".admin-inquiry-read-receipt").forEach(marker => marker.remove());
   }
 
   function complete(entry) {
@@ -42,6 +54,7 @@
 
   function schedule() {
     clearTimeout(timer); timer = 0;
+    if ([...threads].filter(entry => entry.inFlight).length >= 3) return;
     let next = Infinity;
     for (const entry of threads.values()) {
       if (!entry.list.isConnected) { forget(entry); continue; }
@@ -53,7 +66,7 @@
   async function refresh(entry) {
     const ticket = generation, db = client;
     const current = () => ticket === generation && db === client &&
-      threads.get(entry.list) === entry && visible(entry);
+      threads.has(entry) && visible(entry);
     const controller = new AbortController();
     entry.controller = controller; entry.inFlight = true;
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -84,9 +97,12 @@
   }
 
   function check() {
+    let available = 3 - [...threads].filter(entry => entry.inFlight).length;
     for (const entry of threads.values()) {
       if (!entry.list.isConnected) { forget(entry); continue; }
-      if (visible(entry) && !entry.inFlight && !complete(entry) && entry.nextCheck <= Date.now()) void refresh(entry);
+      if (available > 0 && visible(entry) && !entry.inFlight && !complete(entry) && entry.nextCheck <= Date.now()) {
+        available -= 1; void refresh(entry);
+      }
     }
     schedule();
   }
@@ -118,11 +134,9 @@
     client = db; adminId = userId;
   }
 
-  function watch(inquiryId, messages, list) {
+  function watch(inquiryId, messages, list, grouped = false) {
     if (!client || !adminId || !uuid(inquiryId) || !list?.isConnected) return;
-    const previous = threads.get(list);
-    if (previous) forget(previous);
-    list.querySelectorAll(".admin-inquiry-read-receipt").forEach(marker => marker.remove());
+    for (const entry of threads) if (entry.list === list && entry.inquiryId === inquiryId) forget(entry);
     const cards = new Map([...list.querySelectorAll(".member-inquiry-message.is-admin")]
       .map(card => [card.dataset.messageId, card]));
     const markers = new Map();
@@ -130,6 +144,7 @@
       if (message.sender_role !== "admin" || !uuid(message.id)) continue;
       const card = cards.get(message.id);
       if (!card) continue;
+      card.querySelectorAll(".admin-inquiry-read-receipt").forEach(marker => marker.remove());
       const marker = document.createElement("span");
       marker.className = "admin-inquiry-read-receipt";
       marker.dataset.replyId = message.id;
@@ -137,8 +152,19 @@
       card.append(marker); markers.set(message.id, marker);
     }
     if (!markers.size) return;
-    const entry = { inquiryId, list, markers, confirmed: new Set(), inFlight: false, controller: null, nextCheck: 0 };
-    threads.set(list, entry); observer?.observe(list); checkSoon();
+    const entry = { inquiryId, list, markers, grouped, confirmed: new Set(), inFlight: false, controller: null, nextCheck: 0 };
+    threads.add(entry); observer?.observe(list); checkSoon();
+  }
+
+  function watchMany(messages, list) {
+    unwatch(list);
+    const groups = new Map();
+    for (const message of messages) {
+      if (!uuid(message.inquiry_id)) continue;
+      if (!groups.has(message.inquiry_id)) groups.set(message.inquiry_id, []);
+      groups.get(message.inquiry_id).push(message);
+    }
+    for (const [id, rows] of groups) watch(id, rows, list, true);
   }
 
   document.addEventListener("visibilitychange", () => {
@@ -152,5 +178,5 @@
   window.addEventListener("online", () => checkSoon(true));
   window.addEventListener("scroll", () => checkSoon(), { passive: true, capture: true });
   window.addEventListener("resize", () => checkSoon(), { passive: true });
-  window.AdminInquiryReadReceipts = { start, reset, watch, refresh: () => checkSoon(true) };
+  window.AdminInquiryReadReceipts = { start, reset, watch, watchMany, unwatch, refresh: () => checkSoon(true) };
 })();
