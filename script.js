@@ -10035,12 +10035,19 @@ adminMemberSelect.addEventListener("attendance-status-change", () => {
 adminMemberSelect.addEventListener("eligibility-status-change", () => {
   if (!adminScreen.hidden) renderAdminMemberOptions(adminMemberSelect.value, adminMemberSearch.value);
 });
-adminMemberSearch.addEventListener("input", function () {
+// 한글 조합 중에는 목록/선택 상태를 갱신하지 않아 입력 조합을 유지합니다.
+let adminMemberSearchComposing = false;
+function applyAdminMemberSearch() {
   renderAdminMemberOptions("", adminMemberSearch.value.trim().toLowerCase());
-
-  adminMemberSelect.dispatchEvent(
-    new Event("change")
-  );
+  adminMemberSelect.dispatchEvent(new Event("change"));
+}
+adminMemberSearch.addEventListener("compositionstart", () => { adminMemberSearchComposing = true; });
+adminMemberSearch.addEventListener("compositionend", () => {
+  adminMemberSearchComposing = false;
+  applyAdminMemberSearch();
+});
+adminMemberSearch.addEventListener("input", event => {
+  if (!adminMemberSearchComposing && !event.isComposing) applyAdminMemberSearch();
 });
 
 // 관리자 화면 표시
