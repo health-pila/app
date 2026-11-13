@@ -151,6 +151,10 @@
 #adminScreen .aw-member-rows button>strong,#adminScreen .aw-member-row-meta{display:block;overflow-wrap:anywhere}
 #adminScreen .aw-member-rows button>strong{font-size:1.2em}
 #adminScreen .aw-member-row-meta{margin-top:3px}
+#adminScreen .aw-member-sort{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:14px 0 10px}
+#adminScreen .aw-member-sort label{margin:0;font-weight:700}
+#adminScreen .aw-member-sort select{min-width:170px;max-width:100%;min-height:40px;padding:7px 32px 7px 10px;border:1px solid var(--aw-line);border-radius:8px;background:#fff;color:var(--aw-navy);font:inherit;font-size:15.4px}
+#adminScreen #adminMemberSortStatus{margin:0 0 10px;font-size:13.2px}
 #adminScreen #adminMemberSelect{height:24.7px;min-height:24.7px;max-width:100%}
 #adminScreen #adminRoutineName,#adminScreen #toggleAdminRoutineModeButton{height:25.2px;min-height:25.2px}
 /* Member tabs replace content below a fixed tab row; avoid browser scroll anchoring. */

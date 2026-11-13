@@ -77,6 +77,13 @@
     moreMembers.addEventListener('click', () => { roster.dataset.limit = String(memberLimit); });
     const memberFallback = el('div', 'aw-native-picker');
     const nativeSelect = $('adminMemberSelect'), nativeLabel = browser.querySelector('label[for="adminMemberSelect"]'); nativeSelect.before(memberFallback); if (nativeLabel) memberFallback.append(nativeLabel); memberFallback.append(nativeSelect);
+    const sortBar = el('div', 'aw-member-sort');
+    const sortLabel = el('label', '', '정렬 기준'); sortLabel.htmlFor = 'adminMemberSort';
+    const sortSelect = el('select'); sortSelect.id = 'adminMemberSort';
+    for (const [value, label] of [['recent', '최근 가입순'], ['name', '이름순'], ['gym', '헬스 만료일순'], ['routines', '루틴배정 많은순']]) { const o = el('option', '', label); o.value = value; sortSelect.append(o); }
+    sortSelect.value = window.AdminMemberPicker?.sortMode() || 'recent';
+    const sortStatus = el('p', 'aw-help'); sortStatus.id = 'adminMemberSortStatus'; sortStatus.hidden = true; sortStatus.setAttribute('role', 'status');
+    sortBar.append(sortLabel, sortSelect); memberFallback.before(sortBar, sortStatus);
     $('awParking').append(browser, $('adminMemberSignupAlerts'), $('adminRoutineRequestManagement'), $('adminInquiryManagement'));
     const routineWorkspace = $('adminRoutineWorkspace'); if (routineWorkspace) routineWorkspace.hidden = true;
     const inquirySetting = $('adminInquiryManagement').querySelector('.admin-inquiry-setting');
@@ -115,6 +122,7 @@
     new MutationObserver(() => { if (owner) { updateMemberBrowser(); syncSelection(); } }).observe($('adminMemberSelect'), { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'data-member-name'] });
     $('adminMemberSelect').addEventListener('eligibility-status-change', updateMemberBrowser);
     $('adminMemberSelect').addEventListener('attendance-status-change', updateMemberBrowser);
+    $('adminMemberSelect').addEventListener('member-sort-change', updateMemberBrowser);
     window.addEventListener('resize', () => { if (owner) present(); });
     window.addEventListener('scroll', () => { if (owner && kind === 'payment') acknowledgePayment(); }, { passive: true });
     document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(paymentTimer); paymentTimer = 0; } else if (owner) { void loadPayments(true); window.AdminInquiryReadReceipts?.refresh(); } });
@@ -386,6 +394,10 @@
           el('span', 'aw-member-row-meta', eligibility + ' · ' + count),
           el('span', 'aw-member-row-meta', (option.dataset.currentRoutineName ? '루틴 있음' : '루틴 없음') + ' · ' + attendance)
         );
+        if (window.AdminMemberPicker?.sortMode() === 'gym') {
+          const expiry = window.AdminMemberPicker.gymExpiry(option.value);
+          b.append(el('span', 'aw-member-row-meta', expiry ? '헬스 만료: ' + expiry.replaceAll('-', '.') : '헬스 만료일 정보 없음'));
+        }
         list.append(b);
       }
       if (!options.length) list.append(el('p', 'aw-help', '조건에 맞는 회원이 없어요. 검색어나 이용권 상태를 확인해 주세요.'));

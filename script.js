@@ -9914,6 +9914,7 @@ async function loadAdminMembers(preserveCurrentState = false) {
 
       option.value = member.id;
       option.dataset.memberName = memberName;
+      option.dataset.memberCreatedAt = member.created_at || "";
       option.dataset.email = member.email || "";
       option.dataset.phoneLast4 = member.phone_last4 || "";
       option.dataset.assignmentCount = String(summary.assignmentCount);
@@ -9983,6 +9984,7 @@ function renderAdminMemberOptions(selectedValue = "", searchText = "") {
   if (previousSelection && !matchingOptions.some(option => option.value === selectedValue)) {
     matchingOptions.push(previousSelection);
   }
+  const sortedOptions = window.AdminMemberPicker?.sortOptions(matchingOptions) || matchingOptions;
 
   if (adminMemberOptionCache.length === 0 && !searchText && !previousSelection) {
     adminMemberSelect.innerHTML =
@@ -10015,7 +10017,7 @@ function renderAdminMemberOptions(selectedValue = "", searchText = "") {
 
     adminMemberSelect.append(noResultOption);
   } else {
-    matchingOptions.forEach((option) => {
+    sortedOptions.forEach((option) => {
       adminMemberSelect.append(
         option.cloneNode(true)
       );
@@ -10033,6 +10035,9 @@ adminMemberSelect.addEventListener("attendance-status-change", () => {
   }
 });
 adminMemberSelect.addEventListener("eligibility-status-change", () => {
+  if (!adminScreen.hidden) renderAdminMemberOptions(adminMemberSelect.value, adminMemberSearch.value);
+});
+adminMemberSelect.addEventListener("member-sort-change", () => {
   if (!adminScreen.hidden) renderAdminMemberOptions(adminMemberSelect.value, adminMemberSearch.value);
 });
 // 한글 조합 중에는 목록/선택 상태를 갱신하지 않아 입력 조합을 유지합니다.

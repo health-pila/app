@@ -1325,11 +1325,7 @@ button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outlin
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 
-  font-family:
-    "Nanum Pen Script",
-    "Apple SD Gothic Neo",
-    "Malgun Gothic",
-    cursive;
+  font-family: inherit;
   font-size: 22px;
   line-height: 1.6;
 }
@@ -1348,11 +1344,7 @@ button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outlin
   outline: none;
   resize: vertical;
 
-  font-family:
-    "Nanum Pen Script",
-    "Apple SD Gothic Neo",
-    "Malgun Gothic",
-    cursive;
+  font-family: inherit;
   font-size: 20px;
   line-height: 1.6;
 }
@@ -1869,11 +1861,7 @@ button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outlin
   outline: none;
   resize: none;
 
-  font-family:
-    "Nanum Pen Script",
-    "Apple SD Gothic Neo",
-    "Malgun Gothic",
-    cursive;
+  font-family: inherit;
   font-size: 18px;
   line-height: 1.6;
 }
