@@ -5259,27 +5259,38 @@ adminInquirySearchClear.addEventListener("click", function () {
   adminInquirySearchInput.focus();
 });
 
-// 일반 목록의 더보기 동작을 유지하면서 검색 결과는 서버에서 필요한 범위만 조회합니다.
-async function loadAdminInquirySearchResults(term, visibleCount, isCurrentRequest) {
-  const inquiries = [];
+// 최신순으로 읽되 회원당 첫 카드만 사용합니다. 원본 행 offset과 표시 회원 수를 분리합니다.
+async function loadDistinctAdminInquiryCards(readPage, visibleCount, isCurrentRequest) {
+  const members = new Map();
+  let offset = 0;
   let totalCount = 0;
   const pageSize = 50;
-  while (inquiries.length < visibleCount) {
-    const { data, error } = await supabaseClient.rpc("admin_search_inquiry_threads", {
-      p_query: term,
-      p_limit: Math.min(pageSize, visibleCount - inquiries.length),
-      p_offset: inquiries.length
-    });
+  while (members.size <= visibleCount) {
+    const page = await readPage(offset, pageSize);
     if (!isCurrentRequest()) return null;
-    if (error) throw error;
-    if (!data || !Array.isArray(data.inquiries) || !Number.isSafeInteger(data.total_count) || data.total_count < 0) {
-      throw new Error("검색 결과를 확인할 수 없습니다.");
+    if (!page || !Array.isArray(page.inquiries) || !Number.isSafeInteger(page.totalCount) || page.totalCount < 0) {
+      throw new Error("문의 목록을 확인할 수 없습니다.");
     }
-    totalCount = data.total_count;
-    inquiries.push(...data.inquiries);
-    if (!data.inquiries.length || inquiries.length >= totalCount) break;
+    totalCount = page.totalCount;
+    for (const inquiry of page.inquiries) {
+      const key = inquiry.user_id ? "member:" + inquiry.user_id : "inquiry:" + inquiry.id;
+      if (!members.has(key)) members.set(key, inquiry);
+    }
+    offset += page.inquiries.length;
+    if (!page.inquiries.length || offset >= totalCount) break;
   }
-  return { inquiries, totalCount };
+  return { inquiries: [...members.values()].slice(0, visibleCount), totalCount, hasMore: members.size > visibleCount };
+}
+
+// 검색도 같은 회원의 결과를 한 카드로 묶습니다. 과거 본문 검색과 보관함 검색은 유지합니다.
+async function loadAdminInquirySearchResults(term, visibleCount, isCurrentRequest) {
+  return loadDistinctAdminInquiryCards(async (offset, limit) => {
+    const { data, error } = await supabaseClient.rpc("admin_search_inquiry_threads", {
+      p_query: term, p_limit: limit, p_offset: offset
+    });
+    if (error) throw error;
+    return { inquiries: data?.inquiries, totalCount: data?.total_count };
+  }, visibleCount, isCurrentRequest);
 }
 
 // 관리자 문의 설정 버튼 표시
@@ -6242,82 +6253,88 @@ async function loadAdminInquiries(
   const alertRefresh = loadAdminInquiryAlerts();
 
   try {
-    let inquiries, inquiryCount;
+    let inquiries, inquiryCount, hasMoreInquiries;
     if (searchTerm) {
       const result = await loadAdminInquirySearchResults(searchTerm, visibleCount, isCurrentRequest);
       if (!result || !isCurrentRequest()) return;
       inquiries = result.inquiries;
       inquiryCount = result.totalCount;
+      hasMoreInquiries = result.hasMore;
     } else {
-      let inquiryQuery =
-        supabaseClient
-          .from("member_inquiries")
-          .select(
-            `
-              id,
-              user_id,
-              title,
-              status,
-              archived_at,
-              created_at,
-              updated_at,
-              last_message_at,
-              latest_member_message:inquiry_messages(body)
-            `,
-            {
-              count: "exact"
-            }
-          );
-
-      if (memberFilter) inquiryQuery = inquiryQuery.eq("user_id", memberFilter);
-      if (
-        filter ===
-        "archived"
-      ) {
-        inquiryQuery =
-          inquiryQuery.not(
-            "archived_at",
-            "is",
-            null
-          );
-
-      } else if (!(filter === "all" && memberFilter)) {
-        inquiryQuery =
-          inquiryQuery
-            .is("archived_at", null)
-            .eq(
-              "status",
-              filter
+      const result = await loadDistinctAdminInquiryCards(async (offset, limit) => {
+        let inquiryQuery =
+          supabaseClient
+            .from("member_inquiries")
+            .select(
+              `
+                id,
+                user_id,
+                title,
+                status,
+                archived_at,
+                created_at,
+                updated_at,
+                last_message_at,
+                latest_member_message:inquiry_messages(body)
+              `,
+              {
+                count: "exact"
+              }
             );
-      }
 
-      const {
-        data: loadedInquiries,
-        error: inquiriesError,
-        count: loadedInquiryCount
-      } = await inquiryQuery
-        .eq("latest_member_message.sender_role", "member")
-        .order("created_at", { referencedTable: "latest_member_message", ascending: false })
-        .order("id", { referencedTable: "latest_member_message", ascending: false })
-        .limit(1, { referencedTable: "latest_member_message" })
-        .order(
-          "last_message_at",
-          {
-            ascending: false
-          }
-        )
-        .range(
-          0,
-          visibleCount - 1
-        );
+        if (memberFilter) inquiryQuery = inquiryQuery.eq("user_id", memberFilter);
+        if (
+          filter ===
+          "archived"
+        ) {
+          inquiryQuery =
+            inquiryQuery.not(
+              "archived_at",
+              "is",
+              null
+            );
 
-      if (!isCurrentRequest()) return;
+        } else if (!(filter === "all" && memberFilter)) {
+          inquiryQuery =
+            inquiryQuery
+              .is("archived_at", null)
+              .eq(
+                "status",
+                filter
+              );
+        }
 
-      if (inquiriesError) {
-        throw inquiriesError;
-      }
-      inquiries = loadedInquiries;
-      inquiryCount = loadedInquiryCount;
+        const {
+          data: loadedInquiries,
+          error: inquiriesError,
+          count: loadedInquiryCount
+        } = await inquiryQuery
+          .eq("latest_member_message.sender_role", "member")
+          .order("created_at", { referencedTable: "latest_member_message", ascending: false })
+          .order("id", { referencedTable: "latest_member_message", ascending: false })
+          .limit(1, { referencedTable: "latest_member_message" })
+          .order(
+            "last_message_at",
+            {
+              ascending: false
+            }
+          )
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .range(
+            offset,
+            offset + limit - 1
+          );
+
+        if (inquiriesError) {
+          throw inquiriesError;
+        }
+        return { inquiries: loadedInquiries, totalCount: loadedInquiryCount };
+      }, visibleCount, isCurrentRequest);
+      if (!result || !isCurrentRequest()) return;
+      inquiries = result.inquiries;
+      inquiryCount = result.totalCount;
+      hasMoreInquiries = result.hasMore;
     }
 
     const memberIds = [
@@ -6384,28 +6401,16 @@ async function loadAdminInquiries(
     );
 
     if (searchTerm) {
-      adminInquirySearchStatus.textContent = `보관함 포함 전체 검색 · ${inquiryCount || 0}건`;
+      adminInquirySearchStatus.textContent = `보관함 포함 전체 검색 · 문의 ${inquiryCount || 0}건 · 회원 ${inquiriesWithProfiles.length}명 표시`;
       if (!inquiriesWithProfiles.length) adminInquiryListMessage.textContent = "검색 결과가 없습니다.";
     }
-
-    const loadedInquiryCount =
-      inquiries?.length || 0;
-
-    const totalInquiryCount =
-      inquiryCount || 0;
-
-    const hasMoreInquiries =
-      loadedInquiryCount <
-      totalInquiryCount;
 
     const canCollapseInquiryList =
       adminInquiryVisibleCount >
       ADMIN_INQUIRY_PAGE_SIZE &&
       !hasMoreInquiries;
 
-    loadMoreAdminInquiriesButton.hidden =
-      totalInquiryCount <=
-      ADMIN_INQUIRY_PAGE_SIZE;
+    loadMoreAdminInquiriesButton.hidden = !hasMoreInquiries && !canCollapseInquiryList;
 
     loadMoreAdminInquiriesButton.dataset.mode =
       canCollapseInquiryList
