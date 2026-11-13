@@ -269,3 +269,17 @@
  #adminScreen .admin-app-topbar #awSoundSlot button{min-height:21px;padding:2px 5px;line-height:1.2}
  #adminScreen .admin-app-topbar :is(.member-refresh-button,.member-menu-toggle){width:34px;height:38px;padding:7px}
 }
+
+/* Compact conversations in both request handling and member management. */
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-message-list{max-height:clamp(470px,60vh,900px);overflow:auto;align-content:start;grid-auto-rows:max-content;gap:4px;padding:0 3px 4px}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message{max-width:min(94%,640px);padding:5px 8px}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message-body{line-height:1.45}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message-label{margin-bottom:2px}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message-date{margin-top:2px}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .inquiry-chat-day{margin:4px 0 2px}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .inquiry-chat-day:first-child{margin-top:0}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-area{gap:6px;margin-top:10px;padding-top:10px}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-area textarea{height:96px;min-height:80px;padding:8px 10px;line-height:1.5}
+@media(max-width:760px){
+ #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-message-list{max-height:clamp(410px,55vh,640px)}
+}
