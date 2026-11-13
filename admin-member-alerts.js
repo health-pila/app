@@ -71,9 +71,9 @@
       date.textContent = '가입 ' + new Date(row.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
       info.append(name, date);
       const actions = document.createElement('div'); actions.className = 'admin-member-signup-actions';
-      const select = document.createElement('button'); select.type = 'button'; select.textContent = '회원 선택';
+      const select = document.createElement('button'); select.type = 'button'; select.textContent = '출석 연결';
       select.addEventListener('click', () => { if (active(ticket)) void choose?.(row.id); });
-      const seen = document.createElement('button'); seen.type = 'button'; seen.textContent = acknowledging === row.id ? '저장 중…' : '확인';
+      const seen = document.createElement('button'); seen.type = 'button'; seen.textContent = acknowledging === row.id ? '저장 중…' : '알림만 정리';
       seen.disabled = Boolean(acknowledging); seen.setAttribute('aria-label', row.display_name + ' 가입 알림 확인');
       seen.addEventListener('click', () => { if (active(ticket)) void acknowledge(row.id); });
       actions.append(select, seen); card.append(info, actions); fragment.append(card);
@@ -84,6 +84,7 @@
     rows = data.entries; total = data.count; hasSnapshot = true;
     window.AdminMemberPicker?.applySync(data.linked_user_ids, linkTicket);
     render();
+    window.AdminWorkspace?.syncSignup(rows, total);
     message(total ? total > rows.length ? `미확인 ${total}명 중 최근 ${rows.length}명을 표시해요. 확인하면 다음 알림을 볼 수 있어요.` : '새로 가입한 회원이에요. 출석 연결을 확인해 주세요.' : '미확인 신규 가입 회원이 없어요.');
     void window.AdminRoutineAlerts?.syncMembers(rows.map(row => row.id), total, silent);
   }
@@ -110,7 +111,7 @@
       }
       apply(data, linkTicket, silent);
     } catch (_) {
-      if (current(ticket, serial, owner)) message(hasSnapshot ? '신규 가입 알림을 갱신하지 못했어요. 이전 조회 결과를 표시하고 있어요.' : '신규 가입 알림을 불러오지 못했어요. 잠시 후 다시 확인할게요.', true);
+      if (current(ticket, serial, owner)) { message(hasSnapshot ? '신규 가입 알림을 갱신하지 못했어요. 이전 조회 결과를 표시하고 있어요.' : '신규 가입 알림을 불러오지 못했어요. 잠시 후 다시 확인할게요.', true); window.AdminWorkspace?.queueError('signup'); }
     } finally {
       if (current(ticket, serial, owner)) { loading = false; controller = null; schedule(); }
     }

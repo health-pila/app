@@ -2843,6 +2843,36 @@ body.camera-open {
   line-height: 1.5;
 }
 
+.admin-inquiry-reply-area .admin-inquiry-shortcut-help {
+  margin: -2px 0 0;
+  color: #65748a;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+#adminScreen .admin-inquiry-message-list .member-inquiry-message-date {
+  display: inline-block;
+  margin-right: 7px;
+}
+
+#adminScreen .admin-inquiry-read-receipt {
+  display: inline-block;
+  margin-top: 3px;
+  color: #65748a;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  vertical-align: baseline;
+}
+
+#adminScreen .admin-inquiry-read-receipt[data-read-state="read"] {
+  color: #08745a;
+}
+
+#adminScreen .admin-inquiry-read-receipt[data-read-state="unavailable"] {
+  color: #a34b13;
+}
+
 /* 회원 문의 내역 더 보기 */
 .member-inquiry-load-more-button {
   width: 100%;

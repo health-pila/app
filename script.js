@@ -1186,6 +1186,7 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
     const messageCard = document.createElement("article");
     messageCard.className = "member-inquiry-message " +
       (message.sender_role === "admin" ? "is-admin" : "is-member");
+    messageCard.dataset.messageId = String(message.id);
     // 이전과 동일하게 메시지마다 카드를 하나씩 유지해 답변 읽음 배지가 정확히 연결되게 합니다.
     const sender = message.sender_role === "admin" ? "센터 답변" : memberName;
     messageCard.setAttribute("aria-label", sender);
@@ -4822,6 +4823,7 @@ const MAX_ROUTINE_IMAGES = 5;
 let adminRoutineImageItems = [];
 let isAdminRoutineSaving = false;
 let isAdminRoutineRequestSelecting = false;
+let adminRoutineDrafts = new Map(), adminRoutineDraftOwner = "", adminRoutineDraftReady = false, adminRoutineDraftBase = "";
 
 // 저장 방식과 입력창 표시를 한곳에서 맞춥니다.
 function syncAdminRoutineFormatUI() {
@@ -5409,6 +5411,8 @@ async function sendAdminInquiryReply(
   replyMessage
 ) {
   const body = replyInput.value.trim();
+  const authRevision = loginAuthRevision, expectedAdmin = loginObservedAuthId;
+  const current = () => authRevision === loginAuthRevision && expectedAdmin === loginObservedAuthId && !adminScreen.hidden;
 
   if (!body) {
     replyMessage.textContent =
@@ -5428,7 +5432,8 @@ async function sendAdminInquiryReply(
       error: userError
     } = await supabaseClient.auth.getUser();
 
-    if (userError || !user) {
+    if (!current()) return;
+    if (userError || !user || user.id !== expectedAdmin) {
       throw new Error(
         "관리자 로그인 정보를 확인할 수 없습니다."
       );
@@ -5444,6 +5449,7 @@ async function sendAdminInquiryReply(
           body
         });
 
+    if (!current()) return;
     if (replyInsertError) {
       throw replyInsertError;
     }
@@ -5451,8 +5457,14 @@ async function sendAdminInquiryReply(
     replyInput.value = "";
     openAdminInquiryId = inquiryId;
 
-    await loadAdminInquiries();
+    const messageList = replyInput.closest(".admin-inquiry-thread")?.querySelector(".admin-inquiry-message-list");
+    if (window.AdminWorkspace?.enabled() && messageList) {
+      window.AdminWorkspace.inquiryAnswered(inquiryId);
+      await loadAdminInquiries(true);
+      if (current() && messageList.isConnected) await loadAdminInquiryMessages(inquiryId, "회원", messageList);
+    } else await loadAdminInquiries();
   } catch (replyError) {
+    if (!current()) return;
     console.error(
       "관리자 문의 답변 저장 실패:",
       replyError
@@ -5469,6 +5481,9 @@ async function sendAdminInquiryReply(
 
 // 대화를 추가하지 않고 처리 상태만 변경합니다. 새 메시지가 오면 기존 DB 트리거가 대기로 되돌립니다.
 async function completeAdminInquiry(inquiry, completeButton, replyButton, message) {
+  const authRevision = loginAuthRevision, expectedAdmin = loginObservedAuthId;
+  const current = () => authRevision === loginAuthRevision && expectedAdmin === loginObservedAuthId && !adminScreen.hidden;
+  if (!current()) return;
   if (completeButton.disabled) return;
   completeButton.disabled = true;
   replyButton.disabled = true;
@@ -5486,12 +5501,14 @@ async function completeAdminInquiry(inquiry, completeButton, replyButton, messag
       .is("archived_at", null)
       .select("id")
       .maybeSingle();
+    if (!current()) return;
     if (error) throw error;
     if (!data) {
       await loadAdminInquiries(true);
       adminInquiryListMessage.textContent = "문의 내용이나 처리 상태가 변경됐어요. 최신 대화를 확인한 후 다시 처리해 주세요.";
       return;
     }
+    window.AdminWorkspace?.inquiryAnswered(inquiry.id);
     openAdminInquiryId = null;
     await loadAdminInquiries(true);
   } catch (error) {
@@ -5513,6 +5530,9 @@ async function updateAdminInquiryArchive(
   archiveButton,
   archiveMessage
 ) {
+  const authRevision = loginAuthRevision, expectedAdmin = loginObservedAuthId;
+  const current = () => authRevision === loginAuthRevision && expectedAdmin === loginObservedAuthId && !adminScreen.hidden;
+  if (!current()) return;
   archiveButton.disabled = true;
 
   archiveButton.textContent =
@@ -5537,6 +5557,7 @@ async function updateAdminInquiryArchive(
       .select("id")
       .single();
 
+    if (!current()) return;
     if (
       archiveError ||
       !updatedInquiry
@@ -5549,6 +5570,7 @@ async function updateAdminInquiryArchive(
       );
     }
 
+    window.AdminWorkspace?.inquiryArchived(inquiryId);
     openAdminInquiryId = null;
 
     await loadAdminInquiries(true);
@@ -5582,6 +5604,13 @@ async function loadAdminInquiryMessages(
   memberName,
   messageList
 ) {
+  const authRevision = loginAuthRevision;
+  const adminId = loginObservedAuthId;
+  const loadToken = {};
+  messageList.adminInquiryLoadToken = loadToken;
+  const isCurrent = () => messageList.isConnected && !adminScreen.hidden &&
+    loginAuthRevision === authRevision && loginObservedAuthId === adminId &&
+    messageList.adminInquiryLoadToken === loadToken;
   messageList.replaceChildren();
 
   const loadingMessage =
@@ -5609,6 +5638,7 @@ async function loadAdminInquiryMessages(
         ascending: true
       });
 
+    if (!isCurrent()) return;
     if (messagesError) {
       throw messagesError;
     }
@@ -5634,8 +5664,10 @@ async function loadAdminInquiryMessages(
     renderInquiryMessageCards(messages, messageList, memberName);
 
     messageList.dataset.loaded = "true";
+    window.AdminInquiryReadReceipts?.watch(inquiryId, messages, messageList);
 
   } catch (messagesError) {
+    if (!isCurrent()) return;
     console.error(
       "관리자 문의 대화 불러오기 실패:",
       messagesError
@@ -5658,7 +5690,9 @@ async function loadAdminInquiryMessages(
 
 // 관리자 화면에 회원 문의 표시
 function renderAdminInquiries(inquiries) {
+  window.AdminWorkspace?.captureInquiryDrafts();
   adminInquiryList.replaceChildren();
+  window.AdminInquiryReadReceipts?.refresh();
 
   if (!inquiries || inquiries.length === 0) {
     adminInquiryListMessage.textContent =
@@ -5854,6 +5888,13 @@ function renderAdminInquiries(inquiries) {
 
     replyInput.placeholder =
       "회원에게 전달할 답변을 입력하세요.";
+    replyInput.setAttribute("aria-keyshortcuts", "Shift+Enter");
+
+    const replyShortcutHelp = document.createElement("p");
+    replyShortcutHelp.id = `adminInquiryReplyHelp-${inquiry.id}`;
+    replyShortcutHelp.className = "admin-inquiry-shortcut-help";
+    replyShortcutHelp.textContent = "Enter 줄바꿈 · Shift+Enter 답변 보내기";
+    replyInput.setAttribute("aria-describedby", replyShortcutHelp.id);
 
     const replyButton =
       document.createElement("button");
@@ -5885,6 +5926,15 @@ function renderAdminInquiries(inquiries) {
       }
     );
 
+    replyInput.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter" || !event.shiftKey || event.ctrlKey || event.altKey || event.metaKey ||
+          event.isComposing || event.keyCode === 229) return;
+      event.preventDefault();
+      if (event.repeat || replyButton.disabled || !replyInput.isConnected || replyArea.hidden) return;
+      // Reuse the send button so validation, saving and duplicate-send prevention stay the same.
+      replyButton.click();
+    });
+
     const replyActions = document.createElement("div");
     replyActions.className = "admin-inquiry-reply-actions";
     replyActions.append(replyButton);
@@ -5909,6 +5959,7 @@ function renderAdminInquiries(inquiries) {
     replyArea.append(
       replyLabel,
       replyInput,
+      replyShortcutHelp,
       replyActions,
       replyMessage
     );
@@ -5978,6 +6029,10 @@ function renderAdminInquiries(inquiries) {
     summaryButton.addEventListener(
       "click",
       function () {
+        if (window.AdminWorkspace?.openInquiry(inquiry.id)) {
+          openAdminInquiryId = inquiry.id;
+          return;
+        }
         const willOpen =
           threadArea.hidden;
 
@@ -5993,6 +6048,7 @@ function renderAdminInquiries(inquiries) {
           "aria-expanded",
           String(willOpen)
         );
+        window.AdminInquiryReadReceipts?.refresh();
 
         if (
           willOpen &&
@@ -6007,17 +6063,15 @@ function renderAdminInquiries(inquiries) {
       }
     );
 
-    inquiryCard.append(
-      summaryButton,
-      threadArea,
-      archiveActionArea
-    );
+    threadArea.append(archiveActionArea);
+    inquiryCard.append(summaryButton, threadArea);
 
     adminInquiryList.append(
       inquiryCard
     );
 
-    if (isOpen) {
+    const workspaceManaged = window.AdminWorkspace?.registerInquiry(inquiry, inquiryCard, threadArea);
+    if (isOpen && !workspaceManaged) {
       loadAdminInquiryMessages(
         inquiry.id,
         memberName,
@@ -6039,7 +6093,7 @@ async function loadAdminInquiryAlerts() {
     while (isCurrent()) {
       const { data, error, count } = await supabaseClient
         .from("member_inquiries")
-        .select("id, status, archived_at, created_at, last_message_at", { count: "exact" })
+        .select("id, status, archived_at, created_at, updated_at, last_message_at", { count: "exact" })
         .order("id", { ascending: true })
         .range(offset, offset + pageSize - 1);
       if (!isCurrent()) return;
@@ -6049,11 +6103,15 @@ async function loadAdminInquiryAlerts() {
       offset += page.length;
       if (page.length === 0 || (typeof count === "number" ? offset >= count : page.length < pageSize)) break;
     }
-    if (isCurrent()) updateAdminRoutineAlerts("syncInquiries", rows);
+    if (isCurrent()) {
+      updateAdminRoutineAlerts("syncInquiries", rows);
+      window.AdminWorkspace?.syncInquiryAlerts(rows);
+    }
   } catch (error) {
     if (!isCurrent()) return;
     console.warn("회원 문의 알림 조회 실패:", error);
     updateAdminRoutineAlerts("inquiryError");
+    window.AdminWorkspace?.queueError("inquiry");
   }
 }
 
@@ -6062,12 +6120,15 @@ async function loadAdminInquiries(
   preserveCurrentList = false
 ) {
   const requestId = ++adminInquiryLoadRequestId;
+  const memberFilter = window.AdminWorkspace?.inquiryMemberId() || "";
+  if (memberFilter) { adminInquirySearchTerm = ""; adminInquirySearchInput.value = ""; }
   const visibleCount = adminInquiryVisibleCount;
   const filter = selectedAdminInquiryFilter;
   const searchTerm = adminInquirySearchTerm;
   function isCurrentRequest() {
     return requestId === adminInquiryLoadRequestId && !adminScreen.hidden &&
-      visibleCount === adminInquiryVisibleCount && filter === selectedAdminInquiryFilter && searchTerm === adminInquirySearchTerm;
+      visibleCount === adminInquiryVisibleCount && filter === selectedAdminInquiryFilter && searchTerm === adminInquirySearchTerm &&
+      memberFilter === (window.AdminWorkspace?.inquiryMemberId() || "");
   }
   if (!isCurrentRequest()) return;
 
@@ -6112,6 +6173,7 @@ async function loadAdminInquiries(
             }
           );
 
+      if (memberFilter) inquiryQuery = inquiryQuery.eq("user_id", memberFilter);
       if (
         filter ===
         "archived"
@@ -9218,6 +9280,9 @@ async function loadMemberRoutine(
 
 // 일반 회원 화면 표시
 function showRestrictedMemberApp(userId, profile, timingRun) {
+  window.AdminWorkspace?.reset();
+  resetAdminRoutineDrafts();
+  window.AdminInquiryReadReceipts?.reset();
   appScreen.hidden = true; adminScreen.hidden = true; loginScreen.hidden = true;
   document.getElementById("restrictedScreen").hidden = false;
   document.getElementById("restrictedMemberName").textContent = profile.display_name || "회원";
@@ -9232,6 +9297,9 @@ document.getElementById("restrictedWithdraw").addEventListener("click", () => wi
 document.getElementById("restrictedLogout").addEventListener("click", () => void handleLogout());
 
 async function showWorkoutApp(userId, displayName = "", timingRun = null, screenRequestId = null, screenAuthRevision = null, accessProfile = null) {
+  window.AdminWorkspace?.reset();
+  resetAdminRoutineDrafts();
+  window.AdminInquiryReadReceipts?.reset();
   document.getElementById("restrictedScreen").hidden = true;
   window.CenterMemberAccess?.resetAdmin();
   window.CenterMemberAccess?.startMember(supabaseClient, userId, accessProfile);
@@ -9349,8 +9417,9 @@ function renderAdminRoutineRequests(
     const requestCard =
       document.createElement("article");
 
-    requestCard.className =
-      "admin-routine-request-card";
+    requestCard.className = "admin-routine-request-card";
+    requestCard.dataset.requestId = request.id;
+    requestCard.dataset.userId = request.user_id;
 
     const requestContent =
       document.createElement("div");
@@ -9457,6 +9526,7 @@ function renderAdminRoutineRequests(
       selectMemberButton.addEventListener(
         "click",
         async function () {
+          if (window.AdminWorkspace?.enabled()) { await window.AdminWorkspace.selectRoutine(request); return; }
           if (isAdminRoutineSaving) {
             adminRoutineRequestListMessage.textContent =
               "루틴 저장 중입니다. 저장 완료 후 선택해 주세요.";
@@ -9564,12 +9634,13 @@ async function loadAdminRoutineRequests(
     return;
   }
 
+  const authRevision = loginAuthRevision;
   const currentRequestId =
     ++adminRoutineRequestLoadId;
 
   const canUpdateList = () =>
     currentRequestId === adminRoutineRequestLoadId &&
-    !adminScreen.hidden;
+    !adminScreen.hidden && authRevision === loginAuthRevision;
 
   if (!preserveCurrentList) {
     adminRoutineRequestList.replaceChildren();
@@ -9578,16 +9649,16 @@ async function loadAdminRoutineRequests(
   }
 
   try {
-    let { data: requests, error: requestsError } =
+    let { data: requests, error: requestsError, count: requestCount } =
       await supabaseClient
         .from("routine_requests")
-        .select("id, user_id, status, requested_at, request_kind, application_revision")
+        .select("id, user_id, status, requested_at, request_kind, application_revision", { count: "exact" })
         .eq("status", "pending")
         .order("requested_at", { ascending: false });
 
     if (["42703", "PGRST204"].includes(requestsError?.code)) {
-      ({ data: requests, error: requestsError } = await supabaseClient.from("routine_requests")
-        .select("id, user_id, status, requested_at").eq("status", "pending")
+      ({ data: requests, error: requestsError, count: requestCount } = await supabaseClient.from("routine_requests")
+        .select("id, user_id, status, requested_at", { count: "exact" }).eq("status", "pending")
         .order("requested_at", { ascending: false }));
     }
 
@@ -9645,6 +9716,7 @@ async function loadAdminRoutineRequests(
     }
 
     renderAdminRoutineRequests(requestsWithProfiles);
+    window.AdminWorkspace?.syncRoutine(requestsWithProfiles, requestCount);
     window.RoutineApplication?.syncAdmin(requestsWithProfiles);
     updateAdminRoutineAlerts("sync", requestsWithProfiles);
   } catch (loadError) {
@@ -9652,6 +9724,7 @@ async function loadAdminRoutineRequests(
       return;
     }
 
+    window.AdminWorkspace?.queueError("routine");
     console.error(
       "루틴 신청 내역 불러오기 실패:",
       loadError
@@ -9812,6 +9885,7 @@ async function loadAdminMembers(preserveCurrentState = false) {
       option.value = member.id;
       option.dataset.memberName = memberName;
       option.dataset.email = member.email || "";
+      option.dataset.phoneLast4 = member.phone_last4 || "";
       option.dataset.assignmentCount = String(summary.assignmentCount);
       option.dataset.currentRoutineName = summary.currentRoutineName;
       option.dataset.currentRoutineImagePath =
@@ -9963,6 +10037,15 @@ async function showAdminApp(userId, timingRun = null, screenRequestId = null, sc
   loginScreen.hidden = true;
   appScreen.hidden = true;
   adminScreen.hidden = false;
+  window.AdminInquiryReadReceipts?.start(supabaseClient, userId);
+  window.AdminWorkspace?.start({ client: supabaseClient, userId,
+    selectMember: selectAdminWorkspaceMember,
+    isSaving: () => isAdminRoutineSaving || isAdminRoutineRequestSelecting,
+    loadInquiry: loadAdminInquiryMessages,
+    refreshInquiries: loadAdminInquiries,
+    refreshRoutineRequests: loadAdminRoutineRequests,
+    openApplication: openAdminRoutineApplication
+  });
   window.LoginTiming?.finish(timingRun, "ready");
   window.PayAppCheckout?.reset();
   window.MemberAccount?.reset();
@@ -9974,6 +10057,7 @@ async function showAdminApp(userId, timingRun = null, screenRequestId = null, sc
   window.AdminMemberPicker?.start(supabaseClient, userId);
   updateAdminRoutineAlerts("start", userId);
   window.AdminMemberAlerts?.start(supabaseClient, userId, async id => {
+    if (window.AdminWorkspace?.enabled()) { await window.AdminWorkspace.selectSignup(id); return; }
     if (!adminMemberOptionCache.some(option => option.value === id)) await loadAdminMembers(true);
     if (loginObservedAuthId !== userId) return;
     if (adminScreen.hidden || !adminMemberOptionCache.some(option => option.value === id)) return;
@@ -10015,7 +10099,14 @@ let loginObservedAuthId = null;
 // Synchronous observation only; never call another Auth method inside this callback.
 supabaseClient.auth.onAuthStateChange((event, session) => {
   const id = typeof session?.user?.id === "string" ? session.user.id : "";
-  if (event === "SIGNED_OUT" || (loginObservedAuthId !== null && id !== loginObservedAuthId)) loginAuthRevision += 1;
+  if (event === "SIGNED_OUT" || (loginObservedAuthId !== null && id !== loginObservedAuthId)) {
+    loginAuthRevision += 1;
+    window.AdminInquiryReadReceipts?.reset();
+    window.AdminWorkspace?.reset();
+    resetAdminRoutineDrafts();
+    adminInquiryLoadRequestId += 1; adminInquiryAlertLoadRequestId += 1;
+    adminRoutineRequestLoadId += 1; adminRoutineLoadRequestId += 1; adminMemberLoadRequestId += 1;
+  }
   loginObservedAuthId = id;
 });
 function measureLoginStage(run, name, operation) {
@@ -10284,12 +10375,85 @@ function getAdminRoutineName() {
 // 회원 선택 변경 시 이전 불러오기 결과 구분
 let adminRoutineLoadRequestId = 0;
 
+function adminRoutineSourceSignature() {
+  const r = currentAdminRoutine;
+  return JSON.stringify(r ? [r.id, r.routine_name, r.routine_json, r.routine_description, r.routine_images, r.routine_image_path, r.routine_image_url] : null);
+}
+function readAdminRoutineDraft() {
+  return { source: adminRoutineSourceSignature(), mode: adminRoutineMode, format: adminRoutineFormat,
+    name: adminRoutineName.value, description: adminRoutineDescription.value, json: adminRoutineJsonInput.value,
+    images: adminRoutineImageItems.map(item => ({ ...item, ...(item.file ? { previewUrl: "" } : {}) })) };
+}
+function adminRoutineDraftSignature(d) {
+  return JSON.stringify([d.source, d.mode, d.format, d.name, d.description, d.json,
+    d.images.map(i => [i.path || i.image_path || "", i.url || i.image_url || "", i.caption || "", i.file ? [i.file.name, i.file.size, i.file.lastModified] : null])]);
+}
+function captureAdminRoutineDraft() {
+  if (!adminRoutineDraftOwner || !adminRoutineDraftReady || isAdminRoutineSaving) return;
+  const draft = readAdminRoutineDraft();
+  if (adminRoutineDraftSignature(draft) === adminRoutineDraftBase) {
+    if (!adminRoutineDrafts.has(adminRoutineDraftOwner) || adminRoutineDrafts.get(adminRoutineDraftOwner).source === draft.source) adminRoutineDrafts.delete(adminRoutineDraftOwner);
+  }
+  else adminRoutineDrafts.set(adminRoutineDraftOwner, draft);
+}
+function settleAdminRoutineDraft(userId) {
+  if (adminMemberSelect.value !== userId || adminRoutineDraftOwner !== userId) return;
+  adminRoutineDraftReady = true; adminRoutineDraftBase = adminRoutineDraftSignature(readAdminRoutineDraft());
+  const draft = adminRoutineDrafts.get(userId);
+  if (!draft) return;
+  if (draft.source !== adminRoutineSourceSignature()) {
+    adminSaveMessage.textContent = "다른 기기에서 루틴이 변경되어 서버의 최신 내용을 표시했어요. 작성 중이던 초안은 이 로그인 동안 보관합니다.";
+    const copy = document.createElement("button"); copy.type = "button"; copy.textContent = "보관한 초안 보기·복사";
+    copy.addEventListener("click", () => {
+      const field = document.createElement("textarea"); field.readOnly = true; field.rows = 8;
+      field.setAttribute("aria-label", "보관한 루틴 초안"); field.value = draft.json || [draft.name, draft.description, ...draft.images.map(i => i.caption || "")].join("\n\n");
+      copy.replaceWith(field); field.focus(); field.select();
+    }); adminSaveMessage.append(copy); return;
+  }
+  const freshImages = adminRoutineImageItems;
+  adminRoutineMode = draft.mode; adminRoutineFormat = draft.format;
+  renderAdminRoutineEditor();
+  clearAdminRoutineImageItems();
+  adminRoutineImageItems = draft.images.map(item => item.file
+    ? { ...item, previewUrl: URL.createObjectURL(item.file) }
+    : { ...item, previewUrl: freshImages.find(f => (f.path || f.image_path || f.url) === (item.path || item.image_path || item.url))?.previewUrl || item.previewUrl });
+  adminRoutineName.value = draft.name; adminRoutineDescription.value = draft.description; adminRoutineJsonInput.value = draft.json;
+  renderAdminRoutineImageItems(); syncAdminRoutineFormatUI();
+  adminSaveMessage.textContent = "작성 중이던 초안을 불러왔어요. 운동 카드는 다시 검사한 후 적용해 주세요.";
+}
+function resetAdminRoutineDrafts() {
+  adminRoutineDrafts.clear(); adminRoutineDraftOwner = ""; adminRoutineDraftReady = false; adminRoutineDraftBase = "";
+}
+async function selectAdminWorkspaceMember(userId, context) {
+  if (adminScreen.hidden || isAdminRoutineSaving || isAdminRoutineRequestSelecting) return false;
+  const authRevision = loginAuthRevision;
+  isAdminRoutineRequestSelecting = true; syncAdminRoutineFormatUI();
+  try {
+    if (!adminMemberOptionCache.some(option => option.value === userId)) await loadAdminMembers();
+    if (adminScreen.hidden || authRevision !== loginAuthRevision) return false;
+    adminMemberSearch.value = ""; renderAdminMemberOptions(userId, ""); adminMemberSelect.value = userId;
+    if (adminMemberSelect.value !== userId) return false;
+    await loadSelectedAdminMemberRoutine();
+    if (adminScreen.hidden || authRevision !== loginAuthRevision || adminMemberSelect.value !== userId || saveAdminRoutineButton.disabled) return false;
+    if (context.kind === "routine" && !adminRoutineDrafts.has(userId)) {
+      adminRoutineMode = "new"; renderAdminRoutineEditor();
+      adminRoutineDraftBase = adminRoutineDraftSignature(readAdminRoutineDraft());
+    }
+    const option = adminMemberSelect.options[adminMemberSelect.selectedIndex];
+    return { name: option?.dataset.memberName || "회원", last4: option?.dataset.phoneLast4 || "" };
+  } finally { isAdminRoutineRequestSelecting = false; syncAdminRoutineFormatUI(); }
+}
+
+
 // 관리자 화면에서 회원을 선택했을 때
 async function loadSelectedAdminMemberRoutine() {
   window.AdminMemberPicker?.refresh();
+  captureAdminRoutineDraft();
+  const authRevision = loginAuthRevision;
   const requestId = ++adminRoutineLoadRequestId;
   window.RoutineComponents?.resetAdminPreview();
   const userId = adminMemberSelect.value;
+  adminRoutineDraftOwner = userId; adminRoutineDraftReady = false;
   window.CenterAttendance?.selectAdminMember(userId);
   window.CenterMemberAccess?.selectAdminMember(userId);
 
@@ -10302,7 +10466,7 @@ async function loadSelectedAdminMemberRoutine() {
     return (
       requestId === adminRoutineLoadRequestId &&
       adminMemberSelect.value === userId &&
-      !adminScreen.hidden
+      !adminScreen.hidden && authRevision === loginAuthRevision
     );
   }
 
@@ -10322,6 +10486,7 @@ async function loadSelectedAdminMemberRoutine() {
   syncAdminRoutineFormatUI();
 
   if (!userId) {
+    window.AdminWorkspace?.memberSelected("");
     adminRoutineEditor.hidden = true;
 
     adminMemberInfo.textContent =
@@ -10338,6 +10503,7 @@ async function loadSelectedAdminMemberRoutine() {
   const memberName =
     selectedOption?.dataset.memberName || "이름 없음";
 
+  window.AdminWorkspace?.memberSelected(userId, { name: memberName, last4: selectedOption?.dataset.phoneLast4 || "" });
   const email =
     selectedOption?.dataset.email || "";
 
@@ -10437,6 +10603,8 @@ async function loadSelectedAdminMemberRoutine() {
 
     saveAdminRoutineButton.disabled = true;
     syncAdminRoutineFormatUI();
+  } finally {
+    if (isCurrentSelection() && !saveAdminRoutineButton.disabled) settleAdminRoutineDraft(userId);
   }
 }
 
@@ -10729,6 +10897,7 @@ saveAdminRoutineButton.addEventListener(
       }
 
       databaseSaved = true;
+      adminRoutineDrafts.delete(userId);
 
       // 수정 저장에 성공한 뒤, 목록에서 빠진 기존 이미지 정리
       if (isEditMode) {
@@ -10791,6 +10960,7 @@ saveAdminRoutineButton.addEventListener(
       }
 
       if (!isEditMode) {
+        window.AdminWorkspace?.routineSaved(userId);
         adminMemberSelect.value = "";
         await loadSelectedAdminMemberRoutine();
         adminMemberInfo.textContent =
@@ -10918,6 +11088,7 @@ async function applyValidatedAdminRoutine() {
     if (error) throw error;
     if (!savedRoutine) throw new Error("저장 결과를 확인하지 못했습니다.");
     databaseSaved = true;
+    adminRoutineDrafts.delete(userId);
 
     if (adminScreen.hidden) return;
     adminMemberSearch.value = "";
@@ -10935,6 +11106,7 @@ async function applyValidatedAdminRoutine() {
       : "새 운동 카드 루틴을 배정했습니다.";
 
     if (!isEditMode) {
+      window.AdminWorkspace?.routineSaved(userId);
       adminMemberSelect.value = "";
       await loadSelectedAdminMemberRoutine();
       adminMemberInfo.textContent =

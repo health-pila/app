@@ -268,6 +268,7 @@
       if (!adminCurrent(epoch, request, member)) return;
       candidate = null;
       if (!error && data?.ok === true && ["linked", "already_linked"].includes(data.code)) {
+        window.AdminWorkspace?.memberLinked(member);
         window.AdminMemberPicker?.setLink(member, true);
         window.AdminMemberAlerts?.linked(member);
         adminBusy = false; await selectAdminMember(member, true); return;

@@ -171,6 +171,7 @@
       if(token!==generation||owner!==userId||!active())return;
       if(error||data?.ok!==true||data.version!==1||data.order_id!==entry.id||data.state!=='applied'||!Number.isFinite(Date.parse(data.applied_at)))throw Error('UNCONFIRMED');
       applicationStates.set(entry.id,{order_id:entry.id,state:'applied',applied_at:data.applied_at,acknowledged_at:data.acknowledged_at});
+      void window.AdminWorkspace?.refreshPayments();
       status('상품 적용 완료로 표시했어요. 회원에게 안내가 표시됩니다.');
     }catch(_){if(token===generation&&owner===userId&&active())status('적용 처리 결과를 확인하지 못했어요. 새로고침 후 상태를 확인해 주세요.',true);}
     finally{if(token===generation&&owner===userId&&active()){applyingId='';render();schedule();}}
@@ -244,6 +245,6 @@
     if(document.hidden)stop();else if(active()){void refreshNotices();if(expanded&&!busy)void load(offset,true);queueVisibleCheck();}
   });
   new MutationObserver(() => { if (screen.hidden && userId) reset(); }).observe(screen, { attributes: true, attributeFilter: ['hidden'] });
-  window.AdminPayments = Object.freeze({ start, reset });
+  window.AdminPayments = Object.freeze({ start, reset, refreshNotices });
   controls();
 })();
