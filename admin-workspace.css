@@ -270,8 +270,8 @@
  #adminScreen .admin-app-topbar :is(.member-refresh-button,.member-menu-toggle){width:34px;height:38px;padding:7px}
 }
 
-/* Compact conversations in both request handling and member management. */
-#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-message-list{max-height:clamp(470px,60vh,900px);overflow:auto;align-content:start;grid-auto-rows:max-content;gap:4px;padding:0 3px 4px}
+/* Keep compact messages inside a taller conversation area in both admin views. */
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-message-list{height:clamp(760px,80vh,1200px);max-height:none;overflow:auto;align-content:start;grid-auto-rows:max-content;gap:4px;padding:0 3px 4px}
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message{max-width:min(94%,640px);padding:5px 8px}
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message-body{line-height:1.45}
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message-label{margin-bottom:2px}
@@ -281,5 +281,5 @@
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-area{gap:6px;margin-top:10px;padding-top:10px}
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-area textarea{height:96px;min-height:80px;padding:8px 10px;line-height:1.5}
 @media(max-width:760px){
- #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-message-list{max-height:clamp(410px,55vh,640px)}
+ #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-message-list{height:clamp(560px,75vh,900px);max-height:none}
 }
