@@ -89,18 +89,35 @@
     image.addEventListener("error", () => { image.hidden = true; }, { once: true });
     return image;
   }
+  function pickLabel(button, text) {
+    let icon = button.querySelector('.stretching-bookmark-icon');
+    let label = button.querySelector('.stretching-pick-label');
+    if (!icon || !label) {
+      icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      icon.setAttribute('class', 'stretching-bookmark-icon');
+      icon.setAttribute('viewBox', '0 0 24 24');
+      icon.setAttribute('aria-hidden', 'true');
+      icon.setAttribute('focusable', 'false');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M6 3.5h12v17l-6-4-6 4z');
+      icon.append(path);
+      label = element('span', 'stretching-pick-label');
+      button.replaceChildren(icon, label);
+    }
+    label.textContent = text;
+  }
   function pickControls() {
     const disabled = role !== "member" || !picksReady || picksLoading || Boolean(pickBusyId);
     pickFilter.disabled = disabled;
     pickFilter.setAttribute("aria-pressed", String(onlyPicks));
-    pickFilter.textContent = onlyPicks ? "전체 영상 보기" : "Pick 영상만 모아보기";
+    pickLabel(pickFilter, onlyPicks ? "전체 영상 보기" : "Pick 영상만 모아보기");
     pickFilter.classList.toggle("is-active", onlyPicks);
     grid.querySelectorAll(".stretching-pick-button").forEach(button => {
       const picked = picks.has(button.dataset.videoId);
       button.disabled = disabled;
       button.setAttribute("aria-pressed", String(picked));
       button.classList.toggle("is-picked", picked);
-      button.textContent = picked ? "★ Pick" : "☆ Pick";
+      pickLabel(button, "Pick");
       button.setAttribute("aria-busy", String(pickBusyId === button.dataset.videoId));
       button.setAttribute("aria-label", `${button.dataset.videoTitle} Pick ${picked ? "해제" : "선택"}`);
     });

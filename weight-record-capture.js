@@ -104,7 +104,7 @@
       cell(x, tableTop, cellW, 46, "#fff3e8");
       const done = index > 0 && record.sets[index - 1].completed;
       if (index) {
-        centered(index + "세트", x - 11, tableTop, cellW, 46, 17, true);
+        centered(index + "세트", x - 11, tableTop, cellW, 46, 18.7, true);
         // 글꼴의 체크 문자 지원과 관계없이 완료 여부를 벡터로 그립니다.
         const checkX = x + cellW - 24, checkY = tableTop + 15;
         context.fillStyle = done ? "#2baa57" : "#fff";
@@ -116,12 +116,12 @@
           context.lineTo(checkX + 7, checkY + 12); context.lineTo(checkX + 13, checkY + 4);
           context.strokeStyle = "#fff"; context.lineWidth = 2; context.stroke();
         }
-      } else centered("항목", x, tableTop, cellW, 46, 17, true);
+      } else centered("항목", x, tableTop, cellW, 46, 18.7, true);
     }
     let y = tableTop + 46;
     rows.forEach(row => {
       cell(padding, y, labelWidth, row.height, "#fff3e8");
-      centered(row.label, padding, y, labelWidth, row.height, 16, true);
+      centered(row.label, padding, y, labelWidth, row.height, 17.6, true);
       row.cells.forEach((lines, index) => {
         const x = padding + labelWidth + index * cellWidth;
         cell(x, y, cellWidth, row.height, "#ffffff");

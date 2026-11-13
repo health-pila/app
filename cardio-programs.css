@@ -262,8 +262,7 @@
   .cardio-program-summary { padding-right: 13px; padding-left: 13px; }
 }
 
-/* v94: enlarge only the cardio screen's heading and its tab label. */
-#memberRoutinePageHeading.is-cardio-heading { font-size: 27px; }
+/* All routine page headings use the shared .member-routine-hero h2 size. */
 #memberCardioMenuButton { font-size: 17px; }
 .cardio-common-guidance {
   margin: 0 0 24px;
@@ -311,7 +310,4 @@
 .cardio-common-guidance-content { padding: 0 16px 14px; }
 .cardio-common-guidance p { margin: 0; }
 .cardio-common-guidance p + p { margin-top: 8px; }
-@media (max-width: 360px) {
-  #memberRoutinePageHeading.is-cardio-heading { font-size: 25px; }
-}
 

@@ -69,12 +69,7 @@
     $('adminAttendanceTitle').textContent = '센터 출석 연결';
     browser.querySelector('h2').textContent = '회원 검색 · 이용권 분류';
     const roster = el('div', 'aw-member-rows'); roster.id = 'awMemberRows'; browser.append(roster);
-    const moreMembers = el('button', 'aw-text-button', '회원 더 보기'); moreMembers.id = 'awMemberMore'; moreMembers.type = 'button'; browser.append(moreMembers);
-    let memberLimit = 40;
-    moreMembers.onclick = () => { memberLimit += 40; updateMemberBrowser(); };
-    browser.addEventListener('input', () => { memberLimit = 40; roster.dataset.limit = '40'; updateMemberBrowser(); });
-    roster.dataset.limit = '40';
-    moreMembers.addEventListener('click', () => { roster.dataset.limit = String(memberLimit); });
+    browser.addEventListener('input', updateMemberBrowser);
     const memberFallback = el('div', 'aw-native-picker');
     const nativeSelect = $('adminMemberSelect'), nativeLabel = browser.querySelector('label[for="adminMemberSelect"]'); nativeSelect.before(memberFallback); if (nativeLabel) memberFallback.append(nativeLabel); memberFallback.append(nativeSelect);
     const sortBar = el('div', 'aw-member-sort');
@@ -380,8 +375,10 @@
     rosterFrame = requestAnimationFrame(() => {
       rosterFrame = 0; if (!owner) return;
       const options = [...$('adminMemberSelect').options].filter(o => uuid(o.value) && !o.hidden), list = $('awMemberRows');
-      const limit = Number(list.dataset.limit) || 40; list.replaceChildren();
-      for (const option of options.slice(0, limit)) {
+      // The native selector already holds the full filtered, sorted roster.
+      // Keep every card reachable in the existing scroll area without paging.
+      const cards = document.createDocumentFragment();
+      for (const option of options) {
         const b = el('button'); b.type = 'button'; b.dataset.awMember = option.value;
         b.setAttribute('aria-pressed', String(option.value === $('adminMemberSelect').value)); b.disabled = option.disabled;
         const state = window.AdminMemberPicker?.eligibilityState(option.value).state;
@@ -398,10 +395,10 @@
           const expiry = window.AdminMemberPicker.gymExpiry(option.value);
           b.append(el('span', 'aw-member-row-meta', expiry ? '헬스 만료: ' + expiry.replaceAll('-', '.') : '헬스 만료일 정보 없음'));
         }
-        list.append(b);
+        cards.append(b);
       }
-      if (!options.length) list.append(el('p', 'aw-help', '조건에 맞는 회원이 없어요. 검색어나 이용권 상태를 확인해 주세요.'));
-      $('awMemberMore').hidden = options.length <= limit;
+      if (!options.length) cards.append(el('p', 'aw-help', '조건에 맞는 회원이 없어요. 검색어나 이용권 상태를 확인해 주세요.'));
+      list.replaceChildren(cards);
       syncSelection();
     });
   }

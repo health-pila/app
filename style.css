@@ -49,7 +49,7 @@
 .workout-record-date-field input:focus-visible { outline: 2px solid #ec6a1a; outline-offset: 2px; }
 .workout-record-date-field input:disabled { opacity: .65; }
 .workout-record-dates { flex: 1 1 180px; min-width: 0; display: grid; gap: 4px; }
-.workout-record-created-date { display: block; color: #858070; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+.workout-record-created-date { display: block; color: #858070; font-size: 12.1px; line-height: 1.6; overflow-wrap: anywhere; }
 
 /* 웹페이지 전체 */
 /* 세로 경계에서 당겨서 새로고침만 막습니다. 일반/가로 스크롤은 유지합니다. */
@@ -1326,7 +1326,7 @@ button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outlin
   overflow-wrap: anywhere;
 
   font-family: inherit;
-  font-size: 22px;
+  font-size: 17.6px;
   line-height: 1.6;
 }
 
@@ -1345,7 +1345,7 @@ button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outlin
   resize: vertical;
 
   font-family: inherit;
-  font-size: 20px;
+  font-size: 16px;
   line-height: 1.6;
 }
 
@@ -1435,7 +1435,7 @@ button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outlin
   display: block;
   margin: 0;
   color: #858070;
-  font-size: 13px;
+  font-size: 14.3px;
   line-height: 1.5;
   text-align: left;
 }
@@ -5933,7 +5933,7 @@ textarea.routine-weight-cell {
 .workout-exercise-history-status { margin: 0 0 10px; color: #526078; font-size: 12px; line-height: 1.6; }
 .workout-exercise-history-list { display: grid; gap: 12px; }
 .workout-exercise-history-item { min-width: 0; margin: 0; padding: 10px; border: 1px solid #e2e7ef; border-radius: 10px; background: #fff; }
-.workout-exercise-history-date { display: block; margin-bottom: 8px; color: #526078; font-size: 12px; font-weight: 700; line-height: 1.6; }
+.workout-exercise-history-date { display: block; margin-bottom: 8px; color: #526078; font-size: 13.2px; font-weight: 700; line-height: 1.6; }
 .workout-exercise-history-item .workout-record-photo-area { margin-bottom: 0; }
 .workout-exercise-history-item .workout-record-photo { margin-bottom: 0; }
 .workout-exercise-history-caption { margin: 8px 0 0; color: #657087; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
@@ -5943,7 +5943,7 @@ textarea.routine-weight-cell {
 /* v223: 세트 기록의 날짜는 표 바로 아래, 기록 모아보기는 수정·삭제와 같은 줄에 둡니다. */
 .workout-record-card.is-set-record .workout-record-photo-area { margin-bottom: 0; }
 .workout-record-media > .workout-record-date {
-  position: relative; margin: 0 4%; font-size: 13px; line-height: 1.4; text-align: right;
+  position: relative; margin: 0 4%; font-size: 14.3px; line-height: 1.4; text-align: right;
 }
 /* 자동 저장 PNG의 흰 하단 여백(600px 중 24px)에 날짜를 배치합니다. 사진 파일은 그대로 보존합니다. */
 .workout-record-media > .workout-record-photo-area:not(.is-loading):not(.is-error) + .workout-record-date { margin-top: -4%; }
@@ -5991,6 +5991,7 @@ textarea.routine-weight-cell {
 .workout-saved-exercise { margin:0 0 16px; }
 .workout-saved-exercise h3 { margin:0 0 8px; font-size:17px; color:#17233e; }
 .workout-saved-sets { margin-bottom:8px; }
+.workout-saved-sets .workout-set-table th { font-size:14.3px; }
 
 .workout-record-card.has-set-tables,.workout-saved-sets,.workout-saved-exercise { min-width:0; }
 .workout-saved-sets>.workout-record-date { text-align:right; margin-top:-8px; margin-bottom:8px; }
