@@ -35,7 +35,7 @@
     await load('admin-routine-alerts.js');
     await Promise.all(['admin-member-alerts.js', 'admin-member-picker.js', 'admin-payments.js', 'admin-inquiry-read-receipts.js',
       'admin-usage.js', 'admin-workspace.js', 'admin-workspace.css',
-      'admin-payments.css', 'admin-usage.css', 'admin-member-alerts.css'].map(load));
+      'admin-payments.css', 'admin-usage.css', 'admin-member-alerts.css', 'admin-member-picker.css'].map(load));
   }
   async function optionalPT() {
     if (document.documentElement.dataset.oneDayPtEnabled !== 'false') await load('one-day-pt.js');

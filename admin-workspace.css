@@ -31,6 +31,9 @@
 #adminScreen .aw-queue,#adminScreen .aw-work{min-width:0;background:#fff;border:1px solid var(--aw-line);border-radius:11px}
 #adminScreen .aw-queue-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:58px;padding:16px 18px;border-bottom:1px solid var(--aw-line)}
 #adminScreen .aw-queue-heading h2{margin:0;font-size:16px;color:var(--aw-navy);line-height:1.5}
+#adminScreen .aw-queue-heading:has(.aw-inquiry-scope){flex-wrap:wrap}
+#adminScreen .aw-inquiry-scope{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;width:100%;font-size:12px;color:#bf510c;line-height:1.7;overflow-wrap:anywhere}
+#adminScreen .aw-inquiry-scope button{min-height:34px;padding:6px 10px;font-size:11px}
 #adminScreen #awQueueBody{padding:12px}
 #adminScreen #awQueueBody>.admin-routine-workspace-section,#adminScreen #awQueueBody>.admin-card{margin:0;padding:0;border:0;box-shadow:none;border-radius:0;min-width:0;background:transparent}
 #adminScreen #awQueueBody :is(#adminMemberSignupTitle,#adminRoutineRequestManagement>h2,#adminInquiryManagement>h2,.admin-routine-alerts){display:none}
@@ -96,11 +99,14 @@
 #adminScreen #awQueueBody .admin-inquiry-list-header{display:none}
 #adminScreen #awQueueBody .admin-inquiry-search{margin:0 0 13px}
 #adminScreen #awQueueBody .admin-inquiry-summary-button{width:100%;padding:0;border:0;background:transparent;text-align:left}
-#adminScreen #awQueueBody .admin-inquiry-summary-button:after{font-size:12px;right:0}
-#adminScreen #awQueueBody .admin-inquiry-summary-top{padding-right:13px;gap:5px;flex-wrap:wrap}
-#adminScreen #awQueueBody .admin-inquiry-member-name{font-size:15px}
-#adminScreen #awQueueBody .admin-inquiry-preview{font-size:12px;line-height:1.6;margin-top:7px}
-#adminScreen #awQueueBody .admin-inquiry-meta{font-size:10px;margin-top:5px}
+#adminScreen #adminInquiryList{grid-auto-rows:max-content;align-content:start}
+#adminScreen #adminInquiryList>.admin-inquiry-card{display:block;height:auto;min-height:0;align-self:start;overflow:hidden}
+#adminScreen #awQueueBody .admin-inquiry-summary-button{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;gap:8px;height:auto;min-height:0;min-width:0;margin:0;overflow:hidden;font:inherit}
+#adminScreen #awQueueBody .admin-inquiry-summary-button:after{content:none}
+#adminScreen #awQueueBody .admin-inquiry-summary-top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;padding:0;gap:8px;min-width:0}
+#adminScreen #awQueueBody .admin-inquiry-member-name{min-width:0;font-size:15px;line-height:1.5;overflow-wrap:anywhere}
+#adminScreen #awQueueBody .admin-inquiry-preview{min-width:0;min-height:3.2em;max-height:3.2em;font-size:12px;line-height:1.6;margin:0}
+#adminScreen #awQueueBody .admin-inquiry-meta{display:block;min-width:0;padding:0;font-size:11px;line-height:1.55;margin:0;overflow-wrap:anywhere}
 #adminScreen #awQueueBody .admin-inquiry-meta-contact{display:none}
 #adminScreen #awQueueBody .admin-inquiry-status{font-size:10px;padding:3px 5px}
 #adminScreen #awInquiryWork .admin-inquiry-thread{border:0;padding:0;margin:0}
@@ -108,6 +114,14 @@
 #adminScreen #awInquiryWork .member-inquiry-message-body{font-size:15px;line-height:1.65}
 #adminScreen #awInquiryWork .admin-inquiry-reply-area textarea{font-size:15px;min-height:120px}
 #adminScreen #awInquiryWork .admin-inquiry-shortcut-help{font-size:12px}
+#adminScreen .aw-inquiry-tools{padding:14px 24px 0}
+#adminScreen .aw-inquiry-tools button{min-height:36px;padding:7px 12px;font-size:12px}
+#adminScreen .aw-inquiry-tools button[aria-pressed=true]{background:#fff2e6;border-color:#f36a12;color:#b84b08}
+#adminScreen #awQueueBody #adminInquiryFilters:has([data-admin-inquiry-filter=all]:not([hidden])){display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+#adminScreen #awQueueBody #adminInquiryFilters:has([data-admin-inquiry-filter=all]:not([hidden])) button{min-width:0;padding:8px 3px;font-size:11px;white-space:nowrap}
+#adminScreen .aw-work-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;flex-shrink:0}
+#adminScreen .aw-inquiry-close{flex:0 0 auto;white-space:nowrap}
+#adminScreen .aw-work-actions .aw-inquiry-close{min-height:36px;padding:6px 12px;font-size:12px}
 #adminScreen .aw-payment-row{min-width:0;padding:14px;text-align:left;display:grid;gap:9px;border:1px solid #dce4ee;background:#fff;border-radius:8px;font:inherit}
 #adminScreen .aw-payment-row[aria-pressed=true]{border-color:#ffc59d;background:#fff7ef;box-shadow:inset 3px 0 #f36a12}
 #adminScreen .aw-payment-row strong{font-size:15px}
@@ -178,7 +192,11 @@
  #adminScreen .aw-work-heading h2{font-size:19px}
  #adminScreen #adminMemberInfo{font-size:11px}
  #adminScreen .aw-text-button{font-size:10px;max-width:95px}
+ #adminScreen .aw-work-actions{flex-direction:column;align-items:flex-end;gap:8px}
+ #adminScreen .aw-work-actions .aw-inquiry-close{min-height:36px;font-size:11px;padding:6px 10px}
  #adminScreen .aw-member-work,#adminScreen .aw-inquiry-work,#adminScreen .aw-payment-work{padding:17px 15px}
+ #adminScreen .aw-inquiry-tools{padding:12px 15px 0}
+ #adminScreen .aw-inquiry-tools button{font-size:11px;width:100%}
  #adminScreen .aw-member-tabs{gap:2px;margin-bottom:16px}
  #adminScreen .aw-member-tabs button{font-size:12px;min-height:38px;padding:6px 2px}
  #adminScreen #adminAttendanceTitle,#adminScreen #adminRoutineEditor h2{font-size:17px}
@@ -194,6 +212,7 @@
  #adminScreen .aw-access-details{font-size:12px}
  #adminScreen .aw-next-bar{padding:13px 15px;justify-content:stretch}
  #adminScreen .aw-next-bar button{width:100%;font-size:13px}
+ #adminScreen .aw-next-bar .aw-inquiry-close{width:auto;flex:0 0 auto}
  #adminScreen .aw-completion{margin:18px 15px;padding:23px 15px}
  #adminScreen .aw-completion strong{font-size:18px}
  #adminScreen .aw-completion p{font-size:12px}

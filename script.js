@@ -5185,8 +5185,35 @@ const adminInquirySearchClear = document.querySelector("#adminInquirySearchClear
 const adminInquirySearchStatus = document.querySelector("#adminInquirySearchStatus");
 const adminInquiryFilters = document.querySelector("#adminInquiryFilters");
 let adminInquirySearchTerm = "";
+let adminInquiryScopeReturn = null;
+
+function setAdminInquiryMemberScope(enabled) {
+  if (enabled) {
+    if (!adminInquiryScopeReturn) adminInquiryScopeReturn = { filter: selectedAdminInquiryFilter };
+    selectedAdminInquiryFilter = "all";
+    adminInquirySearchTerm = "";
+    adminInquiryVisibleCount = ADMIN_INQUIRY_PAGE_SIZE;
+  } else if (adminInquiryScopeReturn) {
+    selectedAdminInquiryFilter = adminInquiryScopeReturn.filter;
+    adminInquirySearchTerm = "";
+    adminInquiryVisibleCount = ADMIN_INQUIRY_PAGE_SIZE;
+    adminInquiryScopeReturn = null;
+  }
+  document.getElementById("adminInquiryMemberAll").hidden = !enabled;
+  adminInquirySearchInput.value = adminInquirySearchTerm;
+  adminInquirySearchClear.hidden = !adminInquirySearchTerm;
+  adminInquirySearchStatus.textContent = "";
+  adminInquiryFilters.hidden = Boolean(adminInquirySearchTerm);
+  for (const button of adminInquiryFilterButtons) {
+    const selected = button.dataset.adminInquiryFilter === selectedAdminInquiryFilter;
+    button.classList.toggle("is-active", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  }
+  adminInquiryLoadRequestId += 1;
+}
 
 function resetAdminInquirySearch() {
+  setAdminInquiryMemberScope(false);
   adminInquirySearchTerm = "";
   adminInquirySearchInput.value = "";
   adminInquirySearchClear.hidden = true;
@@ -6185,7 +6212,7 @@ async function loadAdminInquiries(
             null
           );
 
-      } else {
+      } else if (!(filter === "all" && memberFilter)) {
         inquiryQuery =
           inquiryQuery
             .is("archived_at", null)
@@ -6360,11 +6387,14 @@ adminInquiryFilterButtons.forEach(
           ![
             "waiting",
             "answered",
-            "archived"
+            "archived",
+            "all"
           ].includes(nextFilter)
         ) {
           return;
         }
+
+        if (nextFilter === "all" && !window.AdminWorkspace?.inquiryMemberId()) return;
 
         if (
           nextFilter ===
@@ -10043,6 +10073,7 @@ async function showAdminApp(userId, timingRun = null, screenRequestId = null, sc
     isSaving: () => isAdminRoutineSaving || isAdminRoutineRequestSelecting,
     loadInquiry: loadAdminInquiryMessages,
     refreshInquiries: loadAdminInquiries,
+    setInquiryMemberScope: setAdminInquiryMemberScope,
     refreshRoutineRequests: loadAdminRoutineRequests,
     openApplication: openAdminRoutineApplication
   });
