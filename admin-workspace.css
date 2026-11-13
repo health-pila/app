@@ -149,6 +149,7 @@
 #adminScreen .aw-member-rows button{min-width:0;text-align:left;border:1px solid #dce4ef;border-radius:8px;padding:10px;background:#fff;font-size:12px;line-height:1.7}
 #adminScreen .aw-member-rows button[aria-pressed=true]{border-color:#f5a26b;background:#fff5eb}
 #adminScreen .aw-member-rows button>strong,#adminScreen .aw-member-row-meta{display:block;overflow-wrap:anywhere}
+#adminScreen .aw-member-rows button>strong{font-size:1.2em}
 #adminScreen .aw-member-row-meta{margin-top:3px}
 #adminScreen #adminMemberSelect{height:24.7px;min-height:24.7px;max-width:100%}
 #adminScreen #adminRoutineName,#adminScreen #toggleAdminRoutineModeButton{height:25.2px;min-height:25.2px}
