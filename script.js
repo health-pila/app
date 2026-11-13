@@ -10077,7 +10077,23 @@ async function showAdminApp(userId, timingRun = null, screenRequestId = null, sc
   window.AdminInquiryReadReceipts?.start(supabaseClient, userId);
   window.AdminWorkspace?.start({ client: supabaseClient, userId,
     selectMember: selectAdminWorkspaceMember,
-    isSaving: () => isAdminRoutineSaving || isAdminRoutineRequestSelecting,
+    isSaving: () => isAdminRoutineSaving || isAdminRoutineRequestSelecting || !!window.AdminMemberDeletion?.isBusy(),
+    memberDeleted: async deletedUserId => {
+      // A completed deletion must discard this member's drafts and cached rows,
+      // while keeping other members' unsaved routine work.
+      adminRoutineDrafts.delete(deletedUserId);
+      if (adminRoutineDraftOwner === deletedUserId) { adminRoutineDraftOwner = ""; adminRoutineDraftReady = false; }
+      adminMemberOptionCache = adminMemberOptionCache.filter(option => option.value !== deletedUserId);
+      for (const option of [...adminMemberSelect.options]) if (option.value === deletedUserId) option.remove();
+      window.AdminMemberPicker?.setRoster(adminMemberOptionCache.map(option => option.value));
+      window.AdminWorkspace?.memberDeleted(deletedUserId);
+      adminMemberSearch.value = "";
+      const [membersLoaded] = await Promise.all([
+        loadAdminMembers(), loadAdminRoutineRequests(), loadAdminInquiries(),
+        window.AdminMemberAlerts?.refresh(true), window.AdminPayments?.refreshNotices()
+      ]);
+      if (!membersLoaded) throw new Error("Deleted member list needs refresh");
+    },
     loadInquiry: loadAdminInquiryMessages,
     refreshInquiries: loadAdminInquiries,
     setInquiryMemberScope: setAdminInquiryMemberScope,

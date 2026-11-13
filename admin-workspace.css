@@ -148,6 +148,12 @@
 #adminScreen .aw-member-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:7px;max-height:280px;overflow:auto;margin-top:13px}
 #adminScreen .aw-member-rows button{min-width:0;text-align:left;border:1px solid #dce4ef;border-radius:8px;padding:10px;background:#fff;font-size:12px;line-height:1.7}
 #adminScreen .aw-member-rows button[aria-pressed=true]{border-color:#f5a26b;background:#fff5eb}
+#adminScreen .aw-member-rows button>strong,#adminScreen .aw-member-row-meta{display:block;overflow-wrap:anywhere}
+#adminScreen .aw-member-row-meta{margin-top:3px}
+#adminScreen #adminMemberSelect{height:24.7px;min-height:24.7px;max-width:100%}
+#adminScreen #adminRoutineName,#adminScreen #toggleAdminRoutineModeButton{height:25.2px;min-height:25.2px}
+/* Member tabs replace content below a fixed tab row; avoid browser scroll anchoring. */
+#adminScreen[data-aw-page=members] .aw-workspace{overflow-anchor:none}
 #adminScreen button:focus-visible{outline:3px solid #ffb580;outline-offset:3px}
 @media(min-width:1280px) and (min-aspect-ratio:6/5){
  #adminScreen.admin-workspace-active{max-width:1280px}
@@ -243,3 +249,18 @@
 #adminScreen .aw-member-inquiry-heading h3{margin:0}
 #adminScreen #awMemberInquiryThread>.aw-inquiry-work{padding:0}
 #adminScreen .aw-member-inquiry-footer{display:flex;justify-content:flex-end;padding-top:16px}
+
+/* Keep notification controls beside refresh; the page title row no longer occupies space. */
+#adminScreen .admin-app-topbar .member-topbar-actions{min-width:0;gap:4px}
+#adminScreen .admin-app-topbar #awSoundSlot{margin-right:8px;flex:none}
+#adminScreen .admin-app-topbar #awSoundSlot .admin-routine-alert-actions{display:flex;flex-direction:row;gap:5px;margin:0;flex-wrap:nowrap}
+#adminScreen .admin-app-topbar #awSoundSlot button{white-space:nowrap;width:auto;min-height:28px;padding:3px 8px}
+@media(max-width:760px){
+ #adminScreen.admin-workspace-active>.admin-app-topbar{min-height:72px;gap:6px}
+ #adminScreen .aw-nav{top:72px}
+ #adminScreen .admin-app-topbar .screen-logo-top{width:100px;max-width:100px}
+ #adminScreen .admin-app-topbar #awSoundSlot{margin-right:3px}
+ #adminScreen .admin-app-topbar #awSoundSlot .admin-routine-alert-actions{flex-direction:column;gap:3px;align-items:stretch}
+ #adminScreen .admin-app-topbar #awSoundSlot button{min-height:21px;padding:2px 5px;line-height:1.2}
+ #adminScreen .admin-app-topbar :is(.member-refresh-button,.member-menu-toggle){width:34px;height:38px;padding:7px}
+}
