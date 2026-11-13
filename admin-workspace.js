@@ -17,6 +17,7 @@
   const active = g => g === generation && !!owner && !!client && !screen.hidden;
   const $root = () => $('adminWorkspaceLayout');
   const mobile = () => window.matchMedia('(max-width: 760px)').matches;
+  const splitInquiry = () => page === 'requests' && kind === 'inquiry' && window.matchMedia('(min-width: 900px)').matches;
   const time = value => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
   const notify = text => { $('adminWorkspaceStatus').textContent = text; };
 
@@ -32,7 +33,6 @@
       <div id="awWorkspace" class="aw-workspace"><button id="awBack" class="aw-back" type="button">‹ 목록으로 돌아가기</button>
         <section id="awQueue" class="aw-queue" aria-label="요청 목록"><div id="awQueueHeading" class="aw-queue-heading"></div><div id="awQueueBody"></div></section>
         <section id="awWork" class="aw-work" aria-label="선택한 요청의 작업"><header class="aw-work-heading"><div><p id="awContext"></p><h2 id="awMemberTitle">목록에서 요청을 선택해 주세요.</h2><div id="awMemberMeta"></div></div><div class="aw-work-actions"><button id="awOpenMember" class="aw-text-button" type="button" hidden>회원 관리에서 보기 ›</button><button id="awClearMember" class="aw-secondary aw-inquiry-close" type="button" hidden>선택 해제</button><button id="awCloseInquiry" class="aw-secondary aw-inquiry-close" type="button" aria-label="문의 상세창 닫기" hidden>닫기 ×</button></div></header>
-          <div id="awInquiryTools" class="aw-inquiry-tools" hidden><button id="awFilterInquiryMember" class="aw-secondary" type="button" aria-pressed="false">이 회원과의 대화 검색</button></div>
           <div id="awEmpty" class="aw-empty">목록에서 처리할 요청을 선택해 주세요.</div><div id="awCompletion" class="aw-completion" hidden></div>
           <div id="awMemberWork" class="aw-member-work" hidden><div id="awMemberTabs" class="aw-member-tabs" role="group" aria-label="회원 관리 항목"><button type="button" data-aw-member-tab="access">출석·이용권</button><button type="button" data-aw-member-tab="routine">운동 루틴</button><button type="button" data-aw-member-tab="inquiry">문의</button></div>
             <div id="awAccessSlot"></div><div id="awRoutineSlot"></div><div id="awApplicationSlot" hidden></div><section id="awMemberInquirySlot" hidden aria-label="선택 회원의 문의 내역"><div id="awMemberInquiryList"></div><section id="awMemberInquiryDetail" hidden><header class="aw-member-inquiry-heading"><h3 id="awMemberInquiryTitle">문의 상세</h3><button id="awMemberInquiryClose" class="aw-secondary" type="button">닫기 ×</button></header><div id="awMemberInquiryThread"></div><footer class="aw-member-inquiry-footer"><button id="awMemberInquiryCloseBottom" class="aw-secondary" type="button">닫기</button></footer></section></section></div>
@@ -110,10 +110,6 @@
     $('awCloseInquiryBottom').addEventListener('click', closeInquiry);
     $('awMemberInquiryClose').addEventListener('click', closeInquiry);
     $('awMemberInquiryCloseBottom').addEventListener('click', closeInquiry);
-    $('awFilterInquiryMember').addEventListener('click', () => {
-      const record = inquiryCache.get(currentInquiry)?.record;
-      if (record) filterInquiriesForMember({ id: record.user_id, name: inquiryName(record) });
-    });
     new MutationObserver(() => { if (owner) { updateMemberBrowser(); syncSelection(); } }).observe($('adminMemberSelect'), { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'data-member-name'] });
     $('adminMemberSelect').addEventListener('eligibility-status-change', updateMemberBrowser);
     $('adminMemberSelect').addEventListener('attendance-status-change', updateMemberBrowser);
@@ -262,11 +258,8 @@
     $('awInquiryWork').hidden = !(inquiryOpen || localInquiryOpen);
     $('awMemberInquiryDetail').hidden = !localInquiryOpen;
     if (localInquiryOpen) $('awMemberInquiryTitle').textContent = '문의 · ' + (inquiryCache.get(currentInquiry).record.archived_at ? '보관함' : inquiryCache.get(currentInquiry).record.status === 'answered' ? '답변 완료' : '답변 대기');
-    $('awWork').hidden = page === 'requests' && kind === 'inquiry' && !currentInquiry;
+    $('awWork').hidden = page === 'requests' && kind === 'inquiry' && !currentInquiry && !splitInquiry();
     $('awCloseInquiry').hidden = $('awCloseInquiryBottom').hidden = !inquiryOpen;
-    const inquiryOwner = inquiryCache.get(currentInquiry)?.record.user_id;
-    $('awInquiryTools').hidden = !inquiryOpen || !uuid(inquiryOwner);
-    $('awFilterInquiryMember').setAttribute('aria-pressed', String(!!requestMemberFilter && requestMemberFilter === inquiryOwner));
     $('awPaymentWork').hidden = !(page === 'requests' && kind === 'payment' && paymentSelected);
     $('awEmpty').hidden = !!completion || memberWork && !!member || kind === 'inquiry' && !!currentInquiry || kind === 'payment' && !!paymentSelected;
     $('awCompletion').hidden = !completion;
@@ -460,7 +453,8 @@
       if (list) list.scrollTop = list.scrollHeight;
       const input = thread.querySelector('.admin-inquiry-reply-area:not([hidden]) textarea');
       const target = input || thread.querySelector('.member-inquiry-delete-area:not([hidden])') || thread;
-      target.scrollIntoView({ block: 'center', behavior: 'auto' });
+      if (splitInquiry()) $('awWorkspace').scrollIntoView({ block: 'start', behavior: 'auto' });
+      else target.scrollIntoView({ block: 'center', behavior: 'auto' });
       input?.focus({ preventScroll: true });
     });
     return true;
@@ -492,16 +486,6 @@
     hooks.setInquiryMemberScope?.(true);
     $('adminInquiryList').replaceChildren();
     present(); void hooks.refreshInquiries?.(false);
-  }
-  function filterInquiriesForMember(value) {
-    if (!active(generation) || !uuid(value?.id)) return;
-    captureInquiryDrafts();
-    const previous = inquiryCache.get(currentInquiry);
-    if (previous && previous.record.user_id !== value.id) { previous.thread.hidden = true; moveTo(previous.thread, $('awParking')); currentInquiry = ''; member = null; }
-    requestMemberFilter = value.id; inquiryScopeMember = { ...value };
-    page = 'requests'; kind = 'inquiry'; detailOpen = false;
-    hooks.setInquiryMemberScope?.(true);
-    present(); void hooks.refreshInquiries?.(false); $('awQueue').scrollIntoView({ block: 'nearest' });
   }
   function clearInquiryMemberScope() {
     if (!requestMemberFilter && !inquiryScopeMember) return;
