@@ -20,7 +20,6 @@
 .stretching-pick-button.is-picked { border-color: #ec6a1a; background: #ec6a1a; }
 .stretching-pick-button:disabled { cursor: default; }
 .stretching-picks-filter.is-active { border-color: #ec6a1a; background: #fff5ec; color: #a94200; }
-.stretching-list-footer { display: flex; justify-content: flex-end; margin-top: 16px; }
 .stretching-card-open:focus-visible { outline: 3px solid #f59a57; outline-offset: -4px; }
 .stretching-pick-button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 .stretching-status { margin: 8px 0; color: #657087; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }

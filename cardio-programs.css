@@ -326,3 +326,9 @@
 .cardio-common-guidance p { margin: 0; }
 .cardio-common-guidance p + p { margin-top: 8px; }
 
+/* Compact closed cards by 10%; expanded cards keep their original layout. */
+.cardio-program-card:not([open]) > .cardio-program-summary { padding-top: 14.4px; padding-bottom: 9.9px; }
+.cardio-program-card:not([open]) .cardio-program-title { margin-top: 8.1px; margin-bottom: 3.6px; }
+.cardio-program-card:not([open]) :is(.cardio-program-level,.cardio-program-time,.cardio-program-name,.cardio-program-action) { line-height: 1.35; }
+.cardio-program-card:not([open]) .cardio-program-action { margin-top: 10.8px; padding-top: 9px; }
+

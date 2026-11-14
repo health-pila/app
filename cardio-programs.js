@@ -293,7 +293,7 @@ const CARDIO_PROGRAM_GROUPS = [
     cardio.hidden = menu !== "cardio";
     stretching.hidden = menu !== "stretching";
     window.StretchingVideos?.setMemberVisible(menu === "stretching");
-    heading.textContent = menu === "stretching" ? "스트레칭" : menu === "cardio" ? "나에게 맞는 유산소" : "나에게 맞춘 운동 루틴";
+    heading.textContent = menu === "stretching" ? "나한테 필요한 스트레칭" : menu === "cardio" ? "최적화 유산소 프로그램" : "나에게 맞춘 운동 루틴";
     heading.classList.toggle("is-cardio-heading", menu === "cardio");
     if (intro) intro.hidden = menu !== "cardio";
     buttons.forEach(button => {

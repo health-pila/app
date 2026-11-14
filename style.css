@@ -5880,7 +5880,7 @@ textarea.routine-weight-cell {
   position: absolute; top: 8px; right: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
   width: 44px; height: 44px; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 7px; background: transparent; color: #526078; font: inherit; cursor: pointer;
 }
-.routine-card-toggle-mark { width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+.routine-card-toggle-mark { width: 9px; height: 9px; color: var(--brand-orange); border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); }
 .routine-card-toggle[aria-expanded="true"] .routine-card-toggle-mark { transform: translateY(3px) rotate(225deg); }
 .routine-card-toggle-label { font-size: 9px; font-weight: 500; line-height: 14px; white-space: nowrap; }
 .routine-card-expanded { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e4e8ef; cursor: default; }

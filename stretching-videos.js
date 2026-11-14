@@ -4,7 +4,7 @@
   const byId = id => document.getElementById(id);
   const app = byId("appScreen"), admin = byId("adminScreen"), routine = byId("routineTabPanel");
   const panel = byId("memberStretchingPanel"), grid = byId("memberStretchingGrid");
-  const memberStatus = byId("memberStretchingStatus"), memberRefresh = byId("refreshStretchingVideos");
+  const memberStatus = byId("memberStretchingStatus");
   const pickStatus = byId("memberStretchingPickStatus"), pickFilter = byId("toggleStretchingPicks");
   const form = byId("adminStretchingForm"), list = byId("adminStretchingList");
   const titleInput = byId("adminStretchingTitle"), urlInput = byId("adminStretchingUrl");
@@ -15,7 +15,7 @@
   const dialog = byId("stretchingPlayerDialog"), stage = byId("stretchingPlayerStage");
   const playerTitle = byId("stretchingPlayerTitle"), closeButton = byId("closeStretchingPlayer");
   const youtubeLink = byId("stretchingYouTubeLink");
-  if (![app, admin, routine, panel, grid, memberStatus, memberRefresh, pickStatus, pickFilter, form, list, titleInput, urlInput,
+  if (![app, admin, routine, panel, grid, memberStatus, pickStatus, pickFilter, form, list, titleInput, urlInput,
     orderInput, publishedInput, saveButton, cancelEdit, formStatus, listStatus, adminRefresh,
     dialog, stage, playerTitle, closeButton, youtubeLink].every(Boolean)) return;
 
@@ -121,7 +121,6 @@
       button.setAttribute("aria-busy", String(pickBusyId === button.dataset.videoId));
       button.setAttribute("aria-label", `${button.dataset.videoTitle} Pick ${picked ? "해제" : "선택"}`);
     });
-    memberRefresh.disabled = memberLoading || picksLoading || Boolean(pickBusyId);
   }
   function renderMember(focusId = "") {
     const visibleRows = onlyPicks ? memberRows.filter(row => picks.has(row.id)) : memberRows;
@@ -182,7 +181,7 @@
       if (!isCurrent(token) || request !== pickRequest) return;
       picksReady = false;
       status(pickStatus, missingTable(error) ? "Pick 기능을 준비 중이에요. 일반 영상은 계속 볼 수 있어요." :
-        "Pick 목록을 확인하지 못했어요. 아래 새로고침으로 다시 확인해 주세요.", !missingTable(error));
+        "Pick 목록을 확인하지 못했어요. 화면 상단 새로고침으로 다시 확인해 주세요.", !missingTable(error));
     } finally {
       if (isCurrent(token) && request === pickRequest) { picksLoading = false; pickControls(); }
     }
@@ -218,7 +217,7 @@
       if (!isCurrent(token)) return;
       if (!error?.code || missingTable(error)) picksReady = false;
       status(pickStatus, error?.code === "SESSION_CHANGED" ? "로그인 상태를 확인한 뒤 다시 시도해 주세요." :
-        "Pick 저장을 확인하지 못했어요. 아래 새로고침으로 확인해 주세요.", true);
+        "Pick 저장을 확인하지 못했어요. 화면 상단 새로고침으로 확인해 주세요.", true);
     } finally {
       if (isCurrent(token)) {
         pickBusyId = "";
@@ -234,7 +233,7 @@
       return;
     }
     const token = generation, request = ++memberRequest;
-    memberLoading = true; memberRefresh.disabled = true;
+    memberLoading = true;
     status(memberStatus, "스트레칭 영상을 불러오고 있어요.");
     try {
       const { data, error } = await client.from(TABLE).select(FIELDS).eq("is_published", true)
@@ -247,7 +246,7 @@
       if (isMemberVisible()) renderMember();
     } catch (error) {
       if (!isCurrent(token) || request !== memberRequest) return;
-      memberListFailure = { text: missingTable(error) ? "스트레칭 영상을 준비 중이에요." : "영상을 불러오지 못했어요. 새로고침을 눌러 다시 시도해 주세요.", error: !missingTable(error) };
+      memberListFailure = { text: missingTable(error) ? "스트레칭 영상을 준비 중이에요." : "영상을 불러오지 못했어요. 화면 상단 새로고침을 눌러 다시 시도해 주세요.", error: !missingTable(error) };
       status(memberStatus, memberListFailure.text, memberListFailure.error);
     } finally {
       if (isCurrent(token) && request === memberRequest) { memberLoading = false; pickControls(); }
@@ -454,7 +453,6 @@
   form.addEventListener("submit", event => { event.preventDefault(); void mutate("save"); });
   cancelEdit.addEventListener("click", () => { resetForm(); status(formStatus, ""); });
   adminRefresh.addEventListener("click", () => { void loadAdmin(); });
-  memberRefresh.addEventListener("click", () => { void loadMember(true); });
   pickFilter.addEventListener("click", () => {
     if (pickFilter.disabled || !isMemberVisible()) return;
     onlyPicks = !onlyPicks; renderMember();
