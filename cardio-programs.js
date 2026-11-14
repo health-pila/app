@@ -234,6 +234,7 @@ const CARDIO_PROGRAM_GROUPS = [
 
   CARDIO_PROGRAM_GROUPS.forEach(group => {
     const section = element("section", "cardio-program-group");
+    section.dataset.cardioGroup = group.id;
     const groupTitle = element("div", "cardio-group-heading");
     const title = element("h3", "", group.title);
     title.id = `cardioGroup-${group.id}`;
@@ -254,12 +255,12 @@ const CARDIO_PROGRAM_GROUPS = [
       time.append(icon("clock"), document.createTextNode(`총 ${program.minutes}분`));
       meta.append(level, time);
       const action = element("span", "cardio-program-action");
-      const actionEnd = element("span", "cardio-program-action-end");
       const chevron = icon("chevron");
       chevron.classList.add("cardio-program-chevron");
-      actionEnd.append(sweatMark(program.level, program.id), chevron);
-      action.append(element("span", "cardio-open-label", "운동 방법 보기"), element("span", "cardio-close-label", "운동 방법 접기"), actionEnd);
-      summary.append(meta, element("strong", "cardio-program-name", program.name), action);
+      action.append(element("span", "cardio-open-label", "운동 방법 보기"), element("span", "cardio-close-label", "운동 방법 접기"), chevron);
+      const titleLine = element("span", "cardio-program-title");
+      titleLine.append(element("strong", "cardio-program-name", program.name), sweatMark(program.level, program.id));
+      summary.append(meta, titleLine, action);
       const content = element("div", "cardio-program-content");
       content.append(element("p", "cardio-program-equipment", "러닝머신 기준"));
       const steps = element("ol", "cardio-program-steps");

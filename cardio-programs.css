@@ -10,7 +10,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
-  margin: 0 var(--member-page-gutter, 14px) 20px;
+  margin: 0 var(--member-page-gutter-right, var(--member-page-gutter, 14px)) 20px var(--member-page-gutter, 14px);
   padding: 4px 6px;
   border: 1px solid #e0e6ee;
   border-radius: 13px;
@@ -88,7 +88,7 @@
   margin: 0 20px 8px;
 }
 .member-cardio-panel {
-  padding: 0 var(--member-page-gutter, 18px) 24px;
+  padding: 0 var(--member-page-gutter-right, var(--member-page-gutter, 18px)) 24px var(--member-page-gutter, 18px);
 }
 .cardio-program-group {
   padding: 8px 3px 3px;
@@ -97,6 +97,7 @@
   background: #f7f9fc;
 }
 .cardio-program-group + .cardio-program-group { margin-top: 20px; }
+.cardio-program-group[data-cardio-group="fitness"] { border-color: #cfc9c3; background: #fbf8f5; }
 .cardio-group-heading {
   display: flex;
   align-items: center;
@@ -177,9 +178,16 @@
   line-height: 1.5;
 }
 .cardio-program-time svg { width: 13px; height: 13px; }
+.cardio-program-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 9px 0 4px;
+}
 .cardio-program-name {
   display: block;
-  margin: 9px 0 4px;
+  min-width: 0;
+  margin: 0;
   color: var(--brand-navy);
   font-size: 19px;
   font-weight: 700;
@@ -200,11 +208,10 @@
   line-height: 1.5;
 }
 .cardio-program-action .cardio-program-chevron { flex: none; width: 16px; height: 16px; }
-.cardio-program-action-end { display: inline-flex; flex: none; align-items: center; gap: 8px; }
-.cardio-sweat-mark { display: inline-flex; align-items: flex-end; justify-content: flex-end; gap: 1px; width: 64px; height: 32px; pointer-events: none; }
-.cardio-sweat-mark > svg { display: block; flex: none; width: 22px; height: 30px; filter: drop-shadow(0 1px 1px rgb(25 119 177 / 15%)); }
-.cardio-sweat-mark > svg:nth-last-child(2) { width: 20px; height: 27px; }
-.cardio-sweat-mark > svg:nth-last-child(3) { width: 17px; height: 23px; }
+.cardio-sweat-mark { display: inline-flex; flex: none; align-items: flex-end; justify-content: flex-start; gap: .8px; width: 51.2px; height: 25.6px; pointer-events: none; }
+.cardio-sweat-mark > svg { display: block; flex: none; width: 17.6px; height: 24px; filter: drop-shadow(0 1px 1px rgb(25 119 177 / 15%)); }
+.cardio-sweat-mark > svg:nth-last-child(2) { width: 16px; height: 21.6px; }
+.cardio-sweat-mark > svg:nth-last-child(3) { width: 13.6px; height: 18.4px; }
 .cardio-close-label { display: none; }
 .cardio-program-card[open] .cardio-open-label { display: none; }
 .cardio-program-card[open] .cardio-close-label { display: inline; }
@@ -266,7 +273,7 @@
   word-break: keep-all;
 }
 @media (max-width: 360px) {
-  .member-cardio-panel { padding-right: var(--member-page-gutter, 12px); padding-left: var(--member-page-gutter, 12px); }
+  .member-cardio-panel { padding-right: var(--member-page-gutter-right, var(--member-page-gutter, 12px)); padding-left: var(--member-page-gutter, 12px); }
   .cardio-program-summary { padding-right: 13px; padding-left: 13px; }
 }
 

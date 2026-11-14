@@ -1,6 +1,6 @@
 /* 회원용 이용권·결제 화면. 관리자와 운동 카드 스타일에는 적용하지 않습니다. */
 #appScreen > #memberServicesTabPanel.member-services-panel {
-  padding: 24px var(--member-page-gutter, 14px) 0;
+  padding: 24px var(--member-page-gutter-right, var(--member-page-gutter, 14px)) 0 var(--member-page-gutter, 14px);
 }
 
 .member-services-heading {
@@ -137,7 +137,7 @@
 
 @media (max-width: 360px) {
   #appScreen > #memberServicesTabPanel.member-services-panel {
-    padding-right: var(--member-page-gutter, 10px);
+    padding-right: var(--member-page-gutter-right, var(--member-page-gutter, 10px));
     padding-left: var(--member-page-gutter, 10px);
   }
 
