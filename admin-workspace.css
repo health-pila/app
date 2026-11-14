@@ -65,11 +65,12 @@
 #adminScreen #adminAttendanceLookup{font-size:10.78px;min-height:30.8px;width:auto;padding:7px 11.2px;margin:0;line-height:1.4;white-space:nowrap;flex:0 0 auto}
 #adminScreen .aw-identity-compare{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:2px}
 #adminScreen .aw-app-identity,#adminScreen #adminAttendanceCandidate{min-width:0;display:block;border:1px solid #dae3ee;background:#f8fafc;border-radius:9px;padding:18px;margin:0}
+#adminScreen .aw-app-identity{width:70%;min-width:min(100%,260px);max-width:100%;justify-self:start;padding:14px}
 #adminScreen #adminAttendanceCandidate{background:#f4fbf7;border-color:#b8d9cb}
 #adminScreen .aw-app-identity h4,#adminScreen #adminAttendanceCandidate h4{margin:0 0 14px;font-size:13px;color:#65768b}
 #adminScreen .aw-app-identity-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
 #adminScreen .aw-app-identity .aw-app-identity-heading h4{margin:0}
-#adminScreen .aw-app-identity p{display:grid;gap:11px;margin:0;line-height:1.7;font-size:14px}
+#adminScreen .aw-app-identity p{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0;line-height:1.7;font-size:14px;overflow-wrap:anywhere}
 #adminScreen .aw-app-identity strong{font-size:18px}
 #adminScreen #adminAttendanceCandidateName{font-size:16px;line-height:1.8;overflow-wrap:anywhere;margin:0 0 16px}
 #adminScreen #adminAttendanceConfirm{min-height:44px;font-size:14px;line-height:1.6}
@@ -217,8 +218,10 @@
  #adminScreen #adminAttendanceLookup{font-size:10.78px;min-height:29.4px;width:auto}
  #adminScreen .aw-identity-compare{grid-template-columns:minmax(0,1fr);gap:10px}
  #adminScreen .aw-app-identity,#adminScreen #adminAttendanceCandidate{padding:14px}
+ #adminScreen .aw-app-identity{padding:9.8px}
+ #adminScreen .aw-app-identity-heading{margin-bottom:10px}
  #adminScreen .aw-app-identity h4,#adminScreen #adminAttendanceCandidate h4{font-size:12px;margin-bottom:10px}
- #adminScreen .aw-app-identity p{font-size:12px;gap:5px}
+ #adminScreen .aw-app-identity p{font-size:12px;gap:4px 8px}
  #adminScreen .aw-app-identity strong{font-size:16px}
  #adminScreen #adminAttendanceCandidateName{font-size:15px}
  #adminScreen #adminAttendanceConfirm{font-size:13px}

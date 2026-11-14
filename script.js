@@ -10562,11 +10562,15 @@ toggleAdminRoutineModeButton.addEventListener(
   }
 );
 
-// 이름을 생략해도 기존 DB의 이름 필드를 유효한 값으로 저장합니다.
+// 이름을 비워 두면 저장을 시작하는 날의 한국 날짜를 사용합니다.
 function getAdminRoutineName() {
-  return adminRoutineName.value.trim() ||
-    (adminRoutineMode === "edit" ? currentAdminRoutine?.routine_name?.trim() : "") ||
-    "맞춤 운동 루틴";
+  const entered = adminRoutineName.value.trim();
+  if (entered) return entered;
+  const parts = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul", year: "2-digit", month: "2-digit", day: "2-digit"
+  }).formatToParts(new Date());
+  const date = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${date.year}.${date.month}.${date.day}`;
 }
 
 // 회원 선택 변경 시 이전 불러오기 결과 구분
