@@ -2,13 +2,13 @@
 #adminScreen.admin-workspace-active{width:calc(100% - 24px);max-width:980px;padding:0 0 20px;background:#f1f4f8;border:1px solid #dce3ed;border-radius:14px;overflow:visible;--aw-line:#dfe5ee;--aw-navy:#17233e;--aw-muted:#68768c}
 #adminScreen.admin-workspace-active>.admin-block-divider{display:none}
 #adminScreen.admin-workspace-active [hidden]{display:none!important}
-#adminScreen.admin-workspace-active>.admin-app-topbar{position:sticky;top:0;z-index:15;margin:0;padding:10px 22px;min-height:62px;background:#fff;border-radius:14px 14px 0 0;border-bottom:1px solid var(--aw-line)}
-#adminScreen .aw-nav{position:sticky;top:62px;z-index:14;display:flex;padding:0 20px;gap:8px;background:#fff;border-bottom:1px solid var(--aw-line)}
-#adminScreen .aw-nav>button{display:flex;flex:1;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:52px;margin:0;padding:10px;background:transparent;border:0;border-bottom:3px solid transparent;border-radius:0;color:#68768c;font:inherit;font-size:15px;font-weight:750}
+#adminScreen.admin-workspace-active>.admin-app-topbar{position:sticky;top:0;z-index:15;margin:0;padding:3px 22px;height:46.5px;min-height:46.5px;background:#fff;border-radius:14px 14px 0 0;border-bottom:1px solid var(--aw-line)}
+#adminScreen .aw-nav{position:sticky;top:46.5px;z-index:14;display:flex;padding:0 20px;gap:8px;background:#fff;border-bottom:1px solid var(--aw-line)}
+#adminScreen .aw-nav>button{display:flex;flex:1;align-items:center;justify-content:center;gap:8px;min-width:0;height:41.6px;min-height:41.6px;margin:0;padding:4px 10px;background:transparent;border:0;border-bottom:3px solid transparent;border-radius:0;color:#68768c;font:inherit;font-size:15px;font-weight:750}
 #adminScreen .aw-nav>button[aria-current=page]{border-bottom-color:#f36a12;color:#ce570c}
 #adminScreen .aw-count{display:inline-grid;place-items:center;min-width:25px;min-height:24px;padding:2px 6px;border-radius:6px;background:#fff0e4;color:#b94d09;font-size:12px;line-height:1.4;font-weight:800}
 #adminScreen .aw-count.aw-stale{background:#fdf1d4;color:#8c6505}
-#adminScreen .aw-main{padding:22px}
+#adminScreen .aw-main{padding:11px 22px 22px}
 #adminScreen .aw-heading{display:flex;justify-content:space-between;align-items:start;gap:16px;margin-bottom:16px}
 #adminScreen .aw-heading h1{margin:0;color:var(--aw-navy);font-size:25px;line-height:1.4;letter-spacing:-.6px}
 #adminScreen .aw-heading p{margin:5px 0 0;color:var(--aw-muted);font-size:13px;line-height:1.6}
@@ -17,8 +17,8 @@
 #adminScreen #awSoundSlot .admin-routine-alert-status{margin:4px 0 0;font-size:10px}
 #adminScreen .aw-status{margin:0 0 12px;color:#a34e15;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
 #adminScreen .aw-status:empty{display:none}
-#adminScreen .aw-kinds{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
-#adminScreen .aw-kind{display:flex;align-items:center;gap:10px;min-width:0;min-height:76px;padding:12px;background:#fff;border:1px solid var(--aw-line);border-radius:10px;text-align:left;color:var(--aw-navy);font:inherit}
+#adminScreen .aw-kinds{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:9px}
+#adminScreen .aw-kind{display:flex;align-items:center;gap:10px;min-width:0;height:53.2px;min-height:53.2px;padding:4px 12px;background:#fff;border:1px solid var(--aw-line);border-radius:10px;text-align:left;color:var(--aw-navy);font:inherit}
 #adminScreen .aw-kind-icon{display:grid;place-items:center;flex:none;width:30px;height:32px;color:#8190a5;font-size:25px}
 #adminScreen .aw-kind-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 #adminScreen .aw-kind-label{flex:1;min-width:0;font-size:14px;font-weight:750;line-height:1.5}
@@ -171,17 +171,17 @@
  #adminScreen.admin-workspace-active{width:calc(100% - 12px);margin:6px auto 20px;border-radius:11px;max-width:540px}
  #adminScreen.admin-workspace-active>.admin-app-topbar{min-height:56px;padding:8px 12px;border-radius:11px 11px 0 0}
  #adminScreen .aw-nav{top:56px;padding:0 8px;gap:2px}
- #adminScreen .aw-nav>button{font-size:13px;min-height:47px;gap:5px;padding:8px 3px}
+ #adminScreen .aw-nav>button{font-size:13px;height:37.6px;min-height:37.6px;gap:5px;padding:4px 3px}
  #adminScreen .aw-nav .aw-count{font-size:10px;min-width:20px;min-height:20px;padding:2px 4px}
- #adminScreen .aw-main{padding:16px 12px}
+ #adminScreen .aw-main{padding:8px 12px 16px}
  #adminScreen .aw-heading{gap:7px;align-items:start;margin-bottom:13px}
  #adminScreen .aw-heading h1{font-size:21px}
  #adminScreen .aw-heading p{font-size:11px}
  #adminScreen #awSoundSlot .admin-routine-alert-actions{flex-direction:column;gap:4px}
  #adminScreen #awSoundSlot button{font-size:10px;padding:4px 7px;min-height:25px}
  #adminScreen #awSoundSlot .admin-routine-alert-status{display:none}
- #adminScreen .aw-kinds{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:13px}
- #adminScreen .aw-kind{min-height:69px;padding:10px;gap:7px}
+ #adminScreen .aw-kinds{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:6.5px}
+ #adminScreen .aw-kind{height:48.3px;min-height:48.3px;padding:4px 10px;gap:7px}
  #adminScreen .aw-kind-icon{width:22px;font-size:22px}
  #adminScreen .aw-kind-label{font-size:12px}
  #adminScreen .aw-kind-label small{font-size:10px}
@@ -248,7 +248,6 @@
 #adminScreen .aw-member-inquiry-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
 #adminScreen .aw-member-inquiry-heading h3{margin:0}
 #adminScreen #awMemberInquiryThread>.aw-inquiry-work{padding:0}
-#adminScreen .aw-member-inquiry-footer{display:flex;justify-content:flex-end;padding-top:16px}
 
 /* Keep notification controls beside refresh; the page title row no longer occupies space. */
 #adminScreen .admin-app-topbar .member-topbar-actions{min-width:0;gap:4px}
@@ -256,8 +255,8 @@
 #adminScreen .admin-app-topbar #awSoundSlot .admin-routine-alert-actions{display:flex;flex-direction:row;gap:5px;margin:0;flex-wrap:nowrap}
 #adminScreen .admin-app-topbar #awSoundSlot button{white-space:nowrap;width:auto;min-height:28px;padding:3px 8px}
 @media(max-width:760px){
- #adminScreen.admin-workspace-active>.admin-app-topbar{min-height:72px;gap:6px}
- #adminScreen .aw-nav{top:72px}
+ #adminScreen.admin-workspace-active>.admin-app-topbar{height:54px;min-height:54px;padding:3px 12px;gap:6px}
+ #adminScreen .aw-nav{top:54px}
  #adminScreen .admin-app-topbar .screen-logo-top{width:100px;max-width:100px}
  #adminScreen .admin-app-topbar #awSoundSlot{margin-right:3px}
  #adminScreen .admin-app-topbar #awSoundSlot .admin-routine-alert-actions{flex-direction:column;gap:3px;align-items:stretch}
@@ -275,15 +274,19 @@
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .inquiry-chat-day{margin:4px 0 2px}
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .inquiry-chat-day:first-child{margin-top:0}
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-area{gap:6px;margin-top:10px;padding-top:10px}
-#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-area textarea{height:96px;min-height:80px;padding:8px 10px;line-height:1.5}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-area textarea{height:160px;min-height:96px;padding:8px 10px;line-height:1.5}
+#adminScreen .aw-inquiry-footer-actions{display:flex;flex:none;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;padding-top:6px}
+#adminScreen .aw-inquiry-footer-actions>.aw-inquiry-close{min-height:32px;margin:0;padding:5px 10px;font-size:12px;line-height:1.4}
+#adminScreen .aw-inquiry-footer-actions>.member-inquiry-delete-area{display:flex;align-items:center;align-self:auto;flex-wrap:wrap;gap:6px;padding:0}
 @media(max-width:760px){
  #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-message-list{height:clamp(560px,75vh,900px);max-height:none}
 }
 
 /* Desktop inbox: keep the member list and selected conversation visible together. */
 @media(min-width:900px){
- #adminScreen.admin-workspace-active[data-aw-page=requests][data-aw-kind=inquiry]{max-width:1440px}
- #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awWorkspace{grid-template-columns:280px minmax(0,1fr);gap:14px;align-items:stretch;height:calc(100dvh - 140px);min-height:440px;max-height:1200px;scroll-margin-top:126px}
+ #adminScreen.admin-workspace-active[data-aw-page=requests][data-aw-kind=inquiry]{max-width:1440px;padding-bottom:0}
+ #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] .aw-main{padding-bottom:8px}
+ #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awWorkspace{grid-template-columns:280px minmax(0,1fr);gap:14px;align-items:stretch;height:calc(100dvh - 108.1px);min-height:500px;max-height:none;scroll-margin-top:100.1px}
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awQueue{display:flex;flex-direction:column;min-height:0;overflow:hidden}
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awQueueHeading{flex:none;padding:14px;min-height:50px}
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awQueueBody{display:flex;flex:1;min-height:0;padding:10px;overflow:hidden}
@@ -296,16 +299,17 @@
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList{display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:max-content;flex:1;min-height:0;max-height:none;margin:0;overflow:auto;overscroll-behavior:contain}
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #loadMoreAdminInquiriesButton{flex:none;min-height:40px;margin-top:10px}
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awWork{display:flex;flex-direction:column;min-height:0;height:100%;overflow:hidden}
- #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] .aw-work-heading{flex:none;padding:14px 16px}
+ #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] .aw-work-heading{flex:none;padding:8px 12px}
+ #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] .aw-work-heading #awContext{margin-bottom:2px;line-height:1.3}
+ #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] .aw-work-heading h2{line-height:1.25}
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awEmpty{display:grid;flex:1;place-items:center}
- #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork{display:flex;flex:1;flex-direction:column;min-height:0;padding:10px 14px}
+ #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork{display:flex;flex:1;flex-direction:column;min-height:0;padding:6px 14px}
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork .admin-inquiry-thread{display:flex;flex:1;flex-direction:column;min-width:0;min-height:0}
- #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork .admin-inquiry-history-note{flex:none;margin-bottom:6px}
+ #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork .admin-inquiry-history-note{flex:none;margin-bottom:4px}
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork .admin-inquiry-message-list{flex:1;height:auto;min-height:0;max-height:none;overscroll-behavior:contain}
- #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork .admin-inquiry-reply-area{flex:none;gap:4px;margin-top:8px;padding-top:8px;max-height:50%;overflow:auto}
- #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork .admin-inquiry-reply-area textarea{height:72px;min-height:64px;max-height:180px}
+ #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork .admin-inquiry-reply-area{flex:none;gap:4px;margin-top:8px;padding-top:8px;max-height:none;overflow:visible}
+ #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork .admin-inquiry-reply-area textarea{height:160px;min-height:96px;max-height:320px}
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork .admin-inquiry-reply-message:empty{display:none}
- #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork .member-inquiry-delete-area{flex:none;padding:6px 0 0}
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awNextBar{position:static;flex:none;padding:10px 14px}
 }
 
@@ -316,7 +320,7 @@
 #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquirySearchForm .admin-inquiry-search-row input{flex:1 1 0;min-width:0;width:0}
 #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryFilters{padding:2px;margin:4px 0 8px}
 #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryFilters button{height:29.4px;min-height:29.4px;padding:2px 3px;line-height:1.3}
-#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList{gap:4px}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList{gap:8px}
 #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList>.admin-inquiry-card{padding:6px 8px}
 #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList .admin-inquiry-summary-button{gap:3px}
 #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList .admin-inquiry-summary-top{gap:4px;align-items:center;line-height:1.3}
@@ -324,3 +328,6 @@
 #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList .admin-inquiry-preview{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;min-height:0;max-height:2.6em;line-height:1.3;overflow:hidden}
 #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList .admin-inquiry-meta{gap:0;line-height:1.3}
 #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryListMessage:empty{display:none}
+
+/* Header icon controls fit inside the compact administrator topbar. */
+#adminScreen.admin-workspace-active>.admin-app-topbar :is(.member-refresh-button,.member-menu-toggle){width:38px;height:36px;min-height:36px;padding:6px}

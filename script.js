@@ -6022,17 +6022,17 @@ function renderAdminInquiries(inquiries) {
       document.createElement("textarea");
 
     replyInput.id = replyInputId;
-    replyInput.rows = 4;
+    replyInput.rows = 6;
     replyInput.maxLength = 5000;
 
     replyInput.placeholder =
       "회원에게 전달할 답변을 입력하세요.";
-    replyInput.setAttribute("aria-keyshortcuts", "Shift+Enter");
+    replyInput.setAttribute("aria-keyshortcuts", "Enter");
 
     const replyShortcutHelp = document.createElement("p");
     replyShortcutHelp.id = `adminInquiryReplyHelp-${inquiry.id}`;
     replyShortcutHelp.className = "admin-inquiry-shortcut-help";
-    replyShortcutHelp.textContent = "Enter 줄바꿈 · Shift+Enter 답변 보내기";
+    replyShortcutHelp.textContent = "Enter 답변 보내기 · Shift+Enter 줄바꿈";
     replyInput.setAttribute("aria-describedby", replyShortcutHelp.id);
 
     const replyButton =
@@ -6066,7 +6066,7 @@ function renderAdminInquiries(inquiries) {
     );
 
     replyInput.addEventListener("keydown", function (event) {
-      if (event.key !== "Enter" || !event.shiftKey || event.ctrlKey || event.altKey || event.metaKey ||
+      if (event.key !== "Enter" || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey ||
           event.isComposing || event.keyCode === 229) return;
       event.preventDefault();
       if (event.repeat || replyButton.disabled || !replyInput.isConnected || replyArea.hidden) return;
