@@ -14,12 +14,27 @@
   let paymentAbort = null, paymentAckBusy = false, paymentSeen = new Set(), fresh = new Set(), failed = new Set();
   let currentInquiry = '', inquiryDrafts = new Map(), inquiryCache = new Map(), rosterFrame = 0;
   let inquiryScopeMember = null;
+  let inquiryLayoutFrame = 0;
   const active = g => g === generation && !!owner && !!client && !screen.hidden;
   const $root = () => $('adminWorkspaceLayout');
   const mobile = () => window.matchMedia('(max-width: 760px)').matches;
   const splitInquiry = () => page === 'requests' && kind === 'inquiry' && window.matchMedia('(min-width: 900px)').matches;
   const time = value => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-  const notify = text => { $('adminWorkspaceStatus').textContent = text; };
+  const notify = text => { $('adminWorkspaceStatus').textContent = text; scheduleInquiryPanelSize(); };
+
+  function scheduleInquiryPanelSize() {
+    if (!owner || inquiryLayoutFrame) return;
+    inquiryLayoutFrame = requestAnimationFrame(() => {
+      inquiryLayoutFrame = 0;
+      const workspace = $('awWorkspace');
+      if (!active(generation) || !splitInquiry()) { workspace.style.removeProperty('--aw-inquiry-panel-height'); return; }
+      const rect = workspace.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      const top = Math.max(rect.top, $('adminWorkspaceLayout').querySelector('.aw-nav').getBoundingClientRect().bottom + 12);
+      const height = Math.max(180, Math.floor(window.innerHeight - top - 8)) + 'px';
+      if (workspace.style.getPropertyValue('--aw-inquiry-panel-height') !== height) workspace.style.setProperty('--aw-inquiry-panel-height', height);
+    });
+  }
 
   function mount() {
     if (mounted) return; mounted = true;
@@ -113,7 +128,7 @@
     $('adminMemberSelect').addEventListener('attendance-status-change', updateMemberBrowser);
     $('adminMemberSelect').addEventListener('member-sort-change', updateMemberBrowser);
     window.addEventListener('resize', () => { if (owner) present(); });
-    window.addEventListener('scroll', () => { if (owner && kind === 'payment') acknowledgePayment(); }, { passive: true });
+    window.addEventListener('scroll', () => { if (owner && kind === 'payment') acknowledgePayment(); if (owner) scheduleInquiryPanelSize(); }, { passive: true });
     document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(paymentTimer); paymentTimer = 0; } else if (owner) { void loadPayments(true); window.AdminInquiryReadReceipts?.refresh(); } });
     window.addEventListener('online', () => { if (owner) void loadPayments(true); });
     window.addEventListener('focus', () => { if (owner) void loadPayments(true); });
@@ -273,6 +288,7 @@
     $('awNextBar').hidden = !(hasNext || canClearMember);
     $('awNext').textContent = kind === 'signup' ? '다음 가입 회원 연결 ›' : kind === 'routine' ? '다음 루틴 신청 보기 ›' : '다음 결제 보기 ›';
     syncSelection(); updateCounts();
+    scheduleInquiryPanelSize();
     if (page === 'members') updateMemberBrowser();
     window.AdminInquiryReadReceipts?.refresh();
     if (page === 'requests' && kind === 'payment') requestAnimationFrame(acknowledgePayment);
@@ -406,7 +422,7 @@
     card.dataset.inquiryId = record.id;
     const existing = inquiryCache.get(record.id), draft = inquiryDrafts.get(record.id);
     if (existing && existing.renderedStatus === record.status && existing.renderedArchived === Boolean(record.archived_at)) {
-      const changed = existing.record.last_message_at !== record.last_message_at;
+      const changed = existing.record.last_message_at !== record.last_message_at || existing.record.updated_at !== record.updated_at;
       Object.assign(existing.record, record); thread.remove();
       if (changed && existing.thread.querySelector('.admin-inquiry-message-list')?.dataset.loaded === 'true') void hooks.loadInquiry?.(record.id, inquiryName(record), existing.thread.querySelector('.admin-inquiry-message-list'));
     } else {
@@ -438,13 +454,22 @@
       close.addEventListener('click', closeInquiry); footer.append(close); entry.thread.append(footer);
     }
     if (archiveArea && archiveArea.parentElement !== footer) footer.append(archiveArea);
+    const sendButton = entry.thread.querySelector('.admin-inquiry-send-button');
+    if (sendButton) {
+      if (sendButton.parentElement !== footer) footer.prepend(sendButton);
+      sendButton.hidden = Boolean(entry.record.archived_at);
+    }
     const archiveButton = archiveArea?.querySelector('button'); if (archiveButton && entry.renderedArchived !== Boolean(entry.record.archived_at)) { archiveButton.disabled = true; archiveButton.textContent = '보관 상태가 바뀌었어요. 목록에서 다시 선택해 주세요.'; }
     $('adminInquiryList').querySelectorAll('.admin-inquiry-summary-button').forEach(b => b.setAttribute('aria-expanded', String(b.closest('[data-inquiry-id]')?.dataset.inquiryId === id)));
   }
-  function openInquiry(id) {
+  function openInquiry(id, toggle = false) {
     if (!active(generation) || !inquiryCache.has(id)) return false;
     const local = page === 'members' && memberTab === 'inquiry' && !!member;
     if (local && inquiryCache.get(id).record.user_id !== member.id) return false;
+    const selectedThread = inquiryCache.get(id).thread;
+    if (toggle && currentInquiry === id && selectedThread.isConnected && !selectedThread.closest('[hidden]')) {
+      closeInquiry(); return true;
+    }
     captureInquiryDrafts(); currentInquiry = id;
     if (!local) { page = 'requests'; kind = 'inquiry'; }
     completion = null; detailOpen = true;
@@ -458,8 +483,12 @@
       if (list) list.scrollTop = list.scrollHeight;
       const input = thread.querySelector('.admin-inquiry-reply-area:not([hidden]) textarea');
       const target = input || thread.querySelector('.member-inquiry-delete-area:not([hidden])') || thread;
-      if (splitInquiry()) $('awWorkspace').scrollIntoView({ block: 'start', behavior: 'auto' });
-      else target.scrollIntoView({ block: 'center', behavior: 'auto' });
+      if (splitInquiry()) {
+        const kinds = $('awKinds'), rect = kinds.getBoundingClientRect();
+        const navBottom = $root().querySelector('.aw-nav').getBoundingClientRect().bottom;
+        if (rect.top < navBottom || rect.bottom > window.innerHeight) kinds.scrollIntoView({ block: 'start', behavior: 'auto' });
+        scheduleInquiryPanelSize();
+      } else target.scrollIntoView({ block: 'center', behavior: 'auto' });
       input?.focus({ preventScroll: true });
     });
     return true;
@@ -510,7 +539,7 @@
     const history = list?.adminInquiryHistory;
     const memberRows = history ? rows.filter(row => row.user_id === history.userId) : [];
     const historyChanged = history && (memberRows.length !== history.facts.size || memberRows.some(row =>
-      history.facts.get(row.id) !== JSON.stringify([row.last_message_at, row.status, row.archived_at])));
+      history.facts.get(row.id) !== JSON.stringify([row.last_message_at, row.status, row.archived_at, row.updated_at])));
     let selectedChanged = false;
     for (const row of rows) { const entry = inquiryCache.get(row.id); if (entry) { if (row.id === currentInquiry && entry.record.last_message_at !== row.last_message_at) selectedChanged = true; Object.assign(entry.record, row); } }
     if (list && (historyChanged || selectedChanged)) void hooks.loadInquiry?.(currentInquiry, inquiryName(selected.record), list);
@@ -518,6 +547,20 @@
   }
   function inquiryAnswered(id) { const entry = inquiryCache.get(id); if (entry) { entry.record.status = 'answered'; inquiryDrafts.delete(id); if (currentInquiry === id) { attachInquiry(id); if (page === 'members') present(); else renderInquiryHeading(); } } }
   function inquiryArchived(id) { const entry = inquiryCache.get(id); entry?.thread.remove(); inquiryCache.delete(id); inquiryDrafts.delete(id); if (currentInquiry === id) { currentInquiry = ''; if (page !== 'members') detailOpen = false; present(); notify('문의 보관 상태를 변경했어요. 목록에서 이어서 확인해 주세요.'); } }
+
+  function inquiryMessageDeleted(messageId) {
+    if (!owner) return;
+    captureInquiryDrafts();
+    for (const entry of inquiryCache.values()) {
+      const list = entry.thread.querySelector('.admin-inquiry-message-list');
+      if (!list) continue;
+      if (uuid(messageId)) for (const card of list.querySelectorAll('[data-message-id]')) if (card.dataset.messageId === messageId) card.remove();
+      delete list.dataset.loaded;
+      window.AdminInquiryReadReceipts?.unwatch(list);
+    }
+    const entry = inquiryCache.get(currentInquiry), list = entry?.thread.querySelector('.admin-inquiry-message-list');
+    if (list && !entry.thread.closest('[hidden]')) void hooks.loadInquiry?.(currentInquiry, inquiryName(entry.record), list);
+  }
 
   function schedulePayments() { clearTimeout(paymentTimer); paymentTimer = 0; if (active(generation) && !document.hidden) paymentTimer = setTimeout(() => void loadPayments(true), 30000); }
   async function loadPayments(force = false) {
@@ -588,6 +631,8 @@
   }
   function reset() {
     window.AdminMemberDeletion?.reset();
+    cancelAnimationFrame(inquiryLayoutFrame); inquiryLayoutFrame = 0;
+    if (mounted) $('awWorkspace').style.removeProperty('--aw-inquiry-panel-height');
     clearInquiryMemberScope();
     generation++; clearTimeout(paymentTimer); paymentTimer = 0; paymentAbort?.abort(); paymentAbort = null; paymentSequence++;
     cancelAnimationFrame(rosterFrame); rosterFrame = 0; owner = ''; client = null; hooks = {};
@@ -611,7 +656,7 @@
     selectSignup: id => chooseMember(id, 'signup'), selectRoutine: request => chooseMember(request.user_id, 'routine', request),
     memberLinked: id => showCompletion('signup', id, '센터 출석 연결을 완료했어요.'),
     routineSaved: id => { showCompletion('routine', id, '새 운동 루틴을 배정했어요.'); void hooks.refreshRoutineRequests?.(); },
-    captureInquiryDrafts, registerInquiry, openInquiry, syncInquiryAlerts, inquiryAnswered, inquiryArchived,
+    captureInquiryDrafts, registerInquiry, openInquiry, syncInquiryAlerts, inquiryAnswered, inquiryArchived, inquiryMessageDeleted,
     inquiryMemberId: () => page === 'requests' && kind === 'inquiry' || page === 'members' && memberTab === 'inquiry' ? requestMemberFilter : '',
     refreshPayments: () => loadPayments(true), memberDeleted, isBusy: () => selecting || !!paymentApplying || !!window.AdminMemberDeletion?.isBusy(),
   });

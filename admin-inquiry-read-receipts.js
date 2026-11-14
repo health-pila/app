@@ -7,6 +7,7 @@
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
   let client = null, adminId = "", generation = 0, timer = 0, frame = 0;
   const threads = new Set();
+  const deleting = new Map();
   const observer = typeof IntersectionObserver === "function"
     ? new IntersectionObserver(() => checkSoon()) : null;
 
@@ -46,6 +47,45 @@
   function unwatch(list) {
     for (const entry of threads) if (entry.list === list) forget(entry);
     list?.querySelectorAll(".admin-inquiry-read-receipt").forEach(marker => marker.remove());
+    list?.querySelectorAll(".admin-inquiry-reply-delete,.admin-inquiry-reply-delete-status").forEach(node => node.remove());
+  }
+
+  async function deleteReply(message, button, card) {
+    if (!client || !adminId || message.sender_id !== adminId || deleting.has(message.id)) return;
+    if (!window.confirm("이 답변을 삭제할까요?\n\n" + String(message.body || "").slice(0, 140) +
+        "\n\n읽음 여부와 관계없이 회원의 대화 내역에서도 삭제됩니다.")) return;
+    const ticket = generation, db = client, expectedAdmin = adminId, operation = {};
+    const current = () => ticket === generation && db === client && adminId === expectedAdmin &&
+      document.getElementById("adminScreen")?.hidden === false;
+    deleting.set(message.id, operation); button.disabled = true; button.textContent = "삭제 중…";
+    card.querySelectorAll(".admin-inquiry-reply-delete-status").forEach(node => node.remove());
+    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+      const request = db.rpc("admin_delete_inquiry_reply_v333", {
+        p_message_id: message.id, p_expected_admin_id: expectedAdmin
+      });
+      const { data, error } = await (typeof request.abortSignal === "function" ? request.abortSignal(controller.signal) : request);
+      if (!current()) return;
+      if (error) throw error;
+      if (data?.ok !== true || data.message_id !== message.id) throw Error("DELETE_UNCONFIRMED");
+      for (const item of document.querySelectorAll("#adminScreen .member-inquiry-message[data-message-id]")) {
+        if (item.dataset.messageId === message.id) item.remove();
+      }
+      window.dispatchEvent(new CustomEvent("admin-inquiry-reply-deleted", { detail: { message_id: message.id } }));
+    } catch (error) {
+      if (!current() || !card.isConnected) return;
+      const status = document.createElement("span"); status.className = "admin-inquiry-reply-delete-status";
+      status.setAttribute("role", "status");
+      status.textContent = String(error?.message || "").includes("APP_ACCOUNT_DELETING") ? "계정 처리 중에는 답변을 삭제할 수 없어요." :
+        error?.code === "42501" ? "삭제 권한이나 관리자 로그인 상태를 확인해 주세요." : "삭제하지 못했어요. 잠시 후 다시 시도해 주세요.";
+      card.append(status);
+    } finally {
+      clearTimeout(timeout);
+      if (deleting.get(message.id) === operation) deleting.delete(message.id);
+      if (current() && !deleting.has(message.id)) for (const node of document.querySelectorAll(".admin-inquiry-reply-delete")) {
+        if (node.dataset.messageId === message.id) { node.disabled = false; node.textContent = "삭제"; }
+      }
+    }
   }
 
   function complete(entry) {
@@ -123,7 +163,9 @@
     for (const entry of threads.values()) {
       entry.controller?.abort();
       for (const marker of entry.markers.values()) marker.remove();
+      entry.list.querySelectorAll(".admin-inquiry-reply-delete,.admin-inquiry-reply-delete-status").forEach(node => node.remove());
     }
+    deleting.clear();
     threads.clear(); observer?.disconnect();
     client = null; adminId = "";
   }
@@ -150,6 +192,14 @@
       marker.dataset.replyId = message.id;
       paint(marker, "checking");
       card.append(marker); markers.set(message.id, marker);
+      if (message.sender_id === adminId) {
+        card.querySelectorAll(".admin-inquiry-reply-delete,.admin-inquiry-reply-delete-status").forEach(node => node.remove());
+        const button = document.createElement("button"); button.type = "button";
+        button.className = "admin-inquiry-reply-delete"; button.dataset.messageId = message.id;
+        button.textContent = "삭제"; button.disabled = deleting.has(message.id);
+        button.setAttribute("aria-label", "내가 보낸 답변 삭제");
+        button.addEventListener("click", () => void deleteReply(message, button, card)); card.append(button);
+      }
     }
     if (!markers.size) return;
     const entry = { inquiryId, list, markers, grouped, confirmed: new Set(), inFlight: false, controller: null, nextCheck: 0 };

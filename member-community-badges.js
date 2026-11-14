@@ -8,6 +8,7 @@
   let frame = 0;
   let news = [];
   let replies = [];
+  let replyIds = new Set();
   let seenNews = new Set();
   let seenReplies = new Set();
   const watched = new Map();
@@ -18,7 +19,7 @@
   function current(ticket, member) { return ticket === generation && member === userId && !!userId; }
   function queueLocal() {
     seenNews.forEach(id => { if(!serverNews.has(id)) pendingNews.add(id); });
-    seenReplies.forEach(id => { if(!serverReplies.has(id)) pendingReplies.add(id); });
+    seenReplies.forEach(id => { if(replyIds.has(id) && !serverReplies.has(id)) pendingReplies.add(id); });
   }
   function scheduleSend() {
     if (!userId || !client || !hydrated || sendTimer || sending || (!pendingNews.size && !pendingReplies.size)) return;
@@ -162,8 +163,9 @@
     if (!userId || !list.isConnected) return;
     const cards = list.querySelectorAll(".member-inquiry-message");
     messages.forEach((message, index) => {
-      if (message.sender_role === "admin") watch(cards[index], "reply", message.id);
+      if (message.sender_role === "admin") { replyIds.add(String(message.id)); watch(cards[index], "reply", message.id); }
     });
+    queueLocal(); scheduleSend();
   }
 
   async function refreshReplies() {
@@ -199,7 +201,10 @@
       }
       if (!current()) return;
       replies = result;
+      replyIds = new Set(result.map(reply => String(reply.id)));
+      for (const id of pendingReplies) if (!replyIds.has(id)) pendingReplies.delete(id);
       mergeSaved();
+      queueLocal(); scheduleSend();
       render();
       checkSoon();
     } catch (error) {
@@ -217,6 +222,7 @@
     client = null;
     news = [];
     replies = [];
+    replyIds = new Set();
     seenNews = new Set();
     seenReplies = new Set();
     watched.clear();

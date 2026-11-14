@@ -646,7 +646,10 @@ async function startInquiryRealtimeSubscription(
 ) {
   await stopInquiryRealtimeSubscription();
 
-  function refreshInquiryList() {
+  function refreshInquiryList(payload) {
+    if (screenType === "admin" && payload?.table === "inquiry_messages" && payload.eventType === "DELETE") {
+      window.AdminWorkspace?.inquiryMessageDeleted(payload.old?.id);
+    }
     scheduleInquiryRealtimeRefresh(
       screenType,
       "list"
@@ -5486,6 +5489,12 @@ toggleAdminInquiryFeatureButton.addEventListener(
 
 let openAdminInquiryId = null;
 
+window.addEventListener("admin-inquiry-reply-deleted", () => {
+  if (adminScreen.hidden) return;
+  window.AdminWorkspace?.inquiryMessageDeleted();
+  void loadAdminInquiries(true);
+});
+
 // 관리자가 회원 문의에 답변하기
 async function sendAdminInquiryReply(
   inquiryId,
@@ -5685,7 +5694,7 @@ async function updateAdminInquiryArchive(
 async function fetchAdminMemberInquiryHistory(inquiryId, isCurrent) {
   const { data: selected, error: selectedError } = await supabaseClient
     .from("member_inquiries")
-    .select("id, user_id, title, status, archived_at, created_at, last_message_at")
+    .select("id, user_id, title, status, archived_at, created_at, updated_at, last_message_at")
     .eq("id", inquiryId).single();
   if (!isCurrent()) return null;
   if (selectedError) throw selectedError;
@@ -5694,7 +5703,7 @@ async function fetchAdminMemberInquiryHistory(inquiryId, isCurrent) {
   const pageSize = 200;
   for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await supabaseClient.from("member_inquiries")
-      .select("id, user_id, title, status, archived_at, created_at, last_message_at")
+      .select("id, user_id, title, status, archived_at, created_at, updated_at, last_message_at")
       .eq("user_id", selected.user_id)
       .order("created_at", { ascending: true }).order("id", { ascending: true })
       .range(offset, offset + pageSize - 1);
@@ -5774,7 +5783,7 @@ async function loadAdminInquiryMessages(
       if (label) label.textContent = "관리자 답변";
     }
     messageList.adminInquiryHistory = { userId: selected.user_id, facts: new Map([...inquiries].map(([id, row]) =>
-      [id, JSON.stringify([row.last_message_at, row.status, row.archived_at])])) };
+      [id, JSON.stringify([row.last_message_at, row.status, row.archived_at, row.updated_at])])) };
 
     messageList.replaceChildren();
 
@@ -6039,6 +6048,7 @@ function renderAdminInquiries(inquiries) {
       document.createElement("button");
 
     replyButton.type = "button";
+    replyButton.className = "admin-inquiry-send-button";
     replyButton.textContent =
       "답변 보내기";
 
@@ -6168,8 +6178,8 @@ function renderAdminInquiries(inquiries) {
     summaryButton.addEventListener(
       "click",
       function () {
-        if (window.AdminWorkspace?.openInquiry(inquiry.id)) {
-          openAdminInquiryId = inquiry.id;
+        if (window.AdminWorkspace?.openInquiry(inquiry.id, true)) {
+          openAdminInquiryId = summaryButton.getAttribute("aria-expanded") === "true" ? inquiry.id : null;
           return;
         }
         const willOpen =
