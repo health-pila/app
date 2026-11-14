@@ -374,10 +374,10 @@ const memberInquiryBody =
     "#memberInquiryBody"
   );
 
-// Fit the initial empty editor to its wrapped guide. Existing drafts and manual resizing stay intact.
+// Fit the inquiry editor to its guide or draft so a swipe scrolls the page, not an inner text area.
 let memberInquiryGuideFitFrame = 0;
 function fitMemberInquiryGuide() {
-  if (!memberInquiryBody || memberInquiryBody.value || memberInquiryBody.closest("[hidden]")) return;
+  if (!memberInquiryBody || memberInquiryBody.closest("[hidden]")) return;
   const width = memberInquiryBody.getBoundingClientRect().width;
   if (width <= 0) return;
   const guide = memberInquiryBody.cloneNode(false);
@@ -385,7 +385,7 @@ function fitMemberInquiryGuide() {
   guide.setAttribute("aria-hidden", "true");
   guide.tabIndex = -1;
   guide.rows = 1;
-  guide.value = memberInquiryBody.placeholder;
+  guide.value = memberInquiryBody.value || memberInquiryBody.placeholder;
   Object.assign(guide.style, { position: "fixed", left: "-10000px", top: "0", visibility: "hidden",
     width: width + "px", height: "0", minHeight: "0", maxHeight: "none", overflow: "hidden", resize: "none" });
   memberInquiryBody.parentElement.append(guide);
@@ -407,7 +407,7 @@ if (typeof ResizeObserver === "function") {
   }).observe(memberInquiryBody);
 }
 window.addEventListener("resize", scheduleMemberInquiryGuideFit);
-memberInquiryBody.addEventListener("input", () => { if (!memberInquiryBody.value) scheduleMemberInquiryGuideFit(); });
+memberInquiryBody.addEventListener("input", scheduleMemberInquiryGuideFit);
 document.fonts?.ready.then(scheduleMemberInquiryGuideFit);
 
 const sendMemberInquiryButton =
