@@ -18,12 +18,12 @@
 .exercise-replacement-heading h2 { margin: 0; color: #c24c00; font-size: 20.9px; line-height: 1.5; }
 .exercise-replacement-content { padding: 14px 16px 20px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .exercise-replacement-content h3 { margin: 16px 0 10px; font-size: 16.5px; line-height: 1.6; overflow-wrap: anywhere; }
-.exercise-replacement-content [data-replace-target] { font-size: 19.8px; font-weight: 400; }
+.exercise-replacement-content [data-replace-target] { font-size: 19.8px; font-weight: 500; }
 .exercise-replacement-safety { margin: 0; padding: 11px; border-radius: 10px; color: #526078; background: #f3f6fa; font-size: 13.2px; line-height: 1.7; word-break: keep-all; }
-.exercise-replacement-current { margin: 12px 0; color: #17233e; font-size: 17.16px; font-weight: 400; line-height: 1.6; }
+.exercise-replacement-current { margin: 12px 0; color: #17233e; font-size: 17.16px; font-weight: 500; line-height: 1.6; }
 .exercise-replacement-list { display: grid; gap: 7px; }
 .exercise-replacement-dialog .exercise-replacement-option { display: grid; gap: 4px; width: 100%; min-width: 0; padding: 12px; border-radius: 11px; text-align: left; }
-.exercise-replacement-option strong { color: #17233e; font-size: 18.48px; font-weight: 400; line-height: 1.5; overflow-wrap: anywhere; }
+.exercise-replacement-option strong { color: #17233e; font-size: 18.48px; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
 .exercise-replacement-option span { color: #697586; font-size: 13.2px; line-height: 1.6; }
 .exercise-replacement-all { margin-top: 18px; border-top: 1px solid #e4e8ef; padding-top: 14px; }
 .exercise-replacement-all summary { min-height: 40px; color: #a94200; font-size: 15.4px; font-weight: 700; cursor: pointer; }
