@@ -30,8 +30,14 @@
 #workoutLogTabPanel .center-attendance-legend { font-size:15.972px; }
 
 /* v292: enlarge all live attendance footer text by another 10%. */
-#workoutLogTabPanel .center-attendance-count { font-size:14.52px; }
+#workoutLogTabPanel .center-attendance-count { font-size:15.972px; color:var(--brand-orange); }
 #workoutLogTabPanel .center-attendance-status { font-size:12.1px; }
 #workoutLogTabPanel #refreshCenterAttendance { font-size:20.9px; }
 #workoutLogTabPanel .center-attendance-details,
 #workoutLogTabPanel .center-attendance-details strong { font-size:15.972px; }
+
+/* Give only the live calendar's weekday/date area 10% more vertical space. */
+#workoutLogTabPanel .workout-calendar-weekdays { margin-bottom:4.0986px; }
+#workoutLogTabPanel .workout-calendar-weekdays span { padding-top:.05lh; padding-bottom:.05lh; }
+#workoutLogTabPanel .workout-calendar-day,
+#workoutLogTabPanel .workout-calendar-empty { height:34.8381px; }
