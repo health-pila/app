@@ -217,7 +217,12 @@
   }
   closeButton.addEventListener("click", () => close());
   dateInput.addEventListener("input", () => dateInput.setCustomValidity(""));
-  dialog.addEventListener("cancel", event => { event.preventDefault(); if (!busy) close(); });
+  dialog.addEventListener("cancel", event => {
+    // 파일 선택/카메라의 cancel은 버블링합니다. 팝업 자체를 닫는 요청만 처리합니다.
+    if (event.target !== dialog) return;
+    event.preventDefault();
+    if (!busy) close();
+  });
   form.addEventListener("submit", submit);
   new MutationObserver(() => { if (app.hidden) reset(); else if (tab.hidden) close(false); })
     .observe(app, { attributes: true, subtree: true, attributeFilter: ["hidden"] });

@@ -62,18 +62,25 @@
 #adminScreen #adminAttendancePanel{margin:0;padding:0;border:0;border-radius:0;background:none}
 #adminScreen #adminAttendanceTitle{font-size:19px;margin:0 0 9px}
 #adminScreen #adminAttendanceStatus{font-size:13px;line-height:1.8;margin:0 0 16px}
-#adminScreen #adminAttendanceLookup{font-size:14px;min-height:44px;width:auto;padding:10px 16px;margin:0 0 16px}
+#adminScreen #adminAttendanceLookup{font-size:10.78px;min-height:30.8px;width:auto;padding:7px 11.2px;margin:0;line-height:1.4;white-space:nowrap;flex:0 0 auto}
 #adminScreen .aw-identity-compare{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:2px}
 #adminScreen .aw-app-identity,#adminScreen #adminAttendanceCandidate{min-width:0;display:block;border:1px solid #dae3ee;background:#f8fafc;border-radius:9px;padding:18px;margin:0}
 #adminScreen #adminAttendanceCandidate{background:#f4fbf7;border-color:#b8d9cb}
 #adminScreen .aw-app-identity h4,#adminScreen #adminAttendanceCandidate h4{margin:0 0 14px;font-size:13px;color:#65768b}
+#adminScreen .aw-app-identity-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+#adminScreen .aw-app-identity .aw-app-identity-heading h4{margin:0}
 #adminScreen .aw-app-identity p{display:grid;gap:11px;margin:0;line-height:1.7;font-size:14px}
 #adminScreen .aw-app-identity strong{font-size:18px}
 #adminScreen #adminAttendanceCandidateName{font-size:16px;line-height:1.8;overflow-wrap:anywhere;margin:0 0 16px}
 #adminScreen #adminAttendanceConfirm{min-height:44px;font-size:14px;line-height:1.6}
 #adminScreen .aw-access-details{margin-top:22px;padding-top:18px;border-top:1px solid var(--aw-line);font-size:13px;color:#68768c}
-#adminScreen .aw-access-details summary{cursor:pointer;font-weight:700}
-#adminScreen #adminMemberAccessPanel{margin:14px 0 0;box-shadow:none}
+#adminScreen .aw-access-details summary{cursor:pointer;font-weight:800;list-style:none}
+#adminScreen .aw-access-details summary::-webkit-details-marker{display:none}
+#adminScreen .aw-access-section-title{display:flex;align-items:center;gap:9px;color:var(--aw-navy);font-size:19px;font-weight:800;line-height:1.5;word-break:keep-all}
+#adminScreen .aw-access-section-title::before{content:"";flex-shrink:0;width:4px;height:18px;border-radius:4px;background:var(--brand-orange)}
+#adminScreen .aw-access-details>summary::after{content:"›";margin-left:auto;font-size:20px;line-height:1}
+#adminScreen .aw-access-details[open]>summary::after{transform:rotate(90deg)}
+#adminScreen #adminMemberAccessPanel{margin:14px 0 0;padding-top:0;border-top:0;box-shadow:none}
 #adminScreen #adminRoutineEditor{border:0;padding:0;margin:0}
 #adminScreen #adminRoutineEditor h2{font-size:19px;margin-top:0}
 #adminScreen #adminRoutineEditor :is(input,textarea,button){max-width:100%;min-width:0}
@@ -205,9 +212,9 @@
  #adminScreen .aw-member-work,#adminScreen .aw-inquiry-work,#adminScreen .aw-payment-work{padding:17px 15px}
  #adminScreen .aw-member-tabs{gap:2px;margin-bottom:16px}
  #adminScreen .aw-member-tabs button{font-size:12px;min-height:38px;padding:6px 2px}
- #adminScreen #adminAttendanceTitle,#adminScreen #adminRoutineEditor h2{font-size:17px}
+ #adminScreen #adminAttendanceTitle,#adminScreen #adminRoutineEditor h2,#adminScreen .aw-access-details>summary{font-size:17px}
  #adminScreen #adminAttendanceStatus{font-size:12px}
- #adminScreen #adminAttendanceLookup{font-size:12px;min-height:42px;width:100%}
+ #adminScreen #adminAttendanceLookup{font-size:10.78px;min-height:29.4px;width:auto}
  #adminScreen .aw-identity-compare{grid-template-columns:minmax(0,1fr);gap:10px}
  #adminScreen .aw-app-identity,#adminScreen #adminAttendanceCandidate{padding:14px}
  #adminScreen .aw-app-identity h4,#adminScreen #adminAttendanceCandidate h4{font-size:12px;margin-bottom:10px}

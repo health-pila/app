@@ -3309,7 +3309,8 @@ function renderWorkoutRecords() {
 
   const showingAll = workoutRecordViewMode === "all";
   showAllWorkoutRecordsButton.setAttribute("aria-pressed", String(showingAll));
-  showAllWorkoutRecordsButton.textContent = showingAll ? "마지막 기록 보기" : "전체 기록 보기";
+  const recordViewLabel = showAllWorkoutRecordsButton.querySelector(".workout-record-entry-label") || showAllWorkoutRecordsButton;
+  recordViewLabel.textContent = showingAll ? "마지막 기록 보기" : "전체 기록 보기";
   const latest = latestWorkoutRecord();
   const recordsToShow = workoutRecordViewMode === "latest" ? (latest ? [latest] : [])
     : workoutRecords.filter(record => showingAll || getWorkoutRecordDateKey(record.taken_at) === selectedWorkoutDate);
