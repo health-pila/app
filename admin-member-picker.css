@@ -1,4 +1,7 @@
 #adminScreen #adminMemberSelect[hidden]{display:none!important}
+.admin-membership-dates:not(:empty){margin:8px 0;padding-top:6px;border-top:1px solid #e1e7ef}
+.admin-membership-dates p{margin:3px 0;color:#53647b;font-size:14.3px;line-height:1.5;overflow-wrap:anywhere}
+.admin-membership-dates strong{color:#17233e;font-weight:700}
 .admin-eligibility-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 9px;color:#23344e;font-size:13px;font-weight:700}
 #adminScreen .admin-eligibility-heading button{width:auto;min-height:34px;margin:0;padding:7px 10px;border:1px solid #d4dce7;border-radius:9px;background:#fff;color:#526078;font:inherit;font-size:12px;white-space:nowrap;cursor:pointer}
 .admin-eligibility-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}

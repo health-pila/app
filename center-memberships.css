@@ -9,6 +9,13 @@
 .center-membership-item + .center-membership-item { margin-top:3px; }
 .center-membership-label { color:#53647b; }
 .center-membership-expiry { color:#15243e; white-space:nowrap; }
+#workoutLogTabPanel .center-membership-item { display:flex;align-items:center;flex-wrap:wrap;gap:2px 5px; }
+.center-membership-date-actions { display:inline-flex;align-items:center;gap:5px; }
+#refreshMemberMemberships { display:inline-grid;place-items:center;flex:none;width:28px;height:28px;padding:4px;border:1px solid #d9e2ed;border-radius:8px;background:#fff;color:#c45109;cursor:pointer; }
+#refreshMemberMemberships svg { width:18px;height:18px; }
+#refreshMemberMemberships:disabled { opacity:.45;cursor:default; }
+#refreshMemberMemberships:focus-visible { outline:2px solid #ff8d35;outline-offset:2px; }
+.center-membership-message.is-error { color:#a13c25; }
 .guest-demo-membership-note { margin:12px 0 18px; padding:13px 14px; border:1px solid #e1e7ef; border-radius:12px; background:#f6f8fb; }
 .guest-demo-membership-note > strong { display:block; font-size:14px; line-height:1.6; color:#15243e; }
 .guest-demo-membership-note > p { margin:5px 0 0; color:#60718a; font-size:13px; line-height:1.7; word-break:keep-all; }
