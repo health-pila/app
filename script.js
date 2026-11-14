@@ -445,6 +445,7 @@ let memberInquiryVisibleCount =
 
 // 오래 걸린 이전 문의 조회가 새 화면을 덮어쓰지 않도록 구분합니다.
 let memberInquiryLoadRequestId = 0;
+const memberInquiryStatusUpdates = new Map();
 let adminInquiryLoadRequestId = 0;
 let adminInquiryAlertLoadRequestId = 0;
 
@@ -607,6 +608,7 @@ function scheduleInquiryRealtimeRefresh(
 // 기존 문의 실시간 구독 종료
 async function stopInquiryRealtimeSubscription() {
   memberInquiryLoadRequestId += 1;
+  memberInquiryStatusUpdates.clear();
   adminInquiryLoadRequestId += 1;
   adminInquiryAlertLoadRequestId += 1;
   if (inquiryRealtimeRefreshTimer) {
@@ -644,7 +646,9 @@ async function stopInquiryRealtimeSubscription() {
 async function startInquiryRealtimeSubscription(
   screenType
 ) {
+  const memberUserId = screenType === "member" ? memberRoutineIdentity.userId : "";
   await stopInquiryRealtimeSubscription();
+  if (screenType === "member" && (!memberUserId || appScreen.hidden || memberRoutineIdentity.userId !== memberUserId)) return;
 
   function refreshInquiryList(payload) {
     if (screenType === "admin" && payload?.table === "inquiry_messages" && payload.eventType === "DELETE") {
@@ -668,11 +672,7 @@ async function startInquiryRealtimeSubscription(
       `inquiry-realtime-${screenType}-${Date.now()}`
     );
 
-  /*
-    문의 자체의 변경은 관리자 화면에서만 감지합니다.
-    회원 화면은 보관·복원 같은 관리자용 변경을
-    다시 불러오지 않습니다.
-  */
+  // Admins refresh the queue; members update only their own status badge.
   if (screenType === "admin") {
     realtimeChannel =
       realtimeChannel.on(
@@ -684,6 +684,23 @@ async function startInquiryRealtimeSubscription(
         },
         refreshInquiryList
       );
+  } else if (screenType === "member") {
+    realtimeChannel = realtimeChannel.on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "member_inquiries", filter: `user_id=eq.${memberUserId}` },
+      function (payload) {
+        const row = payload.new;
+        if (inquiryRealtimeChannel !== realtimeChannel || appScreen.hidden || memberRoutineIdentity.userId !== memberUserId ||
+            row?.user_id !== memberUserId || !["waiting", "answered"].includes(row.status)) return;
+        const previous = memberInquiryStatusUpdates.get(String(row.id));
+        if (previous && Date.parse(previous.updated_at) > Date.parse(row.updated_at)) return;
+        memberInquiryStatusUpdates.set(String(row.id), { status: row.status, updated_at: row.updated_at });
+        // Keep open conversations, unsent questions and their scroll position intact.
+        for (const card of memberInquiryList.querySelectorAll(".member-inquiry-card")) {
+          if (card.dataset.memberInquiryId === String(row.id)) setMemberInquiryStatusBadge(card.querySelector(".member-inquiry-summary-top .member-inquiry-status"), row.status);
+        }
+      }
+    );
   }
 
   inquiryRealtimeChannel =
@@ -1518,6 +1535,13 @@ async function deleteMemberInquiry(
   }
 }
 
+function setMemberInquiryStatusBadge(badge, status) {
+  if (!badge) return;
+  const answered = status === "answered";
+  badge.className = "member-inquiry-status " + (answered ? "is-answered" : "is-waiting");
+  badge.textContent = answered ? "답변 완료" : "답변 대기";
+}
+
 // 회원 문의 목록 표시
 function renderMemberInquiries(inquiries) {
   memberInquiryList.replaceChildren();
@@ -1564,15 +1588,12 @@ function renderMemberInquiries(inquiries) {
     const statusBadge =
       document.createElement("span");
 
-    statusBadge.className =
-      inquiry.status === "answered"
-        ? "member-inquiry-status is-answered"
-        : "member-inquiry-status is-waiting";
-
-    statusBadge.textContent =
-      inquiry.status === "answered"
-        ? "답변 완료"
-        : "답변 대기";
+    const statusUpdate = memberInquiryStatusUpdates.get(String(inquiry.id));
+    // A list request begun before the realtime event must not restore an older badge.
+    const status = statusUpdate && Date.parse(statusUpdate.updated_at) > Date.parse(inquiry.updated_at)
+      ? statusUpdate.status : inquiry.status;
+    if (statusUpdate && Date.parse(inquiry.updated_at) >= Date.parse(statusUpdate.updated_at)) memberInquiryStatusUpdates.delete(String(inquiry.id));
+    setMemberInquiryStatusBadge(statusBadge, status);
 
     summaryTop.append(
       inquiryPreview,
