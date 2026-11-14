@@ -88,7 +88,7 @@
     const identity = identities(record, context.userId).find(item => item.index === (exerciseIndex ?? null));
     if (!identity) return null;
     const root = node("section", "workout-exercise-history");
-    const toggle = node("button", "workout-exercise-history-toggle", "이 운동의 기록 모아보기");
+    const toggle = node("button", "workout-exercise-history-toggle", "같은 종목의 기록 모아보기");
     toggle.type = "button"; toggle.setAttribute("aria-expanded", "false");
     const panel = node("div", "workout-exercise-history-panel");
     panel.id = "workout-exercise-history-" + (++sequence); panel.hidden = true;
@@ -146,7 +146,7 @@
       const opening = panel.hidden;
       panel.hidden = !opening; toggle.setAttribute("aria-expanded", String(opening));
       if (actions) root.hidden = !opening;
-      toggle.textContent = opening ? "모아본 기록 접기" : "이 운동의 기록 모아보기";
+      toggle.textContent = opening ? "모아본 기록 접기" : "같은 종목의 기록 모아보기";
       if (opening) {
         if (rows === null) void load();
         else if (count === 0) appendPage();
