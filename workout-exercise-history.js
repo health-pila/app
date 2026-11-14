@@ -42,7 +42,6 @@
     if (!record || (record.user_id && record.user_id !== userId)) return [];
     const photo = identify(record, userId);
     if (photo) return [{ exercise: photo, index: null }];
-    if (record.photo_path !== null) return [];
     return (window.WorkoutSetRecords?.clean(record.set_records) || []).map((e,index) => ({exercise:{id:'',name:e.name}, index}));
   }
   function matchingRecords(record, records, userId, exerciseIndex) {
@@ -116,9 +115,10 @@
         const date = node("time", "workout-exercise-history-date", "운동 날짜: " + context.formatDay(row.taken_at));
         date.dateTime = row.taken_at;
         item.append(date);
-        const tables = row.photo_path === null ? window.WorkoutSetRecords?.render(row.set_records) : null;
-        if (tables) item.append(tables); else item.append(context.createPhoto(row));
-        if (!tables && row.caption) item.append(node("p", "workout-exercise-history-caption", row.caption));
+        const tables = window.WorkoutSetRecords?.render(row.set_records);
+        if (row.photo_path) item.append(context.createPhoto(row));
+        if (tables) item.append(tables);
+        if (row.caption) item.append(node("p", "workout-exercise-history-caption", row.caption));
         list.append(item);
       }
       more.hidden = count >= rows.length;

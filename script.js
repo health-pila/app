@@ -3062,11 +3062,18 @@ const emptyWorkoutRecordMessage =
 // 서버에서 불러온 운동 기록
 let workoutRecords = [];
 
-// 표시할 기록 종류만 바꿉니다. 저장된 사진·운동 시간·세트 기록은 그대로 둡니다.
-let workoutRecordTypeFilter = "all";
-const showPhotoWorkoutRecordsButton = document.querySelector("#showPhotoWorkoutRecordsButton");
-const showTextWorkoutRecordsButton = document.querySelector("#showTextWorkoutRecordsButton");
-const showSetWorkoutRecordsButton = document.querySelector("#showSetWorkoutRecordsButton");
+// 첫 화면은 최근에 저장한 한 기록, 전체 보기는 모든 기록을 표시합니다.
+let workoutRecordViewMode = "latest";
+function latestWorkoutRecord() {
+  const timestamp = record => {
+    const saved = Date.parse(record.created_at);
+    return Number.isFinite(saved) ? saved : (Date.parse(record.taken_at) || 0);
+  };
+  return workoutRecords.reduce((latest, record) => !latest ||
+    timestamp(record) > timestamp(latest) ||
+    (timestamp(record) === timestamp(latest) && String(record.id).localeCompare(String(latest.id), undefined, { numeric: true }) > 0)
+      ? record : latest, null);
+}
 
 // 현재 기록을 조회하는 회원
 let workoutRecordsUserId = "";
@@ -3300,27 +3307,17 @@ function renderWorkoutRecords() {
   workoutRecordList.innerHTML = "";
   const exerciseHistoryContext = createWorkoutExerciseHistoryContext();
 
-  showAllWorkoutRecordsButton.setAttribute("aria-pressed", String(workoutRecordTypeFilter === "all" && !selectedWorkoutDate));
-  showPhotoWorkoutRecordsButton.setAttribute("aria-pressed", String(workoutRecordTypeFilter === "photo"));
-  showTextWorkoutRecordsButton.setAttribute("aria-pressed", String(workoutRecordTypeFilter === "text"));
-  showSetWorkoutRecordsButton.setAttribute("aria-pressed", String(workoutRecordTypeFilter === "sets"));
-
-  const recordsToShow = workoutRecords.filter(record => {
-    if (selectedWorkoutDate && getWorkoutRecordDateKey(record.taken_at) !== selectedWorkoutDate) return false;
-    if (workoutRecordTypeFilter === "text") return record.photo_path === null;
-    if (workoutRecordTypeFilter === "sets") return window.WorkoutSetRecords?.has(record) || window.WorkoutExerciseHistory.isCapturePhoto(record, workoutRecordsUserId);
-    if (workoutRecordTypeFilter === "photo") {
-      return typeof record.photo_path === "string" && record.photo_path.length > 0 &&
-        !window.WorkoutExerciseHistory.isCapturePhoto(record, workoutRecordsUserId);
-    }
-    return true;
-  });
+  const showingAll = workoutRecordViewMode === "all";
+  showAllWorkoutRecordsButton.setAttribute("aria-pressed", String(showingAll));
+  showAllWorkoutRecordsButton.textContent = showingAll ? "마지막 기록 보기" : "전체 기록 보기";
+  const latest = latestWorkoutRecord();
+  const recordsToShow = workoutRecordViewMode === "latest" ? (latest ? [latest] : [])
+    : workoutRecords.filter(record => showingAll || getWorkoutRecordDateKey(record.taken_at) === selectedWorkoutDate);
 
   if (recordsToShow.length === 0) {
-    const kind = workoutRecordTypeFilter === "photo" ? "사진 기록" : workoutRecordTypeFilter === "text" ? "운동 시간 기록" : workoutRecordTypeFilter === "sets" ? "세트별 기록" : "운동 기록";
-    emptyWorkoutRecordMessage.textContent = selectedWorkoutDate
-      ? `선택한 날짜에는 저장된 ${kind}이 없습니다.`
-      : `아직 저장된 ${kind}이 없습니다.`;
+    emptyWorkoutRecordMessage.textContent = workoutRecordViewMode === "date"
+      ? "선택한 날짜에는 저장된 운동 기록이 없습니다."
+      : "아직 저장된 운동 기록이 없습니다.";
 
     workoutRecordList.append(
       emptyWorkoutRecordMessage
@@ -3567,7 +3564,7 @@ async function loadWorkoutRecords(userId) {
     ++workoutRecordsRequestId;
 
   if (workoutRecordsUserId !== userId) {
-    workoutRecordTypeFilter = "all";
+    workoutRecordViewMode = "latest";
     workoutRecordsUserId = userId;
     restoreWorkoutPhotoUrlCache(userId);
     workoutRecords = [];
@@ -3643,11 +3640,11 @@ async function loadWorkoutRecords(userId) {
     workoutRecords.length > 0
   ) {
     const latestWorkoutDate =
-      new Date(workoutRecords[0].taken_at);
+      new Date(latestWorkoutRecord().taken_at);
 
     selectedWorkoutDate =
       getWorkoutRecordDateKey(
-        workoutRecords[0].taken_at
+        latestWorkoutRecord().taken_at
       );
 
     visibleWorkoutMonth =
@@ -3884,10 +3881,11 @@ function renderWorkoutCalendar() {
 
     dateButton.addEventListener("click", function () {
       selectedWorkoutDate =
-        selectedWorkoutDate === dateKey
+        workoutRecordViewMode === "date" && selectedWorkoutDate === dateKey
           ? ""
           : dateKey;
       workoutEntrySelectedDate = selectedWorkoutDate;
+      workoutRecordViewMode = selectedWorkoutDate ? "date" : "latest";
 
       renderWorkoutCalendar();
       renderWorkoutRecords();
@@ -3907,6 +3905,7 @@ previousWorkoutMonthButton.addEventListener(
     );
 
     selectedWorkoutDate = "";
+    if (workoutRecordViewMode === "date") workoutRecordViewMode = "latest";
     renderWorkoutCalendar();
     renderWorkoutRecords();
   }
@@ -3921,34 +3920,28 @@ nextWorkoutMonthButton.addEventListener(
     );
 
     selectedWorkoutDate = "";
+    if (workoutRecordViewMode === "date") workoutRecordViewMode = "latest";
     renderWorkoutCalendar();
     renderWorkoutRecords();
   }
 );
 
-// 날짜 선택을 해제하고 전체 운동 기록 보기
-showAllWorkoutRecordsButton.addEventListener(
-  "click",
-  function () {
-    selectedWorkoutDate = "";
-    workoutRecordTypeFilter = "all";
-    shouldSelectLatestWorkoutDate = false;
-
-    renderWorkoutCalendar();
-    renderWorkoutRecords();
-  }
-);
-
-function toggleWorkoutRecordTypeFilter(type) {
-  workoutRecordTypeFilter = workoutRecordTypeFilter === type ? "all" : type;
+// 전체 보기와 마지막으로 저장한 기록 한 개 보기를 전환합니다.
+showAllWorkoutRecordsButton.addEventListener("click", () => {
+  workoutRecordViewMode = workoutRecordViewMode === "all" ? "latest" : "all";
   selectedWorkoutDate = "";
   shouldSelectLatestWorkoutDate = false;
+  if (workoutRecordViewMode === "latest") {
+    const latest = latestWorkoutRecord();
+    if (latest) {
+      const date = new Date(latest.taken_at);
+      selectedWorkoutDate = getWorkoutRecordDateKey(latest.taken_at);
+      visibleWorkoutMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    }
+  }
   renderWorkoutCalendar();
   renderWorkoutRecords();
-}
-showPhotoWorkoutRecordsButton.addEventListener("click", () => toggleWorkoutRecordTypeFilter("photo"));
-showTextWorkoutRecordsButton.addEventListener("click", () => toggleWorkoutRecordTypeFilter("text"));
-showSetWorkoutRecordsButton.addEventListener("click", () => toggleWorkoutRecordTypeFilter("sets"));
+});
 
 // 로그인할 때 이번 달로 초기화
 function resetWorkoutCalendar() {
@@ -3957,7 +3950,7 @@ function resetWorkoutCalendar() {
   selectedWorkoutDate = "";
   workoutEntrySelectedDate = "";
   shouldSelectLatestWorkoutDate = true;
-  workoutRecordTypeFilter = "all";
+  workoutRecordViewMode = "latest";
 
   renderWorkoutCalendar();
 }
@@ -4553,7 +4546,7 @@ async function saveWorkoutRecord() {
     visibleWorkoutMonth.setDate(1);
     selectedWorkoutDate = getWorkoutRecordDateKey(recordTakenAt);
     shouldSelectLatestWorkoutDate = false;
-    workoutRecordTypeFilter = "all";
+    workoutRecordViewMode = "latest";
 
     await loadWorkoutRecords(user.id);
     workoutRecordSaveMessage.textContent =
@@ -4592,13 +4585,13 @@ const saveWeightRecordCapture = window.WeightRecordCapture?.createSaver({
     visibleWorkoutMonth = new Date(record.takenAt.getFullYear(), record.takenAt.getMonth(), 1);
     selectedWorkoutDate = getWorkoutRecordDateKey(record.takenAt);
     shouldSelectLatestWorkoutDate = false;
-    workoutRecordTypeFilter = "all";
+    workoutRecordViewMode = "latest";
     await loadWorkoutRecords(record.userId);
   }
 }) || (() => Promise.reject(new Error("캡처 기능을 불러오지 못했어요. 앱을 새로고침한 뒤 다시 시도해주세요.")));
 
 // 카메라 버튼 기능 연결
-openWorkoutCameraButton.addEventListener(
+openWorkoutCameraButton?.addEventListener(
   "click",
   function () {
     window.WorkoutRecordDates.prepare(workoutPhotoDayInput, preferredWorkoutEntryDate());
@@ -9497,17 +9490,17 @@ async function showWorkoutApp(userId, displayName = "", timingRun = null, screen
   window.MemberCustomExercises?.start(supabaseClient, userId);
   window.StretchingVideos?.startMember(supabaseClient, userId);
   window.MemberExerciseReplacements?.startMember(supabaseClient, userId, () => loadMemberRoutine(userId, true));
-  window.WorkoutTextRecords?.start(supabaseClient, userId, async record => {
+  window.WorkoutTextRecords?.start(supabaseClient, userId, async (record, options) => {
     if (appScreen.hidden || workoutRecordsUserId !== userId) return false;
     const takenAt = new Date(record.taken_at);
     visibleWorkoutMonth = new Date(takenAt.getFullYear(), takenAt.getMonth(), 1);
     selectedWorkoutDate = getWorkoutRecordDateKey(record.taken_at);
     shouldSelectLatestWorkoutDate = false;
-    workoutRecordTypeFilter = "all";
+    workoutRecordViewMode = options?.editing ? "date" : "latest";
     await loadWorkoutRecords(userId);
     return !appScreen.hidden && workoutRecordsUserId === userId &&
       workoutRecords.some(item => String(item.id) === String(record.id));
-  }, preferredWorkoutEntryDate);
+  }, preferredWorkoutEntryDate, { optimizePhoto: optimizeWorkoutPhoto });
 
   workoutCaptureBadge.start(userId);
   const memberTabBeforeRefresh =
@@ -11488,7 +11481,7 @@ async function handleLogout() {
     workoutPhotoUrlCache.clear();
     try { sessionStorage.removeItem(WORKOUT_PHOTO_URL_CACHE_KEY); } catch (error) {}
     workoutRecords = [];
-    workoutRecordTypeFilter = "all";
+    workoutRecordViewMode = "latest";
     workoutRecordDates = new Set();
     workoutRecordList.replaceChildren();
     renderWorkoutCalendar();

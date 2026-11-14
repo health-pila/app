@@ -25,11 +25,11 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="1200">
   <meta property="og:image:alt" content="헬스와 필라테스 화곡점 글자와 주황색 운동 심벌이 함께 있는 센터 로고">
-  <meta name="app-version" content="345">
+  <meta name="app-version" content="346">
   <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png?v=468131089e169951c9e69bd2da2438b9936a820229a0946a0780a358f6713fbe">
 
 
-  <link rel="stylesheet" href="style.css?v=d1b16b54e91cf31c130bc1a382a8a3eddf775321feab8e925bdf71dd739f1b93">
+  <link rel="stylesheet" href="style.css?v=0b36628e9d01ffb2c2946c57d16af43d28872b807e5fe4e393a3fd87a5fa28e5">
   <script src="pull-to-refresh-guard.js?v=589f4dc678016b6b9c0179220c23481e552204c5ad1ca69e36e58ed441790f8b" defer></script>
   <script src="input-scroll-guard.js?v=d9e7b4820f87f00a900bda6c220aa93ea49318639aa25d83dfc334904bb27c6b" defer></script>
   <link rel="stylesheet" href="cardio-programs.css?v=c71e0e78a20cf1337edb85c816e7bc253b4dac57eb9fcda16df69e75a004cd0b">
@@ -409,24 +409,12 @@
       </section>
 
       <div class="workout-record-entry-actions">
-        <button id="openWorkoutCameraButton" class="workout-camera-button" type="button">
-          <span aria-hidden="true">📷</span><span>사진으로 기록하기</span>
-        </button>
         <button id="openWorkoutTextButton" class="workout-text-button" type="button" aria-haspopup="dialog" aria-controls="workoutTextDialog" disabled>
-          <span aria-hidden="true">⏳</span>
-          <span>시간·세트 기록하기</span>
-        </button>
-        <button id="showPhotoWorkoutRecordsButton" class="workout-record-filter-button" type="button" aria-pressed="false" aria-controls="workoutRecordList">
-          사진 기록만 모아보기
-        </button>
-        <button id="showTextWorkoutRecordsButton" class="workout-record-filter-button" type="button" aria-pressed="false" aria-controls="workoutRecordList">
-          시간·세트 모아보기
-        </button>
-        <button id="showSetWorkoutRecordsButton" class="workout-record-filter-button" type="button" aria-pressed="false" aria-controls="workoutRecordList">
-          세트별 기록만 모아보기
+          <span aria-hidden="true">✎</span>
+          <span>운동 기록</span>
         </button>
         <button id="showAllWorkoutRecordsButton" class="show-all-workout-records-button" type="button" aria-pressed="false" aria-controls="workoutRecordList">
-          전체 운동 기록 보기
+          전체 기록 보기
         </button>
       </div>
       <input id="workoutNativeCameraInput" type="file" accept="image/*" capture="environment" hidden>
@@ -1483,7 +1471,7 @@
     </div>
   </dialog>
 
-  <script src="app-assets.js?v=460eff90b2b7dcbbddc1752793893dd99eab13eddd4dc24dcee39afd3d0d2bb1"></script>
+  <script src="app-assets.js?v=9ad635069697e2dd51451e82230a5c7353d4e0a37f8a5a74f580023f3060fc83"></script>
   <script src="deferred-images.js?v=663181d66366be28299e333f15b39eff5f1f4d79844e3b2eb3b3131358e7e18a"></script>
   <script src="login-timing.js?v=bf62a9708baa815f23755757b4ba7a3c7bfe54d2d6a678bab613c169e4e4afe4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
@@ -1491,7 +1479,7 @@
   <script src="exercise-data.js?v=ea7029b4ae4aa88043630af2af1c089f01f8c6471e0f316216f56950206ccd1a"></script>
   <script src="member-custom-exercises.js?v=bc795a7c84a63f14db938dd095edac67e59cdcb6932fec734a7bb474a1a60445"></script>
 <script src="exercise-content-sync.js?v=f798d08fb630566775ed5ba521e666f093a71d0f68a35b195907eb63f9efd77a"></script>
-  <script src="workout-exercise-history.js?v=2edd8ad910bdba83a5d42a5644c8e27e8a436f20bd6036e59777f15e029a998f"></script>
+  <script src="workout-exercise-history.js?v=3b3dce4731d73bfc051f09dd051ef4b1a2c0d32070c7fafb32befcbe3d8581dd"></script>
   <script src="weight-record-capture.js?v=6bc845527fdae57bb305ef46a595555ab4820a89df759f108e3859cfd2f78721"></script>
   <script src="member-workout-completion.js?v=c366108d7e4a220ff6743da76bfab29a9c40f82c9f1ef2350828097d640bccd7"></script>
   <script src="routine-components.js?v=8b38f9441aa97b9103392b1f68c1e6cd1c3411473650be2815f0e39aa2223d1b"></script>
@@ -1502,7 +1490,7 @@
   <script src="cardio-programs.js?v=95b7ddc4953643a3beb0d66454a730d7024a5a4b17c268978dd4e613d969fce6"></script>
   <script src="workout-record-dates.js?v=b662cf88225b0d07c8eb555562fef176748add76367078d0385a8452ac2afc52"></script>
   <script src="workout-set-records.js?v=6b052ef85363c15c3c939126c274a5e5a71bae7eb2894cb039d7971f964bfa89"></script>
-  <script src="workout-text-records.js?v=a18852eb111f0f24fa12799653bdd90bc48188083d2ee5ec0f6e1d7c5e526496"></script>
+  <script src="workout-text-records.js?v=863b8c260528cd8226d1ea6fb2682ab15b466ebfe17f2e1aa63902c7cf7a771b"></script>
   <script src="member-services.js?v=5fcf08efee275561a69c71816b3d4317bdb5ff2edbda7f4c83ccd1f654544841"></script>
   <script src="payapp-checkout.js?v=625fd31566f98813f761342efb86965acb1ece2a05beab5503d3676d36602e04"></script>
   <script src="payment-fulfillment.js?v=f27dcc38971071bc17081d6a3ae237ad7379397f2dba5768b60aaa1258b7c92d"></script>
@@ -1512,7 +1500,7 @@
   <script src="app-usage.js?v=bcf55db434f4943e59d7de36f50a8ce9bba1e891df2104722e67db7c18f83b31"></script>
   <script src="center-memberships.js?v=b95ee99fdd097957003eb3cfece34d28e4de4c359dfdd81396a22d2288be4544"></script>
   <script src="center-attendance.js?v=c47297e80484490c6b4a88cb0408b0ca6fee31def0af741c85c2540bd8c8b885"></script>
-  <script src="script.js?v=678db2e2171f9e866c3a142d5f8e2dc9c1236953f79120df774199ddf899c3c6"></script>
+  <script src="script.js?v=60c7b145772296f05df1242877a9dfee0c724de95f0674834236c1f396040af2"></script>
   <script src="guest-demo.js?v=f46b459ae4dc9a3b1c3a5bb61cdd575ba0647bde4eb1b28606c511f947e4a906"></script>
 </body>
 
