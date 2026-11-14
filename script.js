@@ -5219,12 +5219,19 @@ const loadMoreAdminInquiriesButton =
 let isAdminInquiryEnabled = false;
 
 const ADMIN_INQUIRY_PAGE_SIZE = 10;
+const ADMIN_ANSWERED_INQUIRY_PAGE_SIZE = 20;
 
 let adminInquiryVisibleCount =
   ADMIN_INQUIRY_PAGE_SIZE;
 
 let selectedAdminInquiryFilter =
   "waiting";
+
+function getAdminInquiryPageSize() {
+  return selectedAdminInquiryFilter === "answered"
+    ? ADMIN_ANSWERED_INQUIRY_PAGE_SIZE
+    : ADMIN_INQUIRY_PAGE_SIZE;
+}
 
 // 검색은 제출한 검색어로만 수행하며, 해제하면 기존 상태 필터로 돌아갑니다.
 const adminInquirySearchForm = document.querySelector("#adminInquirySearchForm");
@@ -5240,11 +5247,11 @@ function setAdminInquiryMemberScope(enabled) {
     if (!adminInquiryScopeReturn) adminInquiryScopeReturn = { filter: selectedAdminInquiryFilter };
     selectedAdminInquiryFilter = "all";
     adminInquirySearchTerm = "";
-    adminInquiryVisibleCount = ADMIN_INQUIRY_PAGE_SIZE;
+    adminInquiryVisibleCount = getAdminInquiryPageSize();
   } else if (adminInquiryScopeReturn) {
     selectedAdminInquiryFilter = adminInquiryScopeReturn.filter;
     adminInquirySearchTerm = "";
-    adminInquiryVisibleCount = ADMIN_INQUIRY_PAGE_SIZE;
+    adminInquiryVisibleCount = getAdminInquiryPageSize();
     adminInquiryScopeReturn = null;
   }
   document.getElementById("adminInquiryMemberAll").hidden = !enabled;
@@ -5275,7 +5282,7 @@ async function applyAdminInquirySearch(term) {
   adminInquirySearchInput.value = adminInquirySearchTerm;
   adminInquirySearchClear.hidden = !adminInquirySearchTerm;
   adminInquiryFilters.hidden = Boolean(adminInquirySearchTerm);
-  adminInquiryVisibleCount = ADMIN_INQUIRY_PAGE_SIZE;
+  adminInquiryVisibleCount = getAdminInquiryPageSize();
   openAdminInquiryId = null;
   await loadAdminInquiries();
 }
@@ -6449,7 +6456,7 @@ async function loadAdminInquiries(
 
     const canCollapseInquiryList =
       adminInquiryVisibleCount >
-      ADMIN_INQUIRY_PAGE_SIZE &&
+      getAdminInquiryPageSize() &&
       !hasMoreInquiries;
 
     loadMoreAdminInquiriesButton.hidden = !hasMoreInquiries && !canCollapseInquiryList;
@@ -6523,7 +6530,7 @@ adminInquiryFilterButtons.forEach(
           nextFilter;
 
         adminInquiryVisibleCount =
-          ADMIN_INQUIRY_PAGE_SIZE;
+          getAdminInquiryPageSize();
 
         openAdminInquiryId = null;
 
@@ -6565,7 +6572,7 @@ loadMoreAdminInquiriesButton.addEventListener(
 
     if (shouldCollapse) {
       adminInquiryVisibleCount =
-        ADMIN_INQUIRY_PAGE_SIZE;
+        getAdminInquiryPageSize();
 
       openAdminInquiryId = null;
 
@@ -6586,7 +6593,7 @@ loadMoreAdminInquiriesButton.addEventListener(
     }
 
     adminInquiryVisibleCount +=
-      ADMIN_INQUIRY_PAGE_SIZE;
+      getAdminInquiryPageSize();
 
     loadMoreAdminInquiriesButton.textContent =
       "불러오는 중...";
