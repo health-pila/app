@@ -23,7 +23,8 @@
     page = hooks.restricted && next === 'payments' ? 'home' : next;
     dialog.dataset.accountView = page;
     pages.forEach(el => { el.hidden = el.dataset.accountPage !== page; });
-    $('accountHeading').textContent = ({home:'내 정보', payments:'앱 내 결제 내역', password:'비밀번호 변경', withdraw:'앱 탈퇴 요청', privacy:'개인정보처리방침'})[page];
+    $('accountHeading').textContent = ({home:'내 정보', payments:'앱 내 결제 내역', password:'비밀번호 변경', withdraw:'앱 탈퇴 요청', privacy:'개인정보처리방침', security:'앱 보안 안내'})[page];
+    $('accountClose').setAttribute('aria-label', $('accountHeading').textContent + ' 창 닫기');
     $('accountBack').hidden = page === 'home';
     dialog.querySelector('.account-body').scrollTop = 0;
     if (page === 'payments') void loadPayments(false);
@@ -195,6 +196,7 @@
     }).catch(() => {});
   }
   $('memberInfoButton').addEventListener('click', () => open());
+  $('memberSecurityButton')?.addEventListener('click', () => open('security'));
   dialog.querySelectorAll('[data-account-open]').forEach(b => b.addEventListener('click', () => renderPage(b.dataset.accountOpen)));
   $('accountClose').addEventListener('click', () => close());
   $('accountBack').addEventListener('click', () => renderPage('home'));

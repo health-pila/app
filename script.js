@@ -4730,10 +4730,10 @@ const naverAuth = window.NaverLogin?.create({
     logoutButton, document.querySelector("#refreshMemberAppButton")].filter(Boolean)
 });
 
-function renderMemberAccountEmail(email = "") {
-  const value = typeof email === "string" ? email.trim() : "";
-  memberAccountEmail.textContent = value;
-  memberAccountEmail.hidden = !value;
+function renderMemberAccountEmail() {
+  // 더보기 메뉴에는 이메일을 노출하지 않습니다. 내 정보 화면의 표시는 유지합니다.
+  memberAccountEmail.textContent = "";
+  memberAccountEmail.hidden = true;
 }
 
 // 회원·관리자 상단 더보기: 바깥 클릭, Escape, 화면 이동과 로그아웃 시 닫습니다.
