@@ -28,8 +28,8 @@
   function editor(host) {
     function add(value={name:'',sets:blank()}) {
       if(host.children.length>=10)return;
-      const card=node('section','workout-set-editor');const label=node('label','','운동 이름');const name=document.createElement('input');name.type='text';name.maxLength=80;name.value=value.name;name.placeholder='운동 이름 직접 입력';name.dataset.exerciseName='';name.setAttribute('aria-label','운동 이름');label.append(name);
-      const remove=node('button','','이 운동 삭제');remove.type='button';remove.addEventListener('click',()=>card.remove());card.append(label,remove,table(value.sets,true));host.append(card);return name;
+      const card=node('section','workout-set-editor');const heading=node('div','workout-set-editor-heading');const name=document.createElement('input');name.type='text';name.maxLength=80;name.value=value.name;name.placeholder='운동 이름 직접 입력';name.dataset.exerciseName='';name.setAttribute('aria-label','운동 이름');
+      const remove=node('button','','표 입력 취소');remove.type='button';remove.addEventListener('click',()=>card.remove());heading.append(name,remove);card.append(heading,table(value.sets,true));host.append(card);return name;
     }
     function read() {
       if(!host.children.length)return null;

@@ -4,23 +4,25 @@
 }
 
 /* 운동 기록과 전체/마지막 기록 보기: 두 버튼으로 통합합니다. */
-.workout-record-entry-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(40.392px, 1fr); gap: 8px; margin-bottom: 22px; }
+.workout-record-entry-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(48.4704px, 1fr); gap: 8px; margin-bottom: 22px; }
 .workout-record-entry-actions .workout-camera-button,
 .workout-record-entry-actions .workout-text-button,
 .workout-record-entry-actions .workout-record-filter-button,
-.workout-record-entry-actions .show-all-workout-records-button { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-width: 0; height: auto; min-height: 40.392px; margin: 0; padding: 3px 6px; border: 1px solid var(--brand-orange); border-radius: 12px; font: inherit; font-size: 14.3px; font-weight: 700; line-height: 1.3; word-break: keep-all; cursor: pointer; }
+.workout-record-entry-actions .show-all-workout-records-button { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-width: 0; height: auto; min-height: 48.4704px; margin: 0; padding: 3px 6px; border: 1px solid var(--brand-orange); border-radius: 12px; font: inherit; font-size: 18.59px; font-weight: 700; line-height: 1.3; word-break: keep-all; cursor: pointer; }
 .workout-record-entry-actions .workout-record-filter-button { color: var(--brand-navy); border-color: var(--brand-border); border-radius: 12px; background: var(--brand-white); }
 .workout-record-entry-actions .workout-record-filter-button[aria-pressed="true"] { color: var(--brand-navy); border-color: var(--brand-navy); box-shadow: inset 0 0 0 1px var(--brand-navy); }
 .workout-record-filter-button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
 .workout-record-entry-actions .workout-camera-button,
 .workout-record-entry-actions .workout-text-button { color: #a94200; background: #fff4ea; box-shadow: 0 8px 18px #f56a0014; }
+.workout-record-entry-actions .workout-text-button { border-color: var(--brand-border); }
 .workout-record-entry-actions .show-all-workout-records-button { color: var(--brand-white); background: var(--brand-orange); box-shadow: 0 8px 18px #f56a0033; }
-.workout-record-entry-actions .show-all-workout-records-button[aria-pressed="true"] { box-shadow: 0 8px 18px #f56a0033,inset 0 0 0 1px #fff; }
+.workout-record-entry-actions .show-all-workout-records-button[aria-pressed="true"],
+.workout-record-entry-actions .show-all-workout-records-button[aria-pressed="true"]:active { color: var(--brand-orange); background: var(--brand-white); box-shadow: 0 8px 18px #f56a0014; }
 .workout-record-entry-actions .show-all-workout-records-button:active { color: var(--brand-white); background-color: var(--brand-orange); }
 .workout-record-entry-actions .workout-camera-button:active,
 .workout-record-entry-actions .show-all-workout-records-button:active { transform: translateY(1px); }
 .workout-record-entry-actions > button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
-@media(max-width:360px){.workout-record-entry-actions :is(.workout-camera-button,.workout-text-button,.workout-record-filter-button,.show-all-workout-records-button){font-size:13.2px;line-height:1.2;gap:4px}}
+@media(max-width:360px){.workout-record-entry-actions :is(.workout-camera-button,.workout-text-button,.workout-record-filter-button,.show-all-workout-records-button){font-size:17.16px;line-height:1.2;gap:4px}}
 .workout-text-button > [aria-hidden="true"] { flex: 0 0 auto; }
 .workout-text-button:disabled { opacity: .5; cursor: default; }
 .workout-text-button:focus-visible { outline: 3px solid #f59a57; outline-offset: 2px; }
@@ -5967,9 +5969,9 @@ textarea.routine-weight-cell {
 
 /* 자유 입력 세트 기록: 다른 팝업과 기존 운동 카드에는 적용하지 않습니다. */
 .workout-set-editor { position:relative; margin-top:16px; padding:12px; border:1px solid #dce2eb; border-radius:12px; background:#f8fafc; }
-.workout-set-editor>label { margin-right:85px; }
-.workout-set-editor>label>input { box-sizing:border-box; width:100%; margin:4px 0 10px; padding:9px; border:1px solid #dce2eb; border-radius:8px; background:#fff; font:inherit; font-size:16px; }
-.workout-set-editor>button { position:absolute; top:12px; right:8px; }
+.workout-set-editor-heading { display:flex; align-items:stretch; gap:8px; margin-bottom:10px; }
+.workout-set-editor-heading>input { box-sizing:border-box; flex:1 1 auto; min-width:0; width:100%; min-height:40px; margin:0; padding:9px; border:1px solid #dce2eb; border-radius:8px; background:#fff; font:inherit; font-size:16px; }
+.workout-set-editor-heading>button { flex:0 0 auto; white-space:nowrap; }
 .workout-set-scroll { max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
 .workout-set-table { width:100%; min-width:520px; border-collapse:collapse; table-layout:fixed; color:#17233e; font-size:13px; }
 .workout-set-table th,.workout-set-table td { padding:6px; border:1px solid #dce2eb; white-space:pre-wrap; overflow-wrap:anywhere; vertical-align:top; }
@@ -6115,11 +6117,12 @@ textarea[data-page-scroll-ready]{overflow-y:hidden!important;overscroll-behavior
 #appScreen #memberInquirySection .member-inquiry-history{margin-top:10px;padding-top:10px}
 
 /* v346: 사진과 세트표를 한 기록에 담는 입력창 */
-.workout-text-dialog .workout-composer-actions { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; margin-bottom:16px; }
+.workout-text-dialog .workout-composer-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-bottom:16px; }
 .workout-text-dialog .workout-composer-actions [data-add-sets],
-.workout-text-dialog [data-add-photo] { display:flex; align-items:center; gap:10px; width:100%; min-height:58px; margin:0; padding:10px 12px; border:1px solid #ec6a1a; border-radius:12px; color:#fff; background:#ec6a1a; box-shadow:0 3px 0 #c54c06; font:inherit; font-size:16px; font-weight:700; text-align:left; }
+.workout-text-dialog [data-add-photo] { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; min-width:0; min-height:44px; margin:0; padding:7px 8px; border:1px solid #ec6a1a; border-radius:10px; color:#fff; background:#ec6a1a; box-shadow:0 3px 0 #c54c06; font:inherit; font-size:13px; font-weight:700; line-height:1.35; text-align:center; word-break:keep-all; }
 .workout-text-dialog [data-add-photo] { color:#a94200; background:#fff4ea; box-shadow:0 3px 0 #edc6aa; }
-.workout-text-dialog [data-add-photo] .workout-set-entry-icon { color:#a94200; font-size:20px; }
+.workout-text-dialog .workout-composer-actions .workout-set-entry-icon { flex:0 0 22px; width:22px; height:22px; font-size:20px; }
+.workout-text-dialog [data-add-photo] .workout-set-entry-icon { color:#a94200; font-size:15px; }
 .workout-text-dialog .workout-text-tools { position:static; padding-bottom:6px; }
 .workout-text-dialog .workout-text-save { display:block; width:100%; margin-top:14px; min-height:46px; font-size:16px; }
 .workout-composer-photo { margin:0 0 16px; }

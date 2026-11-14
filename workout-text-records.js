@@ -18,7 +18,7 @@
     <input type="file" data-photo-input accept="image/*" capture="environment" hidden>
     <div class="workout-composer-photo" data-photo-preview hidden><img alt="저장할 운동 사진" hidden><button type="button" data-remove-photo>사진 빼기</button><p data-photo-note></p></div>
     <div data-set-editors></div>
-    <div class="workout-text-tools"><label for="workoutTextBody">운동 기록</label></div>
+    <div class="workout-text-tools"><label for="workoutTextBody">직접 기록 남기기</label></div>
     <textarea id="workoutTextBody" name="body" rows="3" maxlength="120" aria-describedby="workoutTextHelp"></textarea>
     <p id="workoutTextHelp">글·세트 기록표·사진 중 원하는 내용을 남겨 주세요. 함께 저장할 수도 있어요.</p>
     <p data-text-status role="status"></p><button type="button" data-text-check hidden>저장 상태 다시 확인</button><button type="submit" class="workout-text-save">기록 저장</button></form>`;
