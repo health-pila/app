@@ -308,3 +308,19 @@
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awInquiryWork .member-inquiry-delete-area{flex:none;padding:6px 0 0}
  #adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awNextBar{position:static;flex:none;padding:10px 14px}
 }
+
+/* Compact the inquiry sidebar without reducing its text sizes. */
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #awQueueHeading{display:none}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquirySearchForm .admin-inquiry-search-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquirySearchForm .admin-inquiry-search-row{flex-wrap:nowrap}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquirySearchForm .admin-inquiry-search-row input{flex:1 1 0;min-width:0;width:0}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryFilters{padding:2px;margin:4px 0 8px}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryFilters button{height:29.4px;min-height:29.4px;padding:2px 3px;line-height:1.3}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList{gap:4px}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList>.admin-inquiry-card{padding:6px 8px}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList .admin-inquiry-summary-button{gap:3px}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList .admin-inquiry-summary-top{gap:4px;align-items:center;line-height:1.3}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList .admin-inquiry-member-name{line-height:1.3}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList .admin-inquiry-preview{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;min-height:0;max-height:2.6em;line-height:1.3;overflow:hidden}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryList .admin-inquiry-meta{gap:0;line-height:1.3}
+#adminScreen[data-aw-page=requests][data-aw-kind=inquiry] #adminInquiryListMessage:empty{display:none}

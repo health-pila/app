@@ -374,6 +374,42 @@ const memberInquiryBody =
     "#memberInquiryBody"
   );
 
+// Fit the initial empty editor to its wrapped guide. Existing drafts and manual resizing stay intact.
+let memberInquiryGuideFitFrame = 0;
+function fitMemberInquiryGuide() {
+  if (!memberInquiryBody || memberInquiryBody.value || memberInquiryBody.closest("[hidden]")) return;
+  const width = memberInquiryBody.getBoundingClientRect().width;
+  if (width <= 0) return;
+  const guide = memberInquiryBody.cloneNode(false);
+  guide.removeAttribute("id");
+  guide.setAttribute("aria-hidden", "true");
+  guide.tabIndex = -1;
+  guide.rows = 1;
+  guide.value = memberInquiryBody.placeholder;
+  Object.assign(guide.style, { position: "fixed", left: "-10000px", top: "0", visibility: "hidden",
+    width: width + "px", height: "0", minHeight: "0", maxHeight: "none", overflow: "hidden", resize: "none" });
+  memberInquiryBody.parentElement.append(guide);
+  try {
+    const style = getComputedStyle(memberInquiryBody);
+    const height = guide.scrollHeight + (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0);
+    if (height > 2) memberInquiryBody.style.height = Math.ceil(height) + "px";
+  } finally { guide.remove(); }
+}
+function scheduleMemberInquiryGuideFit() {
+  if (memberInquiryGuideFitFrame) return;
+  memberInquiryGuideFitFrame = requestAnimationFrame(() => { memberInquiryGuideFitFrame = 0; fitMemberInquiryGuide(); });
+}
+if (typeof ResizeObserver === "function") {
+  let previousWidth = -1;
+  new ResizeObserver(entries => {
+    const width = entries[0]?.contentRect.width || 0;
+    if (width !== previousWidth) { previousWidth = width; scheduleMemberInquiryGuideFit(); }
+  }).observe(memberInquiryBody);
+}
+window.addEventListener("resize", scheduleMemberInquiryGuideFit);
+memberInquiryBody.addEventListener("input", () => { if (!memberInquiryBody.value) scheduleMemberInquiryGuideFit(); });
+document.fonts?.ready.then(scheduleMemberInquiryGuideFit);
+
 const sendMemberInquiryButton =
   document.querySelector(
     "#sendMemberInquiryButton"
@@ -1029,6 +1065,7 @@ async function loadMemberInquirySetting() {
 
     memberInquiryComposer.hidden =
       !isMemberInquiryEnabled;
+    if (isMemberInquiryEnabled) scheduleMemberInquiryGuideFit();
 
     memberInquiryAvailabilityMessage.textContent =
       isMemberInquiryEnabled
@@ -1102,6 +1139,7 @@ async function sendMemberInquiry() {
     }
 
     memberInquiryBody.value = "";
+    scheduleMemberInquiryGuideFit();
 
     memberInquirySubmitMessage.textContent =
       "문의를 전송했습니다.";
@@ -2015,6 +2053,7 @@ function showCommunityMenu(menuName) {
   });
   updateMemberCommunityBadges("checkSoon");
   if (memberNewsVisible()) void loadCommunityPosts(true);
+  if (menuName === "inquiry") scheduleMemberInquiryGuideFit();
   window.DeferredImages?.refresh();
 }
 

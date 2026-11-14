@@ -6088,3 +6088,20 @@ html[data-one-day-pt-enabled="false"] :is(#appScreen #memberRoutineComponents,#g
 
 /* v279: bottom routine reapplication CTA only; preserve the top first-application CTA. */
 #appScreen .member-routine-request-area #routineRequestButton { min-height:55.2px; padding-top:16.1px; padding-bottom:16.1px; font-size:17.25px; }
+
+/* Main member pages share one outer gutter; each card keeps its own inner padding. */
+#appScreen{--member-page-gutter:8px}
+#appScreen>.member-tab-panel:not(#routineTabPanel),#appScreen>#memberServicesTabPanel.member-tab-panel.member-services-panel{padding-left:var(--member-page-gutter);padding-right:var(--member-page-gutter)}
+#appScreen #routineTabPanel>.member-routine-hero{padding-left:var(--member-page-gutter);padding-right:var(--member-page-gutter)}
+#appScreen #routineTabPanel>.member-routine-menu,#appScreen #routineTabPanel>.member-install-card,#appScreen #memberAssignedRoutinePanel>:is(.member-routine-application,.member-workout-surface,.member-routine-request-area,.member-routine-summary,.routine-description,.routine-request-receipt,.one-day-pt-entry),#appScreen .member-routine-divider{margin-left:var(--member-page-gutter);margin-right:var(--member-page-gutter)}
+#appScreen #memberCardioPanel,#appScreen #memberStretchingPanel{padding-left:var(--member-page-gutter);padding-right:var(--member-page-gutter)}
+#appScreen #toggleRoutineDescriptionButton{width:calc(100% - 16px);margin-left:var(--member-page-gutter);margin-right:var(--member-page-gutter)}
+/* The exercise wrapper is transparent; remove its duplicate outer inset, not card padding. */
+#appScreen .member-workout-surface{--routine-wrapper-inset:14px}
+#appScreen #memberRoutineComponents .routine-component-card{margin-left:calc(-1 * var(--routine-wrapper-inset));margin-right:calc(-1 * var(--routine-wrapper-inset))}
+#appScreen .member-workout-surface>#routineCarousel{width:auto;margin-left:calc(-1 * var(--routine-wrapper-inset));margin-right:calc(-1 * var(--routine-wrapper-inset))}
+@media(max-width:360px){#appScreen .member-workout-surface{--routine-wrapper-inset:10px}}
+
+/* Halve 18px card padding + the former 1.33em heading margin while keeping card padding. */
+#appScreen #memberInquiryHeading{margin-top:calc(.665em - 9px)}
+:is(#appScreen,#adminScreen) .member-inquiry-message:is(.is-member,.is-admin){border-color:#cbd3df}

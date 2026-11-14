@@ -23,14 +23,14 @@
 .community-page-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-column: span 2; gap: 8px; min-width: 0; }
 #communityTabPanel .community-menu-button {
   --community-edge: #bdcadb; --community-shadow: #17233e21;
-  width: 100%; min-height: 86.4px; margin: 0; padding: 1px 2px; gap: 0;
+  width: 100%; height: 77.76px; min-height: 77.76px; margin: 0; padding: 1px 2px; gap: 0;
   border: 1px solid #b8c6d8; border-radius: 11px;
   color: #4b5769; background: linear-gradient(180deg, #fff, #f3f6fa);
   box-shadow: 0 3px 0 var(--community-edge), 0 5px 9px var(--community-shadow), inset 0 1px 0 #ffffffd9;
   transition: transform 120ms ease, box-shadow 120ms ease;
   -webkit-tap-highlight-color: transparent;
 }
-#communityTabPanel .community-menu-icon { display: block; flex: 0 0 43.2px; width: 54.4px; height: 43.2px; max-width: 100%; object-fit: contain; opacity: 1; pointer-events: none; user-select: none; }
+#communityTabPanel .community-menu-icon { display: block; flex: 0 0 35.9px; width: 54.4px; height: 35.9px; max-width: 100%; object-fit: contain; opacity: 1; pointer-events: none; user-select: none; }
 #communityTabPanel .community-menu-label {
   display: flex; flex-direction: column; justify-content: center; min-height: 36px;
   color: inherit; font-size: 18px; font-weight: 800; line-height: 1.2; text-align: center; word-break: keep-all;
