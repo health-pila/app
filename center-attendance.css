@@ -4,8 +4,6 @@
 .center-attendance-legend span { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 .center-attendance-record-dot { width:5px; height:5px; border-radius:50%; background:#ff6b00; }
 .center-attendance-marker { width:5px; height:5px; background:#138165; border-radius:50%; }
-#refreshCenterAttendance { display:grid; place-items:center; width:28px; min-height:28px; padding:0; color:#536680; background:#f5f8fc; border:1px solid #d9e2ed; border-radius:8px; font:inherit; font-size:19px; cursor:pointer; }
-#refreshCenterAttendance:disabled { opacity:.5; cursor:wait; }
 .center-attendance-status { margin:4px 0 0; color:#748199; font-size:10px; line-height:1.5; overflow-wrap:anywhere; }
 .center-attendance-status:empty { display:none; }
 .center-attendance-details { display:flex; flex-wrap:wrap; align-items:center; gap:4px 9px; margin-top:7px; padding:7px 9px; border-radius:9px; background:#edf7f2; color:#1c6553; font-size:13.2px; line-height:1.5; }
@@ -32,7 +30,6 @@
 /* v292: enlarge all live attendance footer text by another 10%. */
 #workoutLogTabPanel .center-attendance-count { font-size:15.972px; color:var(--brand-orange); }
 #workoutLogTabPanel .center-attendance-status { font-size:12.1px; }
-#workoutLogTabPanel #refreshCenterAttendance { font-size:20.9px; }
 #workoutLogTabPanel .center-attendance-details,
 #workoutLogTabPanel .center-attendance-details strong { font-size:15.972px; }
 

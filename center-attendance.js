@@ -41,7 +41,6 @@
     $("centerAttendanceDetails")?.replaceChildren();
     text($("adminAttendanceCandidateName"), ""); text($("adminAttendanceStatus"), "");
     if ($("adminAttendanceCandidate")) $("adminAttendanceCandidate").hidden = true;
-    if ($("refreshCenterAttendance")) $("refreshCenterAttendance").disabled = false;
     text($("centerAttendanceCount"), "센터 출석"); text($("centerAttendanceStatus"), "");
     decorate(null);
   }
@@ -90,8 +89,6 @@
     const data = monthCache.get(view.key)?.data || null;
     decorate(data);
     const refreshing = loadingMonth === view.key;
-    const button = $("refreshCenterAttendance");
-    if (button) button.disabled = refreshing || !memberVisible();
     let message = "";
     let count = "센터 출석";
     if (!data) {
@@ -288,7 +285,6 @@
     }
   }
 
-  $("refreshCenterAttendance")?.addEventListener("click", () => { void loadMonth(true); void window.CenterMemberships?.load(true); });
   $("adminAttendanceLookup")?.addEventListener("click", () => { void lookup(); });
   $("adminAttendanceConfirm")?.addEventListener("click", () => { void confirmLink(); });
   $("adminMemberSelect")?.addEventListener("attendance-status-change", () => {
