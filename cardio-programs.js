@@ -196,6 +196,17 @@ const CARDIO_PROGRAM_GROUPS = [
     holder.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + icons[name] + '</svg>';
     return holder.firstElementChild;
   }
+  function sweatMark(level, programId) {
+    const mark = element("span", "cardio-sweat-mark");
+    mark.setAttribute("aria-hidden", "true");
+    for (let index = 0; index < level; index += 1) {
+      const gradientId = `cardioSweat-${programId}-${index}`;
+      const holder = document.createElement("span");
+      holder.innerHTML = `<svg viewBox="0 0 28 36" focusable="false" aria-hidden="true"><defs><linearGradient id="${gradientId}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c9f5ff"/><stop offset=".5" stop-color="#62c9f5"/><stop offset="1" stop-color="#278bd8"/></linearGradient></defs><path d="M14 2C12 8 4 15 4 23a10 10 0 0 0 20 0C24 15 16 8 14 2Z" fill="url(#${gradientId})" stroke="#338fc8" stroke-width=".65"/><path d="M11 13c-2 3-4 6-4 10" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".8"/><ellipse cx="18" cy="28" rx="3.5" ry="1.7" fill="#1786cd" opacity=".16"/></svg>`;
+      mark.append(holder.firstElementChild);
+    }
+    return mark;
+  }
   function element(tag, className, text) {
     const node = document.createElement(tag);
     node.className = className;
@@ -243,7 +254,11 @@ const CARDIO_PROGRAM_GROUPS = [
       time.append(icon("clock"), document.createTextNode(`총 ${program.minutes}분`));
       meta.append(level, time);
       const action = element("span", "cardio-program-action");
-      action.append(element("span", "cardio-open-label", "운동 방법 보기"), element("span", "cardio-close-label", "운동 방법 접기"), icon("chevron"));
+      const actionEnd = element("span", "cardio-program-action-end");
+      const chevron = icon("chevron");
+      chevron.classList.add("cardio-program-chevron");
+      actionEnd.append(sweatMark(program.level, program.id), chevron);
+      action.append(element("span", "cardio-open-label", "운동 방법 보기"), element("span", "cardio-close-label", "운동 방법 접기"), actionEnd);
       summary.append(meta, element("strong", "cardio-program-name", program.name), action);
       const content = element("div", "cardio-program-content");
       content.append(element("p", "cardio-program-equipment", "러닝머신 기준"));

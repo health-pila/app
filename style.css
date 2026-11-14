@@ -6108,4 +6108,8 @@ html[data-one-day-pt-enabled="false"] :is(#appScreen #memberRoutineComponents,#g
 
 /* A fitting editor should not capture a page swipe or bounce internally. */
 textarea[data-page-scroll-ready]{overflow-y:hidden!important;overscroll-behavior-y:auto}
-#appScreen #memberInquiryBody{overflow-y:hidden;overscroll-behavior-y:auto}
+#appScreen #memberInquiryBody{padding:8px 11px;line-height:1.45;overflow-y:hidden;overscroll-behavior-y:auto}
+#appScreen #memberInquiryComposer{gap:8px}
+#appScreen #sendMemberInquiryButton{margin-top:0}
+#appScreen #memberInquirySubmitMessage:empty{display:none}
+#appScreen #memberInquirySection .member-inquiry-history{margin-top:10px;padding-top:10px}

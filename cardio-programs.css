@@ -90,16 +90,18 @@
 .member-cardio-panel {
   padding: 0 var(--member-page-gutter, 18px) 24px;
 }
-.cardio-program-group + .cardio-program-group {
-  margin-top: 28px;
-  padding-top: 28px;
-  border-top: 2px solid #c4cedb;
+.cardio-program-group {
+  padding: 8px 3px 3px;
+  border: 1px solid #c4cedb;
+  border-radius: 18px;
+  background: #f7f9fc;
 }
+.cardio-program-group + .cardio-program-group { margin-top: 20px; }
 .cardio-group-heading {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  margin: 0 7px 8px;
 }
 .cardio-group-heading > svg {
   flex-shrink: 0;
@@ -110,7 +112,7 @@
 .cardio-group-heading h3 {
   margin: 0;
   color: var(--brand-navy);
-  font-size: 18px;
+  font-size: 21.6px;
   font-weight: 800;
   line-height: 1.5;
 }
@@ -127,6 +129,7 @@
   background: #fff;
 }
 .cardio-program-card + .cardio-program-card { margin-top: 15px; }
+.cardio-group-heading + .cardio-program-card { margin-top: 0; }
 .cardio-program-summary {
   display: block;
   padding: 16px 16px 11px;
@@ -196,11 +199,16 @@
   font-weight: 700;
   line-height: 1.5;
 }
-.cardio-program-action svg { width: 16px; height: 16px; }
+.cardio-program-action .cardio-program-chevron { flex: none; width: 16px; height: 16px; }
+.cardio-program-action-end { display: inline-flex; flex: none; align-items: center; gap: 8px; }
+.cardio-sweat-mark { display: inline-flex; align-items: flex-end; justify-content: flex-end; gap: 1px; width: 64px; height: 32px; pointer-events: none; }
+.cardio-sweat-mark > svg { display: block; flex: none; width: 22px; height: 30px; filter: drop-shadow(0 1px 1px rgb(25 119 177 / 15%)); }
+.cardio-sweat-mark > svg:nth-last-child(2) { width: 20px; height: 27px; }
+.cardio-sweat-mark > svg:nth-last-child(3) { width: 17px; height: 23px; }
 .cardio-close-label { display: none; }
 .cardio-program-card[open] .cardio-open-label { display: none; }
 .cardio-program-card[open] .cardio-close-label { display: inline; }
-.cardio-program-card[open] .cardio-program-action svg { transform: rotate(180deg); }
+.cardio-program-card[open] .cardio-program-action .cardio-program-chevron { transform: rotate(180deg); }
 .cardio-program-content { padding: 4px 16px 16px; }
 .cardio-program-equipment {
   margin: 1px 0 11px;
