@@ -1,5 +1,5 @@
 /* All layout rules are scoped to the verified administrator screen. */
-#adminScreen.admin-workspace-active{width:calc(100% - 24px);max-width:980px;padding:0 0 20px;background:#f1f4f8;border:1px solid #dce3ed;border-radius:14px;overflow:visible;--aw-line:#dfe5ee;--aw-navy:#17233e;--aw-muted:#68768c}
+#adminScreen.admin-workspace-active{width:calc(100% - 24px);max-width:1440px;padding:0 0 20px;background:#f1f4f8;border:1px solid #dce3ed;border-radius:14px;overflow:visible;--aw-line:#dfe5ee;--aw-navy:#17233e;--aw-muted:#68768c}
 #adminScreen.admin-workspace-active>.admin-block-divider{display:none}
 #adminScreen.admin-workspace-active [hidden]{display:none!important}
 #adminScreen.admin-workspace-active>.admin-app-topbar{position:sticky;top:0;z-index:15;margin:0;padding:3px 22px;height:46.5px;min-height:46.5px;background:#fff;border-radius:14px 14px 0 0;border-bottom:1px solid var(--aw-line)}
@@ -166,7 +166,6 @@
 #adminScreen[data-aw-page=members] .aw-workspace{overflow-anchor:none}
 #adminScreen button:focus-visible{outline:3px solid #ffb580;outline-offset:3px}
 @media(min-width:1280px) and (min-aspect-ratio:6/5){
- #adminScreen.admin-workspace-active{max-width:1280px}
  #adminScreen .aw-workspace{grid-template-columns:320px minmax(0,1fr)}
  #adminScreen #adminMemberSignupList,#adminScreen #adminRoutineRequestList,#adminScreen #adminInquiryList,#adminScreen .aw-payment-queue{grid-template-columns:minmax(0,1fr);max-height:660px}
  #adminScreen .aw-queue-heading{padding:16px}
@@ -299,7 +298,7 @@
 
 /* Desktop inbox: keep the member list and selected conversation visible together. */
 @media(min-width:900px){
- #adminScreen.admin-workspace-active[data-aw-page=inquiries]{max-width:1440px;padding-bottom:0}
+ #adminScreen.admin-workspace-active[data-aw-page=inquiries]{padding-bottom:0}
  #adminScreen[data-aw-page=inquiries] .aw-main{padding-bottom:8px}
  #adminScreen[data-aw-page=inquiries] #awWorkspace{grid-template-columns:280px minmax(0,1fr);grid-template-rows:minmax(0,1fr);gap:14px;align-items:stretch;height:var(--aw-inquiry-panel-height,calc(100dvh - 108.1px));min-height:0;max-height:none;scroll-margin-top:100.1px}
  #adminScreen[data-aw-page=inquiries] #awQueue{display:flex;flex-direction:column;min-height:0;overflow:hidden}
