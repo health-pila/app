@@ -999,6 +999,10 @@ button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outlin
   font-size: 1em;
 }
 
+#workoutLogTabPanel .header h4 {
+  font-size: 1.1em;
+}
+
 #workoutLogTabPanel .header h2 {
   margin: 0;
   color: var(--brand-navy);
@@ -6119,9 +6123,13 @@ html[data-one-day-pt-enabled="false"] :is(#appScreen #memberRoutineComponents,#g
 }
 #appScreen .member-inquiry-message.is-member{flex-direction:row-reverse;margin-left:auto;margin-right:0}
 #appScreen .member-inquiry-message.is-admin{flex-direction:row;margin-left:0;margin-right:auto}
+#appScreen .member-inquiry-center-symbol{
+  display:block;flex:0 0 28px;align-self:flex-start;width:28px;height:28px;max-width:none;
+  margin-top:2px;object-fit:contain;border:0;background:transparent;
+}
 #appScreen .member-inquiry-message-label{display:none}
 #appScreen .member-inquiry-message-body{
-  flex:0 1 auto;min-width:0;margin:0;padding:10px 12px;border:0;border-radius:18px;
+  flex:0 1 auto;min-width:0;margin:0;padding:7px 12px;border:0;border-radius:15px;
   font-size:15px;font-weight:400;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;
 }
 #appScreen .member-inquiry-message.is-member>.member-inquiry-message-body{background:var(--brand-orange);color:var(--brand-white)}

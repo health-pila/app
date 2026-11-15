@@ -34,7 +34,21 @@
 #workoutLogTabPanel .center-attendance-details strong { font-size:15.972px; }
 
 /* Give only the live calendar's weekday/date area 10% more vertical space. */
+#workoutLogTabPanel { --calendar-date-height:37.2768px; --calendar-date-font-size:13px; --calendar-closed-label-height:9.68px; }
 #workoutLogTabPanel .workout-calendar-weekdays { margin-bottom:4.0986px; }
 #workoutLogTabPanel .workout-calendar-weekdays span { padding-top:.05lh; padding-bottom:.05lh; }
 #workoutLogTabPanel .workout-calendar-day,
-#workoutLogTabPanel .workout-calendar-empty { height:34.8381px; }
+#workoutLogTabPanel .workout-calendar-empty { height:var(--calendar-date-height); }
+#workoutLogTabPanel .workout-calendar-day { font-size:var(--calendar-date-font-size); }
+/* Keep the ordinary date circle and its attendance/record dots above the closure label. */
+#workoutLogTabPanel .workout-calendar-day.is-center-closed { display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:calc(var(--calendar-date-height) + var(--calendar-closed-label-height));background:transparent;color:#9199a5; }
+#workoutLogTabPanel .workout-calendar-closed-number { display:grid;place-items:center;flex:none;width:100%;height:var(--calendar-date-height);border-radius:50%;font-weight:400; }
+#workoutLogTabPanel .workout-calendar-closed-label { display:block;flex:none;height:var(--calendar-closed-label-height);color:#7a8494;font-size:8.8px;font-weight:400;line-height:1.1;white-space:nowrap; }
+#workoutLogTabPanel .workout-calendar-day.is-center-closed:is(.is-today,.is-selected) .workout-calendar-closed-number { background:#fff0e4; }
+#workoutLogTabPanel .workout-calendar-day.is-center-closed.has-record::after,
+#workoutLogTabPanel .workout-calendar-day.is-center-closed.has-center-attendance::before { bottom:calc(var(--calendar-closed-label-height) + 3px); }
+#workoutLogTabPanel .workout-calendar-day.is-center-closed.is-selected.has-record::after { background:var(--brand-orange); }
+/* Two short time ranges stay visible without another heading or closure footer. */
+#workoutLogTabPanel .center-weekend-hours { display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:0 8px;margin-top:4px;padding:3px 6px;border-radius:6px;background:#f6f8fb;color:#53647b;font-size:var(--calendar-date-font-size);line-height:1.35; }
+#workoutLogTabPanel .center-weekend-hours span { white-space:nowrap; }
+#workoutLogTabPanel .center-weekend-hours strong { color:#23344e;font-weight:500; }

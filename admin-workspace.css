@@ -389,7 +389,7 @@
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message.is-admin{grid-template-columns:auto auto auto minmax(0,1fr);margin-left:auto;margin-right:0}
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message-label{display:none}
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message-body{
- min-width:0;margin:0;padding:10px 12px;border:0;border-radius:18px;font-weight:400;line-height:1.5;
+ min-width:0;margin:0;padding:7px 12px;border:0;border-radius:15px;font-weight:400;line-height:1.5;
  white-space:pre-wrap;overflow-wrap:anywhere;
 }
 #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message.is-member>.member-inquiry-message-body{grid-area:1/1;background:#f2f3f5;color:#24272d}

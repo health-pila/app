@@ -2,7 +2,7 @@
 .center-memberships[hidden] { display:none; }
 .center-membership-message { margin:0; color:#69778e; font-size:11px; line-height:1.6; overflow-wrap:anywhere; }
 .center-membership-message[hidden] { display:none; }
-.center-membership-list { list-style:none; margin:0; padding:9px 10px; background:#f6f8fb; border:1px solid #e8edf3; border-radius:9px; }
+.center-membership-list { list-style:none; margin:0; padding:7.2px 10px; background:#f6f8fb; border:1px solid #e8edf3; border-radius:9px; }
 .center-membership-list:empty { display:none; }
 .center-membership-list:not(:empty) + .center-membership-message { margin-top:5px; }
 .center-membership-item { padding:0; font-size:12px; line-height:1.7; overflow-wrap:anywhere; }

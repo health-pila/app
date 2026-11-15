@@ -1219,6 +1219,7 @@ function formatMemberInquiryDate(dateValue) {
 
 // 관리자·회원 대화에서 같은 날짜/발신자 표기를 묶고 말풍선을 간결하게 표시합니다.
 function renderInquiryMessageCards(messages, messageList, memberName = "내 질문", history = null) {
+  const memberView = !!messageList.closest("#appScreen");
   const dayFormat = new Intl.DateTimeFormat("ko-KR", {
     timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "short"
   });
@@ -1254,6 +1255,18 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
     // 이전과 동일하게 메시지마다 카드를 하나씩 유지해 답변 읽음 배지가 정확히 연결되게 합니다.
     const sender = message.sender_role === "admin" ? "센터 답변" : memberName;
     messageCard.setAttribute("aria-label", sender);
+    if (memberView && message.sender_role === "admin") {
+      const logo = document.createElement("img");
+      logo.className = "member-inquiry-center-symbol";
+      logo.src = window.AppAssets?.url("images/chat-center-symbol.webp") || "images/chat-center-symbol.webp";
+      logo.width = 28;
+      logo.height = 28;
+      logo.alt = "";
+      logo.setAttribute("aria-hidden", "true");
+      logo.decoding = "async";
+      logo.loading = "lazy";
+      messageCard.append(logo);
+    }
     if (newDay || previousSender !== message.sender_role) {
       const label = document.createElement("strong");
       label.className = "member-inquiry-message-label";
@@ -3857,10 +3870,23 @@ function renderWorkoutCalendar() {
     dateButton.className = "workout-calendar-day";
     dateButton.textContent = String(day);
     dateButton.dataset.date = dateKey;
+    const isCenterClosed = new Date(year, monthIndex, day).getDay() === 0 &&
+      ((day >= 8 && day <= 14) || (day >= 22 && day <= 28));
+    if (isCenterClosed) {
+      dateButton.classList.add("is-center-closed");
+      const number = document.createElement("span");
+      number.className = "workout-calendar-closed-number";
+      number.textContent = String(day);
+      const label = document.createElement("span");
+      label.className = "workout-calendar-closed-label";
+      label.textContent = "휴관";
+      label.setAttribute("aria-hidden", "true");
+      dateButton.replaceChildren(number, label);
+    }
 
     dateButton.setAttribute(
       "aria-label",
-      `${year}년 ${monthIndex + 1}월 ${day}일`
+      `${year}년 ${monthIndex + 1}월 ${day}일` + (isCenterClosed ? ", 정기 휴관" : "")
     );
 
     const isToday =

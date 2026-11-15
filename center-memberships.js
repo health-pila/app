@@ -8,7 +8,7 @@
   let refreshing=false,refreshMessage='',refreshFailed=false,cooldownUntil=0,cooldownTimer=0;
   const refreshButton=document.createElement('button');
   refreshButton.id='refreshMemberMemberships';refreshButton.type='button';
-  refreshButton.setAttribute('aria-label','브로제이 최신 회원권 정보 확인');
+  refreshButton.setAttribute('aria-label','최신 회원권 정보 확인');
   refreshButton.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 7a8 8 0 1 0 1 7M20 3v5h-5"/></svg>';
   const day=v=>typeof v==='string'&&/^20\d{2}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T00:00:00Z'))&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
   const visible=()=>client&&user&&!document.getElementById('appScreen').hidden&&!document.getElementById('workoutLogTabPanel').hidden&&document.visibilityState!=='hidden';
@@ -62,7 +62,7 @@
     const remaining=Math.max(0,cooldownUntil-Date.now());
     refreshButton.disabled=!user||!client||busy||refreshing||remaining>0||cache?.is_linked===false;
     refreshButton.setAttribute('aria-busy',String(refreshing));
-    refreshButton.title=refreshing?'브로제이에서 회원권을 확인하고 있어요':remaining>0?`${Math.ceil(remaining/1000)}초 후 다시 확인할 수 있어요`:'브로제이 최신 회원권 정보 확인';
+    refreshButton.title=refreshing?'최신 회원권 정보를 확인하고 있어요':remaining>0?`${Math.ceil(remaining/1000)}초 후 다시 확인할 수 있어요`:'최신 회원권 정보 확인';
     clearTimeout(cooldownTimer);cooldownTimer=remaining>0?setTimeout(()=>{cooldownTimer=0;render();},remaining+30):0;
     if(wasFocused&&!refreshButton.disabled)refreshButton.focus({preventScroll:true});
     message.textContent=[msg,refreshMessage].filter(Boolean).join(' ');message.hidden=!message.textContent;
@@ -85,7 +85,7 @@
     if(!visible()||busy||refreshing||Date.now()<cooldownUntil||cache?.is_linked===false)return;
     const e=epoch,owner=user,db=client,started=Date.now();let timer,failureText='';
     const current=()=>e===epoch&&owner===user&&client===db;
-    refreshing=true;refreshFailed=false;refreshMessage='브로제이에서 최신 회원권 정보를 확인하고 있어요.';render();
+    refreshing=true;refreshFailed=false;refreshMessage='최신 회원권 정보를 확인하고 있어요.';render();
     try{
       const result=await Promise.race([db.functions.invoke('member-membership-refresh',{body:{expected_user_id:owner}}),
         new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('TIMEOUT')),65000);})]);
@@ -105,7 +105,7 @@
       if(!visible()){loadedAt=0;refreshMessage='';return;}
       const listed=await load(true,true);if(!current())return;
       if(!listed){failureText='정보 조회는 완료됐지만 화면에 불러오지 못했어요. 잠시 후 다시 확인해 주세요.';throw Error('READ_FAILED');}
-      refreshMessage='브로제이의 최신 회원권 정보를 확인했어요.';
+      refreshMessage='최신 회원권 정보 반영 완료';
     }catch(err){if(current()){
       cooldownUntil=Math.max(cooldownUntil,started+60000);refreshFailed=true;
       refreshMessage=failureText||'조회 결과를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.';

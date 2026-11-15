@@ -62,6 +62,7 @@
       button.classList.toggle("has-center-attendance", present);
       const [year, month, date] = day.split("-").map(Number);
       button.setAttribute("aria-label", `${year}년 ${month}월 ${date}일` +
+        (button.classList.contains("is-center-closed") ? ", 정기 휴관" : "") +
         (button.classList.contains("has-record") ? ", 운동 기록 있음" : "") + (present ? ", 센터 출석 있음" : ""));
     });
   }
