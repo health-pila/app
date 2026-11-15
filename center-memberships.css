@@ -31,4 +31,5 @@
 .guest-demo-calendar-example figcaption { margin:8px 2px 0; color:#748199; font-size:10.5px; line-height:1.6; text-align:center; word-break:keep-all; }
 
 #workoutLogTabPanel .center-membership-item { font-size:15.972px; }
+#workoutLogTabPanel .center-membership-list { padding:7.2px 0;border:0;border-radius:0;background:transparent; }
 #workoutLogTabPanel .center-membership-message { font-size:14.641px; }

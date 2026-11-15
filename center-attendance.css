@@ -34,7 +34,7 @@
 #workoutLogTabPanel .center-attendance-status { font-size:12.1px; }
 #workoutLogTabPanel .center-attendance-details,
 #workoutLogTabPanel .center-attendance-details strong { font-size:15.972px; }
-#workoutLogTabPanel .center-attendance-details { padding:6.3px 9px;line-height:1.35; }
+#workoutLogTabPanel .center-attendance-details { padding:6.3px 0;border-radius:0;background:transparent;line-height:1.35; }
 
 /* Give only the live calendar's weekday/date area 10% more vertical space. */
 #workoutLogTabPanel { --calendar-date-height:37.2768px; --calendar-date-font-size:13px; }
