@@ -353,7 +353,13 @@
 
 /* v358: neutral roster cards, a common intake control, and a dedicated statistics page. */
 #adminScreen #adminInquiryList>.admin-inquiry-card:not(.aw-selected),
-#adminScreen .aw-member-rows button:not([aria-pressed=true]){background:#f8f9fa}
+#adminScreen .aw-member-rows button:not([aria-pressed=true]){background:#f3f5f8}
+/* v360: keep card geometry while hiding outlines, including selected cards. */
+#adminScreen #adminInquiryList>.admin-inquiry-card,
+#adminScreen #awMemberRows>button{border-color:transparent}
+#adminScreen #awMemberRows>button[aria-pressed=true]{box-shadow:inset 3px 0 #f36a12}
+/* v363: borderless message bubbles in both administrator inquiry views. */
+#adminScreen .admin-inquiry-message-list .member-inquiry-message:is(.is-member,.is-admin){border-color:transparent}
 #adminScreen .admin-app-topbar #toggleAdminInquiryFeatureButton.aw-header-intake{flex:none;width:auto;min-width:0;min-height:28px;margin:0 6px 0 0;padding:3px 9px;line-height:1.4;white-space:nowrap}
 #adminScreen #adminInquirySettingMessage{margin:0 0 10px;overflow-wrap:anywhere}
 #adminScreen #adminInquirySettingMessage:empty{display:none}
