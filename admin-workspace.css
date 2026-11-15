@@ -376,3 +376,37 @@
  #adminScreen .aw-nav>button{font-size:11.5px!important;gap:3px;padding:4px 3px;white-space:nowrap}
  #adminScreen .aw-nav .aw-count{min-width:18px;padding:2px 3px}
 }
+
+/* v367: administrator chat mirrors the member chat from the sender's viewpoint.
+   Read receipts and deletion controls remain separate grid items outside bubbles. */
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-thread{background:var(--brand-white)}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-message-list{gap:10px;background:var(--brand-white)}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message{
+ display:grid;align-items:end;gap:3px 6px;width:fit-content;max-width:min(100%,640px);
+ min-width:0;padding:0;border:0;border-radius:0;background:transparent;
+}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message.is-member{grid-template-columns:minmax(0,1fr) auto;margin-left:0;margin-right:auto}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message.is-admin{grid-template-columns:auto auto auto minmax(0,1fr);margin-left:auto;margin-right:0}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message-label{display:none}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message-body{
+ min-width:0;margin:0;padding:10px 12px;border:0;border-radius:18px;font-weight:400;line-height:1.5;
+ white-space:pre-wrap;overflow-wrap:anywhere;
+}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message.is-member>.member-inquiry-message-body{grid-area:1/1;background:#f2f3f5;color:#24272d}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message.is-admin>.member-inquiry-message-body{grid-area:1/4;background:var(--brand-orange);color:var(--brand-white)}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message-date{
+ margin:0;padding-bottom:2px;color:#7a8494;line-height:1.3;white-space:nowrap;text-align:left;
+}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message.is-member>.member-inquiry-message-date{grid-area:1/2}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message.is-admin>.member-inquiry-message-date{grid-area:1/1}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-read-receipt{grid-area:1/2;margin:0;padding-bottom:2px;white-space:nowrap}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-delete{grid-area:1/3;justify-self:end;margin:0;white-space:nowrap}
+#adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-delete-status{grid-column:1/-1;grid-row:2;margin:0}
+@media(max-width:760px){
+ #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message.is-admin{grid-template-columns:auto auto minmax(0,1fr);max-width:94%}
+ #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message.is-admin>.member-inquiry-message-body{grid-column:1/-1;grid-row:1}
+ #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .member-inquiry-message.is-admin>.member-inquiry-message-date{grid-area:2/1}
+ #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-read-receipt{grid-area:2/2}
+ #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-delete{grid-area:2/3}
+ #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-delete-status{grid-row:3}
+}

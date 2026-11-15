@@ -6109,8 +6109,27 @@ html[data-one-day-pt-enabled="false"] :is(#appScreen #memberRoutineComponents,#g
 /* Halve 18px card padding + the former 1.33em heading margin while keeping card padding. */
 #appScreen #memberInquiryHeading{margin-top:calc(.665em - 9px)}
 :is(#appScreen,#adminScreen) .member-inquiry-message:is(.is-member,.is-admin){border-color:#cbd3df}
-/* v365: hide member chat bubble outlines while retaining their layout. */
-#appScreen .member-inquiry-message:is(.is-member,.is-admin){border-color:transparent}
+/* v366: member chat has rounded bubbles with timestamps beside the message.
+   Keep the shared message renderer and administrator presentation unchanged. */
+#appScreen .member-inquiry-thread{padding:12px 8px;background:var(--brand-white)}
+#appScreen .member-inquiry-message-list{gap:10px;min-width:0}
+#appScreen .member-inquiry-message{
+  display:flex;align-items:flex-end;gap:6px;width:fit-content;max-width:min(100%,420px);
+  min-width:0;padding:0;border:0;border-radius:0;background:transparent;
+}
+#appScreen .member-inquiry-message.is-member{flex-direction:row-reverse;margin-left:auto;margin-right:0}
+#appScreen .member-inquiry-message.is-admin{flex-direction:row;margin-left:0;margin-right:auto}
+#appScreen .member-inquiry-message-label{display:none}
+#appScreen .member-inquiry-message-body{
+  flex:0 1 auto;min-width:0;margin:0;padding:10px 12px;border:0;border-radius:18px;
+  font-size:15px;font-weight:400;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;
+}
+#appScreen .member-inquiry-message.is-member>.member-inquiry-message-body{background:var(--brand-orange);color:var(--brand-white)}
+#appScreen .member-inquiry-message.is-admin>.member-inquiry-message-body{background:#f2f3f5;color:#24272d}
+#appScreen .member-inquiry-message-date{
+  flex:0 0 auto;margin:0;padding-bottom:2px;color:#7a8494;font-size:11px;line-height:1.3;
+  white-space:nowrap;text-align:left;
+}
 
 /* A fitting editor should not capture a page swipe or bounce internally. */
 textarea[data-page-scroll-ready]{overflow-y:hidden!important;overscroll-behavior-y:auto}
