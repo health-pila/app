@@ -6124,7 +6124,7 @@ html[data-one-day-pt-enabled="false"] :is(#appScreen #memberRoutineComponents,#g
 #appScreen .member-inquiry-message.is-member{flex-direction:row-reverse;margin-left:auto;margin-right:0}
 #appScreen .member-inquiry-message.is-admin{flex-direction:row;margin-left:0;margin-right:auto}
 #appScreen .member-inquiry-center-symbol{
-  display:block;flex:0 0 28px;align-self:flex-start;width:28px;height:28px;max-width:none;
+  display:block;flex:0 0 19.6px;align-self:flex-start;width:19.6px;height:19.6px;max-width:none;
   margin-top:2px;object-fit:contain;border:0;background:transparent;
 }
 #appScreen .member-inquiry-message-label{display:none}

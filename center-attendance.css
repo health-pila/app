@@ -42,9 +42,10 @@
 #workoutLogTabPanel .workout-calendar-empty { height:var(--calendar-date-height); }
 #workoutLogTabPanel .workout-calendar-day { font-size:var(--calendar-date-font-size); }
 /* The closure text replaces the number in the same cell; no extra label row. */
-#workoutLogTabPanel .workout-calendar-day.is-center-closed { color:#9199a5;font-size:11px;font-weight:400;white-space:nowrap; }
+#workoutLogTabPanel .workout-calendar-day.is-center-closed { width:100%;border-radius:8px;background:#f6f8fb;color:#53647b;font-size:11px;font-weight:400;white-space:nowrap; }
 #workoutLogTabPanel .workout-calendar-day.is-gym-closed { font-size:9px;letter-spacing:-.25px; }
-#workoutLogTabPanel .workout-calendar-day.is-center-closed:is(.is-today,.is-selected) { background:#fff0e4;color:#7a8494; }
+#workoutLogTabPanel .workout-calendar-day.is-center-closed:is(.is-today,.is-selected) { background:#f6f8fb;color:#53647b; }
+#workoutLogTabPanel .workout-calendar-day.is-center-closed.is-selected { box-shadow:inset 0 0 0 1px var(--brand-orange); }
 #workoutLogTabPanel .workout-calendar-day.is-center-closed.is-selected.has-record::after { background:var(--brand-orange); }
 /* Two short time ranges stay visible without another heading or closure footer. */
 #workoutLogTabPanel .center-weekend-hours { display:flex;align-items:baseline;justify-content:flex-end;flex-wrap:wrap;gap:0 12px;margin-top:4px;padding:3px 6px;border-radius:6px;background:#f6f8fb;color:#53647b;font-size:var(--calendar-date-font-size);line-height:1.35; }

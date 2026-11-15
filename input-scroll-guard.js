@@ -51,7 +51,7 @@
       if (node.matches("dialog[open]") || /^(contain|none)$/.test(style.overscrollBehaviorY || style.overscrollBehavior)) return null;
     }
     // A desktop inbox keeps its history beside the editor, inside a fixed-height panel.
-    if (field.closest('#adminScreen[data-aw-page="requests"][data-aw-kind="inquiry"]') && window.matchMedia("(min-width: 900px)").matches) {
+    if (field.closest('#adminScreen[data-aw-page="inquiries"]') && window.matchMedia("(min-width: 900px)").matches) {
       const history = field.closest(".admin-inquiry-thread")?.querySelector(".admin-inquiry-message-list");
       if (history && !history.closest("[hidden]") && room(history, delta) > 1) return history;
     }

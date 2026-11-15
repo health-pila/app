@@ -1259,8 +1259,8 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
       const logo = document.createElement("img");
       logo.className = "member-inquiry-center-symbol";
       logo.src = window.AppAssets?.url("images/chat-center-symbol.webp") || "images/chat-center-symbol.webp";
-      logo.width = 28;
-      logo.height = 28;
+      logo.width = 20;
+      logo.height = 20;
       logo.alt = "";
       logo.setAttribute("aria-hidden", "true");
       logo.decoding = "async";

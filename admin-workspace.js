@@ -18,7 +18,7 @@
   const active = g => g === generation && !!owner && !!client && !screen.hidden;
   const $root = () => $('adminWorkspaceLayout');
   const mobile = () => window.matchMedia('(max-width: 760px)').matches;
-  const splitInquiry = () => page === 'requests' && kind === 'inquiry' && window.matchMedia('(min-width: 900px)').matches;
+  const splitInquiry = () => page === 'inquiries' && window.matchMedia('(min-width: 900px)').matches;
   const time = value => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
   const notify = text => { $('adminWorkspaceStatus').textContent = text; scheduleInquiryPanelSize(); };
 
@@ -41,6 +41,7 @@
     const root = el('section', 'admin-workspace-layout'); root.id = 'adminWorkspaceLayout';
     root.innerHTML = `<nav class="aw-nav" aria-label="관리자 메뉴">
       <button type="button" data-aw-page="requests" aria-current="page">요청 처리 <span id="awAllCount" class="aw-count">—</span></button>
+      <button type="button" data-aw-page="inquiries">문의 답변 <span id="awCount-inquiry" class="aw-count">—</span></button>
       <button type="button" data-aw-page="members">회원 관리</button><button type="button" data-aw-page="operations">센터 운영</button><button type="button" data-aw-page="statistics">현황·통계</button></nav>
       <div class="aw-main"><header class="aw-heading" hidden><div><h1 id="awPageTitle">처리할 요청</h1><p id="awPageHelp">요청을 선택하고 필요한 작업을 바로 처리하세요.</p></div></header>
       <p id="adminWorkspaceStatus" class="aw-status" role="status" aria-live="polite"></p>
@@ -63,6 +64,7 @@
     $('adminSoundStatus').classList.add('member-sr-only');
     if (hero) { hero.classList.add('aw-statistics'); hero.querySelector('h1').textContent = '회원 현황'; hero.querySelector('h1').classList.add('admin-section-title'); }
     for (const [key, [label, sub, glyph]] of Object.entries(kinds)) {
+      if (key === 'inquiry') continue;
       const b = el('button', 'aw-kind'); b.type = 'button'; b.dataset.awKind = key;
       const icon = el('span', 'aw-kind-icon'); icon.setAttribute('aria-hidden', 'true');
       const paths = { signup: '<circle cx="9" cy="7" r="3"/><path d="M3 20v-3a6 6 0 0 1 12 0v3m4-14v6m-3-3h6"/>', routine: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 10h6m-6 4h6m-6 4h3"/>', inquiry: '<path d="M4 4h16v12H9l-5 4V4Z"/><path d="M8 9h8m-8 3h5"/>', payment: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/>' };
@@ -155,7 +157,7 @@
       const n = countValue(key), node = $(`awCount-${key}`), stale = failed.has(key);
       node.textContent = n === null ? '—' : String(n); node.classList.toggle('aw-stale', stale);
       node.title = stale ? '최근 조회 실패 · 이전 확인 결과입니다.' : n === null ? '대기 건수를 확인하고 있어요.' : `${kinds[key][0]} 대기 ${n}건`;
-      if (n === null || stale) complete = false; else total += n;
+      if (key !== 'inquiry') { if (n === null || stale) complete = false; else total += n; }
     }
     $('awAllCount').textContent = complete ? String(total) : '—';
     $('awAllCount').title = complete ? `전체 처리 대기 ${total}건` : '일부 알림의 최신 상태를 확인해야 해요.';
@@ -195,14 +197,14 @@
     if (selecting || hooks.isSaving?.()) { notify('처리 중이에요. 완료된 뒤 다른 작업을 선택해 주세요.'); return; }
     captureInquiryDrafts();
     if (page === 'members' && nextPage !== 'members') clearMemberSelection();
-    if (nextPage !== 'requests' || nextKind !== 'inquiry') clearInquiryMemberScope();
-    if (nextPage === 'requests' && nextKind !== kind) member = null;
+    if (nextPage !== 'inquiries') clearInquiryMemberScope();
+    if (nextPage === 'requests' && (page !== 'requests' || nextKind !== kind)) member = null;
     page = nextPage; kind = nextKind; detailOpen = false; completion = null;
-    if (page !== 'members' && kind !== 'inquiry') requestMemberFilter = '';
+    if (page !== 'members' && page !== 'inquiries') requestMemberFilter = '';
     if (page === 'operations') setOperation('news');
     present();
     if (page === 'statistics') window.AdminUsage?.show();
-    if (kind === 'inquiry' && page === 'requests') void hooks.refreshInquiries?.(true);
+    if (page === 'inquiries') void hooks.refreshInquiries?.(true);
     if (kind === 'payment' && page === 'requests') void loadPayments(true);
     if (page === 'members') {
       updateMemberBrowser();
@@ -242,16 +244,16 @@
     $root().querySelectorAll('[data-aw-page]').forEach(b => { if (b.dataset.awPage === page) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     $root().querySelectorAll('[data-aw-kind]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.awKind === kind)));
     $root().querySelectorAll('[data-aw-member-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.awMemberTab === memberTab)));
-    $('awPageTitle').textContent = page === 'requests' ? '처리할 요청' : page === 'members' ? '회원 관리' : page === 'statistics' ? '현황·통계' : '센터 운영';
-    $('awPageHelp').textContent = page === 'requests' ? '요청을 선택하고 필요한 작업을 바로 처리하세요.' : page === 'members' ? '회원 검색부터 출석·이용권, 운동 루틴 확인까지.' : page === 'statistics' ? '회원 현황과 앱 이용 통계를 확인하세요.' : '센터 소식과 콘텐츠를 관리하세요.';
-    $('awKinds').hidden = page !== 'requests'; $('awWorkspace').hidden = !['requests', 'members'].includes(page); $('awOperations').hidden = page !== 'operations'; $('awStatistics').hidden = page !== 'statistics';
+    $('awPageTitle').textContent = page === 'requests' ? '처리할 요청' : page === 'inquiries' ? '문의 답변' : page === 'members' ? '회원 관리' : page === 'statistics' ? '현황·통계' : '센터 운영';
+    $('awPageHelp').textContent = page === 'requests' ? '요청을 선택하고 필요한 작업을 바로 처리하세요.' : page === 'inquiries' ? '회원 문의를 확인하고 답변하세요.' : page === 'members' ? '회원 검색부터 출석·이용권, 운동 루틴 확인까지.' : page === 'statistics' ? '회원 현황과 앱 이용 통계를 확인하세요.' : '센터 소식과 콘텐츠를 관리하세요.';
+    $('awKinds').hidden = page !== 'requests'; $('awWorkspace').hidden = !['requests', 'inquiries', 'members'].includes(page); $('awOperations').hidden = page !== 'operations'; $('awStatistics').hidden = page !== 'statistics';
     $('awWorkspace').dataset.detailOpen = String(detailOpen); $('awBack').hidden = !mobile() || !detailOpen;
     const slots = { signup: $('adminMemberSignupAlerts'), routine: $('adminRoutineRequestManagement'), inquiry: $('adminInquiryManagement') };
     const memberInquiry = page === 'members' && memberTab === 'inquiry' && !!member;
     // Keep focused controls connected to their final parent during ordinary refreshes.
     for (const [key, node] of Object.entries(slots)) {
       const target = key === 'inquiry' && memberInquiry ? $('awMemberInquiryList')
-        : page === 'requests' && key === kind ? $('awQueueBody') : $('awParking');
+        : (page === 'inquiries' && key === 'inquiry' || page === 'requests' && key === kind) ? $('awQueueBody') : $('awParking');
       moveTo(node, target);
     }
     moveTo($('adminMemberManagement'), page === 'members' ? $('awQueueBody') : $('awParking'));
@@ -259,9 +261,9 @@
     if (!paymentList) { paymentList = el('div', 'aw-payment-queue'); paymentList.id = 'awPaymentQueue'; $('awParking').append(paymentList); }
     moveTo(paymentList, page === 'requests' && kind === 'payment' ? $('awQueueBody') : $('awParking'));
     $('awQueueHeading').replaceChildren();
-    const title = el('h2', '', page === 'members' ? '회원 선택' : kind === 'inquiry' ? requestMemberFilter ? '선택 회원의 문의' : '회원 문의 목록' : kinds[kind][0] + ' · ' + kinds[kind][1] + ' 대기');
+    const title = el('h2', '', page === 'members' ? '회원 선택' : page === 'inquiries' ? requestMemberFilter ? '선택 회원의 문의' : '회원 문의 목록' : kinds[kind][0] + ' · ' + kinds[kind][1] + ' 대기');
     $('awQueueHeading').append(title);
-    if (page === 'requests' && requestMemberFilter && kind === 'inquiry') {
+    if (page === 'inquiries' && requestMemberFilter) {
       const scope = el('div', 'aw-inquiry-scope'); scope.append(el('span', '', (inquiryScopeMember?.name || '선택 회원') + '님의 문의만 표시 중'));
       const all = el('button', 'aw-secondary', '전체 문의로 초기화'); all.id = 'awResetInquiryMember'; all.type = 'button'; all.onclick = () => { clearInquiryMemberScope(); present(); void hooks.refreshInquiries?.(false); };
       scope.append(all); $('awQueueHeading').append(scope);
@@ -276,26 +278,26 @@
     $('awAccessDetails').open = page === 'members';
     $('awMemberInquirySlot').hidden = !memberInquiry;
     const localInquiryOpen = memberInquiry && inquiryCache.get(currentInquiry)?.record.user_id === member.id;
-    const inquiryOpen = page === 'requests' && kind === 'inquiry' && !!currentInquiry;
+    const inquiryOpen = page === 'inquiries' && !!currentInquiry;
     moveTo($('awInquiryWork'), memberInquiry ? $('awMemberInquiryThread') : $('awWork'));
     // The shared request footer remains after the conversation when returning from member management.
     if (!memberInquiry && $('awInquiryWork').nextElementSibling !== $('awPaymentWork')) $('awWork').insertBefore($('awInquiryWork'), $('awPaymentWork'));
     $('awInquiryWork').hidden = !(inquiryOpen || localInquiryOpen);
     $('awMemberInquiryDetail').hidden = !localInquiryOpen;
     if (localInquiryOpen) $('awMemberInquiryTitle').textContent = '문의 · ' + (inquiryCache.get(currentInquiry).record.archived_at ? '보관함' : inquiryCache.get(currentInquiry).record.status === 'answered' ? '답변 완료' : '답변 대기');
-    $('awWork').hidden = page === 'requests' && kind === 'inquiry' && !currentInquiry && !splitInquiry();
+    $('awWork').hidden = page === 'inquiries' && !currentInquiry && !splitInquiry();
     $('awCloseInquiry').hidden = !inquiryOpen;
     $('awPaymentWork').hidden = !(page === 'requests' && kind === 'payment' && paymentSelected);
-    $('awEmpty').hidden = !!completion || memberWork && !!member || kind === 'inquiry' && !!currentInquiry || kind === 'payment' && !!paymentSelected;
+    $('awEmpty').hidden = !!completion || memberWork && !!member || inquiryOpen || page === 'requests' && kind === 'payment' && !!paymentSelected;
     $('awCompletion').hidden = !completion;
     if (memberWork) renderMemberHeading();
-    else if (kind === 'inquiry') renderInquiryHeading();
-    else if (kind === 'payment') renderPaymentHeading();
+    else if (page === 'inquiries') renderInquiryHeading();
+    else if (page === 'requests' && kind === 'payment') renderPaymentHeading();
     const canClearMember = page === 'requests' && ['signup', 'routine'].includes(kind) && !!(member || completion);
     $('awClearMember').hidden = $('awClearMemberBottom').hidden = !canClearMember;
     $('awClearMember').textContent = completion && !member ? '완료창 닫기' : '선택 해제';
     $('awClearMemberBottom').textContent = completion && !member ? '닫기' : '선택 해제';
-    const hasNext = page === 'requests' && kind !== 'inquiry' && !!completion;
+    const hasNext = page === 'requests' && !!completion;
     $('awNext').hidden = !hasNext;
     $('awNextBar').hidden = !(hasNext || canClearMember);
     $('awNext').textContent = kind === 'signup' ? '다음 가입 회원 연결 ›' : kind === 'routine' ? '다음 루틴 신청 보기 ›' : '다음 결제 보기 ›';
@@ -349,7 +351,7 @@
     slot.append(heading, text); const expectedId = request.id;
     try {
       const { data, error } = await window.PaymentFulfillment.request(client, 'admin_get_routine_application', { p_request_id: expectedId });
-      if (!active(ticket) || kind !== 'routine' || member?.id !== request.user_id || slot.dataset.requestId && slot.dataset.requestId !== expectedId) return;
+      if (!active(ticket) || page !== 'requests' || kind !== 'routine' || member?.id !== request.user_id || slot.dataset.requestId && slot.dataset.requestId !== expectedId) return;
       if (error || data?.request_id !== expectedId || !data.revision || !data.answers || typeof data.answers !== 'object') throw Error('APPLICATION_UNAVAILABLE');
       text.textContent = '';
       const summary = el('dl', 'aw-application-summary');
@@ -380,7 +382,7 @@
     });
   }
   function next() {
-    if (kind === 'inquiry') return;
+    if (page !== 'requests') return;
     if (hooks.isSaving?.()) { notify('저장 완료 후 이동해 주세요.'); return; }
     if (kind === 'signup') { const row = signup.find(r => r.id !== (completion?.id || member?.id)); if (row) void chooseMember(row.id, 'signup'); else { detailOpen = false; notify('다른 가입 대기가 없어요. 최신 목록을 확인해 주세요.'); present(); } }
     else if (kind === 'routine') { const row = routines.find(r => r.user_id !== member?.id); if (row) void chooseMember(row.user_id, 'routine', row); else { detailOpen = false; notify('다른 루틴 신청 대기가 없어요.'); present(); } }
@@ -483,7 +485,7 @@
       closeInquiry(); return true;
     }
     captureInquiryDrafts(); currentInquiry = id;
-    if (!local) { page = 'requests'; kind = 'inquiry'; }
+    if (!local) { page = 'inquiries'; }
     completion = null; detailOpen = true;
     attachInquiry(id); present();
     const ticket = generation;
@@ -496,9 +498,9 @@
       const input = thread.querySelector('.admin-inquiry-reply-area:not([hidden]) textarea');
       const target = input || thread.querySelector('.member-inquiry-delete-area:not([hidden])') || thread;
       if (splitInquiry()) {
-        const kinds = $('awKinds'), rect = kinds.getBoundingClientRect();
+        const workspace = $('awWorkspace'), rect = workspace.getBoundingClientRect();
         const navBottom = $root().querySelector('.aw-nav').getBoundingClientRect().bottom;
-        if (rect.top < navBottom || rect.bottom > window.innerHeight) kinds.scrollIntoView({ block: 'start', behavior: 'auto' });
+        if (rect.top < navBottom || rect.top >= window.innerHeight) workspace.scrollIntoView({ block: 'start', behavior: 'auto' });
         scheduleInquiryPanelSize();
       } else target.scrollIntoView({ block: 'center', behavior: 'auto' });
       input?.focus({ preventScroll: true });
@@ -507,7 +509,7 @@
   }
   function closeInquiry() {
     const local = page === 'members' && memberTab === 'inquiry';
-    if (!active(generation) || !currentInquiry || !local && (page !== 'requests' || kind !== 'inquiry')) return;
+    if (!active(generation) || !currentInquiry || !local && page !== 'inquiries') return;
     captureInquiryDrafts();
     const id = currentInquiry, entry = inquiryCache.get(id);
     if (entry) { entry.thread.hidden = true; moveTo(entry.thread, $('awParking')); }
@@ -555,9 +557,9 @@
     let selectedChanged = false;
     for (const row of rows) { const entry = inquiryCache.get(row.id); if (entry) { if (row.id === currentInquiry && entry.record.last_message_at !== row.last_message_at) selectedChanged = true; Object.assign(entry.record, row); } }
     if (list && (historyChanged || selectedChanged)) void hooks.loadInquiry?.(currentInquiry, inquiryName(selected.record), list);
-    if (currentInquiry) attachInquiry(currentInquiry); if (page === 'requests' && kind === 'inquiry' || page === 'members' && memberTab === 'inquiry') present(); updateCounts();
+    if (currentInquiry) attachInquiry(currentInquiry); if (page === 'inquiries' || page === 'members' && memberTab === 'inquiry') present(); updateCounts();
   }
-  function inquiryAnswered(id) { const entry = inquiryCache.get(id); if (entry) { entry.record.status = 'answered'; inquiryDrafts.delete(id); if (currentInquiry === id) { attachInquiry(id); if (page === 'members') present(); else renderInquiryHeading(); } } }
+  function inquiryAnswered(id) { const entry = inquiryCache.get(id); if (entry) { entry.record.status = 'answered'; inquiryDrafts.delete(id); if (currentInquiry === id) { attachInquiry(id); if (page === 'members' || page === 'inquiries') present(); } } }
   function inquiryArchived(id) { const entry = inquiryCache.get(id); entry?.thread.remove(); inquiryCache.delete(id); inquiryDrafts.delete(id); if (currentInquiry === id) { currentInquiry = ''; if (page !== 'members') detailOpen = false; present(); notify('문의 보관 상태를 변경했어요. 목록에서 이어서 확인해 주세요.'); } }
 
   function inquiryMessageDeleted(messageId) {
@@ -669,7 +671,7 @@
     memberLinked: id => showCompletion('signup', id, '센터 출석 연결을 완료했어요.'),
     routineSaved: id => { showCompletion('routine', id, '새 운동 루틴을 배정했어요.'); void hooks.refreshRoutineRequests?.(); },
     captureInquiryDrafts, registerInquiry, openInquiry, syncInquiryAlerts, inquiryAnswered, inquiryArchived, inquiryMessageDeleted,
-    inquiryMemberId: () => page === 'requests' && kind === 'inquiry' || page === 'members' && memberTab === 'inquiry' ? requestMemberFilter : '',
+    inquiryMemberId: () => page === 'inquiries' || page === 'members' && memberTab === 'inquiry' ? requestMemberFilter : '',
     refreshPayments: () => loadPayments(true), memberDeleted, isBusy: () => selecting || !!paymentApplying || !!window.AdminMemberDeletion?.isBusy(),
   });
 })();
