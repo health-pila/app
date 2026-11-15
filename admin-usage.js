@@ -14,7 +14,9 @@
     const ready=enabled&&state.membersReady&&state.members.size>0;
     $('usageMemberSearch').disabled=locked||!ready;$('usageMemberSelect').disabled=locked||!ready;
     const selected=enabled&&state.members.has($('usageMemberSelect').value);
-    $('usageExclude').disabled=locked||!selected;$('usageInclude').disabled=locked||!selected;
+    $('usageExclude').disabled=locked||!selected||state.excludedBusy;$('usageInclude').disabled=locked||!selected||state.excludedBusy;
+    $('usageExcludedRefresh').disabled=locked||state.excludedBusy;
+    $('usageExcludedList').querySelectorAll('button').forEach(button=>button.disabled=locked||state.excludedBusy);
   }
   function renderMembers(){const s=state,select=$('usageMemberSelect'),selected=select.value;select.replaceChildren();
     const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=!s||!s.membersReady?'회원 목록을 불러오는 중…':s.memberFailed?'회원 목록을 불러오지 못했어요.':s.members.size?'대상 회원을 선택해 주세요':'선택 가능한 회원이 없어요.';select.append(placeholder);
@@ -31,8 +33,8 @@
     for(const row of Array.isArray(rows)?rows:[]){if(!uuid(row.id)||row.id===s.uid)continue;members.set(row.id,{id:row.id,name:typeof row.name==='string'&&row.name.trim()?row.name.trim():'이름 없음',last4:/^\d{4}$/.test(row.last4||'')?row.last4:''});}
     s.members=members;s.membersReady=true;s.memberFailed=Boolean(failed);renderMembers();
   }
-  function reset(){state=null;composing=false;$('usageRows').replaceChildren();$('usageMessage').textContent='';$('usageSummary').textContent='';$('usageExcludeMessage').textContent='';$('usageCollectionHealth').textContent='';$('usageMemberSearch').value='';panel.open=false;renderMembers();}
-  function start(client,uid){reset();state={client,uid,busy:false,members:new Map(),membersReady:false,memberFailed:false};renderMembers();}
+  function reset(){state=null;composing=false;$('usageRows').replaceChildren();$('usageMessage').textContent='';$('usageSummary').textContent='';$('usageExcludeMessage').textContent='';$('usageCollectionHealth').textContent='';$('usageMemberSearch').value='';$('usageExcludedList').replaceChildren();$('usageExcludedCount').textContent='확인 전';$('usageExcludedStatus').textContent='';$('usageExclusionsPanel').open=false;renderMembers();}
+  function start(client,uid){reset();state={client,uid,busy:false,members:new Map(),membersReady:false,memberFailed:false,excludedMembers:new Map(),excludedLoaded:false,excludedFailed:false,excludedBusy:false};renderMembers();}
   async function request(s,name,args){const {data,error}=await s.client.auth.getUser();if(!current(s))return null;if(error||data?.user?.id!==s.uid)throw Error('auth');const result=await s.client.rpc(name,args);if(!current(s))return null;if(result.error||!result.data?.ok)throw Error('rpc');return result.data;}
   const number=v=>Number.isSafeInteger(Number(v))&&Number(v)>=0?Number(v):0;
   async function load(){const s=state;if(!s||!current(s)||s.busy)return;s.busy=true;controls();$('usageMessage').textContent='집계 결과를 불러오고 있어요…';
@@ -45,15 +47,38 @@
       const built=r.built_at?new Date(r.built_at):null;$('usageMessage').textContent=built&&Number.isFinite(built.getTime())?`${singleDay?r.from_day+' 하루 통계':r.from_day+' ~ '+r.through_day} · 조회: ${built.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})}${number(r.hits)?'':' · 아직 집계된 사용 기록이 없어요.'}`:'조회 시각을 확인하지 못했어요. 다시 조회해 주세요.';
     }catch(_){if(current(s)){$('usageCollectionHealth').textContent='';$('usageSummary').textContent='';$('usageMessage').textContent='통계를 불러오지 못했어요. 서버 설정과 로그인 상태를 확인하고 다시 눌러 주세요.'}}finally{if(current(s)){s.busy=false;controls()}}
   }
-  async function exclude(value){const s=state;if(!s||!current(s)||s.busy)return;const uid=$('usageMemberSelect').value,member=s.members.get(uid);if(!uuid(uid)||!member){$('usageExcludeMessage').textContent='이곳에서 대상 회원을 먼저 선택해 주세요.';return;}
+  function renderExcluded(){const s=state,list=$('usageExcludedList');list.replaceChildren();
+    if(!s||!current(s))return;
+    $('usageExcludedCount').textContent=s.excludedBusy?'확인 중…':s.excludedFailed?'확인 필요':s.excludedLoaded?s.excludedMembers.size+'명':'확인 전';
+    if(s.excludedBusy){$('usageExcludedStatus').textContent='서버의 제외 회원 목록을 확인하고 있어요.';controls();return;}
+    if(s.excludedFailed){$('usageExcludedStatus').textContent='목록을 불러오지 못했어요. 목록 새로고침을 눌러 주세요. 계속되면 v357 조회 SQL 설치와 로그인 상태를 확인해 주세요.';controls();return;}
+    if(!s.excludedLoaded)return;
+    $('usageExcludedStatus').textContent=s.excludedMembers.size?'이름과 전화번호 끝자리 기준 · 서버 조회: '+new Date(s.excludedBuiltAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}):'현재 별도로 제외 설정한 회원이 없어요.';
+    const members=[...s.excludedMembers.values()].sort((a,b)=>nameOrder.compare(a.name,b.name)||a.last4.localeCompare(b.last4)||a.id.localeCompare(b.id));
+    for(const member of members){const row=document.createElement('li'),label=document.createElement('span'),button=document.createElement('button');label.textContent=memberLabel(member);button.type='button';button.textContent='다시 포함';button.setAttribute('aria-label',memberLabel(member)+' 통계 다시 포함');button.addEventListener('click',()=>exclude(false,member.id));row.append(label,button);list.append(row);}controls();
+  }
+  async function loadExcluded(force=false){const s=state;if(!s||!current(s)||s.excludedBusy||s.excludedLoaded&&!force)return;s.excludedBusy=true;s.excludedFailed=false;renderExcluded();
+    try{const collected=new Map();let after=null,builtAt=null;
+      for(;;){const r=await request(s,'admin_center_usage_excluded_v357',{p_expected_admin_id:s.uid,p_after_user_id:after,p_limit:200});if(!r||!current(s))return;
+        if(r.version!==1||r.admin_id!==s.uid||!Array.isArray(r.excluded_members)||r.excluded_members.length>200||typeof r.has_more!=='boolean'||!Number.isSafeInteger(r.total)||r.total<0||!Number.isFinite(Date.parse(r.built_at)))throw Error('shape');
+        let last=after;
+        for(const item of r.excluded_members){if(!uuid(item.user_id)||item.user_id===s.uid||typeof item.name!=='string'||!item.name.trim()||item.last4!==null&&!/^\d{4}$/.test(item.last4)||last&&item.user_id<=last)throw Error('member');last=item.user_id;collected.set(item.user_id,{id:item.user_id,name:item.name,last4:item.last4||''});}
+        builtAt=r.built_at;if(!r.has_more)break;if(!r.excluded_members.length||last===after)throw Error('cursor');after=last;
+      }
+      s.excludedMembers=collected;s.excludedBuiltAt=builtAt;s.excludedLoaded=true;
+    }catch(_){if(current(s))s.excludedFailed=true;}finally{if(current(s)){s.excludedBusy=false;renderExcluded();}}
+  }
+  async function exclude(value,targetId=null){const s=state;if(!s||!current(s)||s.busy||s.excludedBusy)return;const uid=targetId||$('usageMemberSelect').value,member=targetId?s.excludedMembers.get(uid):s.members.get(uid);if(!uuid(uid)||!member){$('usageExcludeMessage').textContent='이곳에서 대상 회원을 먼저 선택해 주세요.';return;}
     const label=memberLabel(member);
     if(value&&!window.confirm(`${label} 회원을 이용 통계에서 제외할까요?\n이 회원의 기존 이용 통계도 삭제되며, 다시 포함해도 삭제된 통계는 복원되지 않습니다.`))return;
-    if(!current(s)||!s.members.has(uid))return;s.busy=true;controls();$('usageExcludeMessage').textContent=label+' · 설정 중…';
-    try{const r=await request(s,'admin_center_usage_exclude_v242',{p_user_id:uid,p_excluded:value});if(!r||!current(s))return;$('usageExcludeMessage').textContent=label+' · '+(value?'통계에서 제외했어요. 해당 회원의 기존 이용 통계도 삭제했습니다.':'앞으로 전송되는 통계를 포함합니다. 삭제된 과거 통계는 복원되지 않습니다.')}catch(_){if(current(s))$('usageExcludeMessage').textContent=label+' · 설정 결과를 확인하지 못했어요. 연결과 로그인 상태를 확인하고 같은 대상 회원으로 다시 시도해 주세요.'}finally{if(current(s)){s.busy=false;controls();void load()}}
+    if(!current(s)||!(targetId?s.excludedMembers:s.members).has(uid))return;s.busy=true;controls();$('usageExcludeMessage').textContent=label+' · 설정 중…';
+    try{const r=await request(s,'admin_center_usage_exclude_v242',{p_user_id:uid,p_excluded:value});if(!r||!current(s))return;$('usageExcludeMessage').textContent=label+' · '+(value?'통계에서 제외했어요. 해당 회원의 기존 이용 통계도 삭제했습니다.':'앞으로 전송되는 통계를 포함합니다. 삭제된 과거 통계는 복원되지 않습니다.')}catch(_){if(current(s))$('usageExcludeMessage').textContent=label+' · 설정 결과를 확인하지 못했어요. 연결과 로그인 상태를 확인하고 같은 대상 회원으로 다시 시도해 주세요.'}finally{if(current(s)){s.busy=false;controls();void load();void loadExcluded(true)}}
   }
   let composing=false;
   function searchMembers(){if(!state||!current(state)||state.busy||composing)return;$('usageMemberSelect').value='';$('usageExcludeMessage').textContent='';renderMembers();}
   $('usageMemberSearch').addEventListener('compositionstart',()=>{composing=true;});$('usageMemberSearch').addEventListener('compositionend',()=>{composing=false;searchMembers();});$('usageMemberSearch').addEventListener('input',searchMembers);
   $('usageMemberSelect').addEventListener('change',()=>{$('usageExcludeMessage').textContent='';controls();});
-  panel.addEventListener('toggle',()=>{if(panel.open)void load()});$('usagePeriod').addEventListener('change',load);$('usageRefresh').addEventListener('click',load);$('usageExclude').addEventListener('click',()=>exclude(true));$('usageInclude').addEventListener('click',()=>exclude(false));window.AdminUsage=Object.freeze({start,reset,setMembers});controls();
+  $('usageExclusionsPanel').addEventListener('toggle',()=>{if($('usageExclusionsPanel').open)void loadExcluded(true);});$('usageExcludedRefresh').addEventListener('click',()=>loadExcluded(true));
+  function show(){void load();if($('usageExclusionsPanel').open)void loadExcluded(true);}
+  $('usagePeriod').addEventListener('change',load);$('usageRefresh').addEventListener('click',load);$('usageExclude').addEventListener('click',()=>exclude(true));$('usageInclude').addEventListener('click',()=>exclude(false));window.AdminUsage=Object.freeze({start,reset,setMembers,show});controls();
 })();

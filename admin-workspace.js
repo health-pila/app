@@ -41,7 +41,7 @@
     const root = el('section', 'admin-workspace-layout'); root.id = 'adminWorkspaceLayout';
     root.innerHTML = `<nav class="aw-nav" aria-label="관리자 메뉴">
       <button type="button" data-aw-page="requests" aria-current="page">요청 처리 <span id="awAllCount" class="aw-count">—</span></button>
-      <button type="button" data-aw-page="members">회원 관리</button><button type="button" data-aw-page="operations">센터 운영</button></nav>
+      <button type="button" data-aw-page="members">회원 관리</button><button type="button" data-aw-page="operations">센터 운영</button><button type="button" data-aw-page="statistics">현황·통계</button></nav>
       <div class="aw-main"><header class="aw-heading" hidden><div><h1 id="awPageTitle">처리할 요청</h1><p id="awPageHelp">요청을 선택하고 필요한 작업을 바로 처리하세요.</p></div></header>
       <p id="adminWorkspaceStatus" class="aw-status" role="status" aria-live="polite"></p>
       <div id="awKinds" class="aw-kinds" role="group" aria-label="요청 종류"></div>
@@ -53,7 +53,7 @@
             <div id="awAccessSlot"></div><div id="awRoutineSlot"></div><div id="awApplicationSlot" hidden></div><section id="awMemberInquirySlot" hidden aria-label="선택 회원의 문의 내역"><div id="awMemberInquiryList"></div><section id="awMemberInquiryDetail" hidden><header class="aw-member-inquiry-heading"><h3 id="awMemberInquiryTitle">문의 상세</h3><button id="awMemberInquiryClose" class="aw-secondary" type="button">닫기 ×</button></header><div id="awMemberInquiryThread"></div></section></section></div>
           <div id="awInquiryWork" class="aw-inquiry-work" hidden></div><div id="awPaymentWork" class="aw-payment-work" hidden></div>
           <footer id="awNextBar" class="aw-next-bar" hidden><button id="awClearMemberBottom" class="aw-secondary aw-inquiry-close" type="button" hidden>선택 해제</button><button id="awNext" class="aw-primary" type="button">다음 요청 보기 ›</button></footer>
-        </section></div><section id="awOperations" class="aw-operations" hidden><nav class="aw-operation-nav" aria-label="센터 운영 항목"></nav><div id="awOperationBody"></div></section></div>
+        </section></div><section id="awOperations" class="aw-operations" hidden><nav class="aw-operation-nav" aria-label="센터 운영 항목"></nav><div id="awOperationBody"></div></section><section id="awStatistics" class="aw-statistics-page" aria-label="현황·통계" hidden></section></div>
       <div id="awParking" hidden></div>`;
     const bar = screen.querySelector('.admin-app-topbar'); bar.after(root);
     const hero = screen.querySelector('.admin-app-hero'), sound = hero?.querySelector('.admin-sound-settings');
@@ -61,7 +61,7 @@
     bar.querySelector('.member-topbar-actions').prepend(soundSlot);
     if (sound) soundSlot.append(sound);
     $('adminSoundStatus').classList.add('member-sr-only');
-    if (hero) { hero.classList.add('aw-statistics'); hero.querySelector('h1').textContent = '회원 현황'; }
+    if (hero) { hero.classList.add('aw-statistics'); hero.querySelector('h1').textContent = '회원 현황'; hero.querySelector('h1').classList.add('admin-section-title'); }
     for (const [key, [label, sub, glyph]] of Object.entries(kinds)) {
       const b = el('button', 'aw-kind'); b.type = 'button'; b.dataset.awKind = key;
       const icon = el('span', 'aw-kind-icon'); icon.setAttribute('aria-hidden', 'true');
@@ -103,13 +103,19 @@
     $('awParking').append(browser, $('adminMemberSignupAlerts'), $('adminRoutineRequestManagement'), $('adminInquiryManagement'));
     const routineWorkspace = $('adminRoutineWorkspace'); if (routineWorkspace) routineWorkspace.hidden = true;
     const inquirySetting = $('adminInquiryManagement').querySelector('.admin-inquiry-setting');
-    const settings = el('section', 'admin-card aw-setting-card'); settings.append(el('h2', 'admin-section-title', '문의 접수 설정'), inquirySetting, $('adminInquirySettingMessage'));
+    // Move the original control, retaining its authorization, confirmation and handlers.
+    const intakeButton = $('toggleAdminInquiryFeatureButton');
+    intakeButton.classList.add('aw-header-intake');
+    soundSlot.before(intakeButton);
+    inquirySetting.remove();
+    $('adminWorkspaceStatus').before($('adminInquirySettingMessage'));
     const stats = $('adminUsagePanel')?.closest('.admin-card');
+    $('awStatistics').append(hero, stats);
     const newsEditor = $('adminCommunityEditor'), newsList = $('adminCommunityManagement');
     const communityList = newsList || $('adminCommunityPostList')?.closest('.admin-card');
     const operations = [
-      ['news', '센터 소식', [newsEditor, communityList]], ['statistics', '현황·통계', [hero, stats]],
-      ['payments', '결제 내역', [$('adminPayments')]], ['settings', '접수·콘텐츠 설정', [settings, $('adminStretchingManagement')]],
+      ['news', '센터 소식', [newsEditor, communityList]],
+      ['payments', '결제 내역', [$('adminPayments')]], ['settings', '콘텐츠 설정', [$('adminStretchingManagement')]],
     ];
     const used = new Set();
     for (const [key, label, nodes] of operations) {
@@ -157,7 +163,6 @@
   function setOperation(key = 'news') {
     $('awOperations').querySelectorAll('[data-aw-operation]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.awOperation === key)));
     $('awOperationBody').querySelectorAll('[data-aw-operation-panel]').forEach(n => { n.hidden = n.dataset.awOperationPanel !== key; });
-    if (key === 'statistics') $('adminUsagePanel').open = true;
   }
   function moveTo(node, parent) { if (node && node.parentNode !== parent) parent.append(node); }
   function clearMemberSelection() {
@@ -196,6 +201,7 @@
     if (page !== 'members' && kind !== 'inquiry') requestMemberFilter = '';
     if (page === 'operations') setOperation('news');
     present();
+    if (page === 'statistics') window.AdminUsage?.show();
     if (kind === 'inquiry' && page === 'requests') void hooks.refreshInquiries?.(true);
     if (kind === 'payment' && page === 'requests') void loadPayments(true);
     if (page === 'members') {
@@ -236,9 +242,9 @@
     $root().querySelectorAll('[data-aw-page]').forEach(b => { if (b.dataset.awPage === page) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     $root().querySelectorAll('[data-aw-kind]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.awKind === kind)));
     $root().querySelectorAll('[data-aw-member-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.awMemberTab === memberTab)));
-    $('awPageTitle').textContent = page === 'requests' ? '처리할 요청' : page === 'members' ? '회원 관리' : '센터 운영';
-    $('awPageHelp').textContent = page === 'requests' ? '요청을 선택하고 필요한 작업을 바로 처리하세요.' : page === 'members' ? '회원 검색부터 출석·이용권, 운동 루틴 확인까지.' : '센터 소식과 운영 현황을 관리하세요.';
-    $('awKinds').hidden = page !== 'requests'; $('awWorkspace').hidden = page === 'operations'; $('awOperations').hidden = page !== 'operations';
+    $('awPageTitle').textContent = page === 'requests' ? '처리할 요청' : page === 'members' ? '회원 관리' : page === 'statistics' ? '현황·통계' : '센터 운영';
+    $('awPageHelp').textContent = page === 'requests' ? '요청을 선택하고 필요한 작업을 바로 처리하세요.' : page === 'members' ? '회원 검색부터 출석·이용권, 운동 루틴 확인까지.' : page === 'statistics' ? '회원 현황과 앱 이용 통계를 확인하세요.' : '센터 소식과 콘텐츠를 관리하세요.';
+    $('awKinds').hidden = page !== 'requests'; $('awWorkspace').hidden = !['requests', 'members'].includes(page); $('awOperations').hidden = page !== 'operations'; $('awStatistics').hidden = page !== 'statistics';
     $('awWorkspace').dataset.detailOpen = String(detailOpen); $('awBack').hidden = !mobile() || !detailOpen;
     const slots = { signup: $('adminMemberSignupAlerts'), routine: $('adminRoutineRequestManagement'), inquiry: $('adminInquiryManagement') };
     const memberInquiry = page === 'members' && memberTab === 'inquiry' && !!member;

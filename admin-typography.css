@@ -1,5 +1,16 @@
 /* Admin-only typography: +10% below 20px; headings and already large text retain their size.
    v311: inquiry message bodies are 10% smaller; labels, timestamps and composers retain their sizes. */
+/* v359: use the installed Windows face; mobile and other systems fall back to
+   their native UI face. No webfont download or viewport-based switch is needed.
+   Shared dialogs receive this family only while the administrator screen is shown. */
+:is(#adminScreen,.admin-routine-application-dialog,.admin-member-picker-dialog),
+body:has(#adminScreen:not([hidden])) :is(dialog,[role="dialog"]){
+  font-family:"Malgun Gothic","맑은 고딕",system-ui,-apple-system,BlinkMacSystemFont,sans-serif!important;
+}
+:is(#adminScreen,.admin-routine-application-dialog,.admin-member-picker-dialog) :is(button,input,select,textarea),
+body:has(#adminScreen:not([hidden])) :is(dialog,[role="dialog"]) :is(button,input,select,textarea){
+  font-family:inherit!important;
+}
 :where(#adminScreen,.admin-routine-application-dialog,.admin-member-picker-dialog){font-size:17.6px}
 /* style.css */
 :where(#adminScreen,.admin-routine-application-dialog,.admin-member-picker-dialog) :is(.workout-record-entry-actions .workout-camera-button):not(h1,h2,h3):not([aria-hidden="true"]):not(#adminUsagePanel>summary):not(.aw-completion strong),:where(#adminScreen,.admin-routine-application-dialog,.admin-member-picker-dialog) :is(.workout-record-entry-actions .workout-text-button):not(h1,h2,h3):not([aria-hidden="true"]):not(#adminUsagePanel>summary):not(.aw-completion strong),:where(#adminScreen,.admin-routine-application-dialog,.admin-member-picker-dialog) :is(.workout-record-entry-actions .workout-record-filter-button):not(h1,h2,h3):not([aria-hidden="true"]):not(#adminUsagePanel>summary):not(.aw-completion strong),:where(#adminScreen,.admin-routine-application-dialog,.admin-member-picker-dialog) :is(.workout-record-entry-actions .show-all-workout-records-button):not(h1,h2,h3):not([aria-hidden="true"]):not(#adminUsagePanel>summary):not(.aw-completion strong){font-size:15.73px!important}

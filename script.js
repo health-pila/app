@@ -5372,8 +5372,8 @@ function renderAdminInquirySetting(
 
   toggleAdminInquiryFeatureButton.textContent =
     isAdminInquiryEnabled
-      ? "접수 중"
-      : "접수 중단";
+      ? "문의 접수 중"
+      : "문의 접수 중단";
 }
 
 
@@ -5383,7 +5383,7 @@ async function loadAdminInquirySetting() {
     true;
 
   toggleAdminInquiryFeatureButton.textContent =
-    "설정 확인 중";
+    "문의 확인 중";
 
   adminInquirySettingMessage.textContent =
     "";
@@ -5419,7 +5419,7 @@ async function loadAdminInquirySetting() {
       true;
 
     toggleAdminInquiryFeatureButton.textContent =
-      "확인 실패";
+      "문의 확인 실패";
 
     adminInquirySettingMessage.textContent =
       `문의 설정을 불러오지 못했습니다: ${settingError.message ||
