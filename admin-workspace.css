@@ -1,5 +1,13 @@
 /* All layout rules are scoped to the verified administrator screen. */
 #adminScreen.admin-workspace-active{width:calc(100% - 24px);max-width:1440px;padding:0 0 20px;background:#f1f4f8;border:1px solid #dce3ed;border-radius:14px;overflow:visible;--aw-line:#dfe5ee;--aw-navy:#17233e;--aw-muted:#68768c}
+/* Keep desktop tabs stationary when the document gains or loses its scrollbar. */
+@media(min-width:761px){
+ html:has(#adminScreen.admin-workspace-active:not([hidden])){scrollbar-gutter:stable}
+ #adminScreen.admin-workspace-active{width:calc(100% - 32px);margin:0 20px 0 12px}
+ @supports not (scrollbar-gutter:stable){
+  html:has(#adminScreen.admin-workspace-active:not([hidden])){overflow-y:scroll}
+ }
+}
 #adminScreen.admin-workspace-active>.admin-block-divider{display:none}
 #adminScreen.admin-workspace-active [hidden]{display:none!important}
 #adminScreen.admin-workspace-active>.admin-app-topbar{position:sticky;top:0;z-index:15;margin:0;padding:3px 22px;height:46.5px;min-height:46.5px;background:#fff;border-radius:14px 14px 0 0;border-bottom:1px solid var(--aw-line)}

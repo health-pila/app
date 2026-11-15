@@ -48,7 +48,7 @@
       <div id="awKinds" class="aw-kinds" role="group" aria-label="요청 종류"></div>
       <div id="awWorkspace" class="aw-workspace"><button id="awBack" class="aw-back" type="button">‹ 목록으로 돌아가기</button>
         <section id="awQueue" class="aw-queue" aria-label="요청 목록"><div id="awQueueHeading" class="aw-queue-heading"></div><div id="awQueueBody"></div></section>
-        <section id="awWork" class="aw-work" aria-label="선택한 요청의 작업"><header class="aw-work-heading"><div><p id="awContext"></p><h2 id="awMemberTitle">목록에서 요청을 선택해 주세요.</h2><div id="awMemberMeta"></div></div><div class="aw-work-actions"><button id="awOpenMember" class="aw-text-button" type="button" hidden>회원 관리에서 보기 ›</button><button id="awClearMember" class="aw-secondary aw-inquiry-close" type="button" hidden>선택 해제</button><button id="awCloseInquiry" class="aw-secondary aw-inquiry-close" type="button" aria-label="문의 상세창 닫기" hidden>닫기 ×</button></div></header>
+        <section id="awWork" class="aw-work" aria-label="선택한 요청의 작업"><header class="aw-work-heading"><div><p id="awContext"></p><h2 id="awMemberTitle">목록에서 요청을 선택해 주세요.</h2><div id="awMemberMeta"></div></div><div class="aw-work-actions"><button id="awOpenMember" class="aw-text-button" type="button" hidden>회원 관리에서 보기 ›</button><button id="awClearMember" class="aw-secondary aw-inquiry-close" type="button" hidden>선택 해제</button><button id="awCloseMember" class="aw-secondary aw-inquiry-close" type="button" aria-label="선택한 회원 창 닫기" hidden>닫기 ×</button><button id="awCloseInquiry" class="aw-secondary aw-inquiry-close" type="button" aria-label="문의 상세창 닫기" hidden>닫기 ×</button></div></header>
           <div id="awEmpty" class="aw-empty">목록에서 처리할 요청을 선택해 주세요.</div><div id="awCompletion" class="aw-completion" hidden></div>
           <div id="awMemberWork" class="aw-member-work" hidden><div id="awMemberTabs" class="aw-member-tabs" role="group" aria-label="회원 관리 항목"><button type="button" data-aw-member-tab="access">출석·이용권</button><button type="button" data-aw-member-tab="routine">운동 루틴</button><button type="button" data-aw-member-tab="inquiry">문의</button></div>
             <div id="awAccessSlot"></div><div id="awRoutineSlot"></div><div id="awApplicationSlot" hidden></div><section id="awMemberInquirySlot" hidden aria-label="선택 회원의 문의 내역"><div id="awMemberInquiryList"></div><section id="awMemberInquiryDetail" hidden><header class="aw-member-inquiry-heading"><h3 id="awMemberInquiryTitle">문의 상세</h3><button id="awMemberInquiryClose" class="aw-secondary" type="button">닫기 ×</button></header><div id="awMemberInquiryThread"></div></section></section></div>
@@ -135,6 +135,7 @@
     $('awNext').addEventListener('click', next);
     $('awClearMember').addEventListener('click', clearRequestMemberSelection);
     $('awClearMemberBottom').addEventListener('click', clearRequestMemberSelection);
+    $('awCloseMember').addEventListener('click', closeMember);
     $('awCloseInquiry').addEventListener('click', closeInquiry);
     $('awMemberInquiryClose').addEventListener('click', closeInquiry);
     new MutationObserver(() => { if (owner) { updateMemberBrowser(); syncSelection(); } }).observe($('adminMemberSelect'), { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'data-member-name'] });
@@ -181,6 +182,21 @@
     $('adminMemberSelect').value = '';
     $('adminMemberSelect').dispatchEvent(new Event('change'));
     notify(''); present(); return true;
+  }
+  function closeMember() {
+    if (!active(generation) || page !== 'members' || !member) return;
+    if (selecting || hooks.isSaving?.() || window.CenterAttendance?.isAdminBusy?.() || window.AdminMemberDeletion?.isBusy?.()) {
+      notify('처리가 끝난 뒤 창을 닫아 주세요.'); return;
+    }
+    const id = member.id, ticket = generation;
+    if (clearMemberSelection()) {
+      $('awQueue').scrollIntoView({ block: 'nearest' });
+      requestAnimationFrame(() => {
+        if (!active(ticket) || page !== 'members' || member) return;
+        const card = $('awMemberRows').querySelector(`[data-aw-member="${id}"]:not([disabled])`);
+        (card || $('adminMemberSelect')).focus({ preventScroll: true });
+      });
+    }
   }
   function clearRequestMemberSelection() {
     if (!active(generation) || page !== 'requests' || !['signup', 'routine'].includes(kind)) return;
@@ -238,7 +254,7 @@
   function present() {
     if (!mounted) return;
     window.AdminMemberDeletion?.selectMember(member?.id || '', page === 'members' && memberTab === 'access');
-    if (page !== 'members' || !member) $('awWork').style.removeProperty('min-height');
+    if (page !== 'members' || !member && !selecting) $('awWork').style.removeProperty('min-height');
     screen.dataset.awPage = page; screen.dataset.awKind = kind;
     screen.dataset.awMemberTab = page === 'members' ? memberTab : kind === 'routine' ? 'routine' : 'access';
     $root().querySelectorAll('[data-aw-page]').forEach(b => { if (b.dataset.awPage === page) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
@@ -286,6 +302,7 @@
     $('awMemberInquiryDetail').hidden = !localInquiryOpen;
     if (localInquiryOpen) $('awMemberInquiryTitle').textContent = '문의 · ' + (inquiryCache.get(currentInquiry).record.archived_at ? '보관함' : inquiryCache.get(currentInquiry).record.status === 'answered' ? '답변 완료' : '답변 대기');
     $('awWork').hidden = page === 'inquiries' && !currentInquiry && !splitInquiry();
+    $('awCloseMember').hidden = page !== 'members' || !member;
     $('awCloseInquiry').hidden = !inquiryOpen;
     $('awPaymentWork').hidden = !(page === 'requests' && kind === 'payment' && paymentSelected);
     $('awEmpty').hidden = !!completion || memberWork && !!member || inquiryOpen || page === 'requests' && kind === 'payment' && !!paymentSelected;
@@ -310,7 +327,7 @@
   function memberLabel(row) { return row ? row.name + (row.last4 ? ' · ' + row.last4 : '') : '목록에서 요청을 선택해 주세요.'; }
   function renderMemberHeading() {
     $('awContext').textContent = page === 'members' ? '회원 관리' : kinds[kind][0] + ' · ' + kinds[kind][1];
-    $('awMemberTitle').textContent = !member && completion?.type === 'signup' ? '센터 회원 연결 완료' : memberLabel(member);
+    $('awMemberTitle').textContent = !member && selecting ? '회원 정보를 확인하고 있어요.' : !member && completion?.type === 'signup' ? '센터 회원 연결 완료' : memberLabel(member);
     $('awOpenMember').hidden = page === 'members' || !member;
     const p = $('awAppIdentity').querySelector('p'); p.replaceChildren();
     if (member) { p.append(el('strong', '', member.name), el('span', '', '전화번호 끝자리 ' + (member.last4 || '미등록'))); }
@@ -321,28 +338,47 @@
     if (!owner) return;
     if (!id) { if (!completion) member = null; if (page === 'members') clearInquiryMemberScope(); present(); return; }
     if (!uuid(id)) return;
-    if (page === 'members' && member?.id !== id) { captureInquiryDrafts(); clearInquiryMemberScope(); memberTab = 'access'; $('awWork').style.removeProperty('min-height'); }
+    if (page === 'members' && member?.id !== id) { captureInquiryDrafts(); clearInquiryMemberScope(); memberTab = 'access'; if (!selecting) $('awWork').style.removeProperty('min-height'); }
     member = { id, name: details.name || '회원', last4: /^\d{4}$/.test(details.last4 || '') ? details.last4 : '' };
     completion = null; present();
   }
   async function chooseMember(id, context, request = null) {
     if (!active(generation) || selecting || hooks.isSaving?.() || !uuid(id)) return false;
     selecting = true; const ticket = generation;
+    const startScroll = window.scrollY;
+    if (context === 'members') {
+      // Keep enough document height to avoid a scroll clamp while the old
+      // member panels are replaced. No placeholder row is inserted above the list.
+      const work = $('awWork');
+      work.style.minHeight = Math.max(0, Math.ceil(window.innerHeight - work.getBoundingClientRect().top)) + 'px';
+    }
     captureInquiryDrafts(); clearInquiryMemberScope();
     member = null; applicationMember = ''; $('awApplicationSlot').replaceChildren();
     if (context === 'members') { page = 'members'; memberTab = 'access'; }
     else { page = 'requests'; kind = context; }
-    completion = null; detailOpen = true; notify('회원 정보를 확인하고 있어요.'); present();
+    completion = null; detailOpen = true; notify(context === 'members' ? '' : '회원 정보를 확인하고 있어요.'); present();
     try {
       const result = await hooks.selectMember?.(id, { kind: context, request });
       if (!active(ticket)) return false;
       if (!result) { notify('회원을 선택하지 못했어요. 목록에서 다시 선택해 주세요.'); return false; }
       memberSelected(id, result); notify('');
       if (context === 'routine' && request) await loadApplication(request, ticket);
-      if (active(ticket)) { present(); $('awWork').scrollIntoView({ block: 'nearest' }); }
+      if (active(ticket)) {
+        present();
+        if (context === 'members') {
+          // Move once to the heading, rather than aligning the changing height
+          // of the entire card. Respect any scrolling done during the request.
+          const heading = $('awWork').querySelector('.aw-work-heading').getBoundingClientRect();
+          const navBottom = $root().querySelector('.aw-nav').getBoundingClientRect().bottom;
+          if (Math.abs(window.scrollY - startScroll) < 2 && heading.height > 0 &&
+              (heading.top < navBottom || heading.bottom > window.innerHeight)) {
+            window.scrollTo({ top: Math.max(0, window.scrollY + heading.top - navBottom - 12), left: window.scrollX, behavior: 'instant' });
+          }
+        } else $('awWork').scrollIntoView({ block: 'nearest' });
+      }
       return true;
     } catch (_) { if (active(ticket)) notify('회원 정보를 불러오지 못했어요. 다시 선택해 주세요.'); return false; }
-    finally { if (active(ticket)) selecting = false; }
+    finally { if (active(ticket)) { selecting = false; if (context === 'members' && !member) present(); } }
   }
   async function loadApplication(request, ticket) {
     const slot = $('awApplicationSlot'); slot.replaceChildren(); slot.dataset.requestId = request.id; slot.hidden = !request.application_revision; applicationMember = request.user_id;
@@ -495,6 +531,9 @@
       if (!thread?.isConnected || thread.closest('[hidden]')) return;
       const list = thread.querySelector('.admin-inquiry-message-list');
       if (list) list.scrollTop = list.scrollHeight;
+      // Member management expands the conversation in place. Focusing the
+      // editor here can also open a mobile keyboard and move the viewport.
+      if (local) return;
       const input = thread.querySelector('.admin-inquiry-reply-area:not([hidden]) textarea');
       const target = input || thread.querySelector('.member-inquiry-delete-area:not([hidden])') || thread;
       if (splitInquiry()) {
@@ -523,7 +562,7 @@
     }
     notify(''); present();
     const focus = $('adminInquiryList').querySelector(`[data-inquiry-id="${id}"] .admin-inquiry-summary-button`) || $('adminInquiryFilters').querySelector('[aria-pressed="true"]');
-    focus?.focus({ preventScroll: true }); (local ? $('awMemberInquiryList') : $('awQueue')).scrollIntoView({ block: 'nearest' });
+    focus?.focus({ preventScroll: true }); if (!local) $('awQueue').scrollIntoView({ block: 'nearest' });
   }
   function openMemberInquiries() {
     if (!member || page !== 'members') return;
