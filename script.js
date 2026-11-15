@@ -3832,6 +3832,58 @@ async function updateWorkoutRecordCaption(
   }
 }
 
+// Korean Seollal (regular lunar 1/1) and Chuseok (regular lunar 8/15).
+// Gregorian MMDD pairs for 1900–2050, generated offline from KASI-based
+// korean_lunar_calendar_py 0.4.0 (MIT, Jinil Lee), commit 128a9b482dd34ea6185298d335de2c8d3f378d4c.
+// https://github.com/usingsky/korean_lunar_calendar_py
+// Dates only: no third-party runtime dependency, requests, or API key.
+const centerLunarHolidayPairs = Object.freeze([
+  "01310908", "02190927", "02080916", "01291005", "02160924", "02040913", "01251002", "02130922", "02020910", "01220928",
+  "02100918", "01301006", "02180925", "02060915", "01261004", "02140923", "02040912", "01230930", "02110919", "02011008",
+  "02200926", "02080916", "01281005", "02160925", "02050913", "01241002", "02130921", "02020910", "01230928", "02100917",
+  "01301006", "02170926", "02060915", "01261004", "02140923", "02040912", "01240930", "02110919", "01311008", "02190927",
+  "02080916", "01271005", "02150925", "02050914", "01261001", "02130920", "02020910", "01220929", "02100917", "01291006",
+  "02170926", "02060915", "01271003", "02140922", "02040911", "01240930", "02120919", "01310908", "02190927", "02080917",
+  "01281005", "02150924", "02050913", "01251002", "02130920", "02020910", "01220929", "02090918", "01301006", "02170926",
+  "02060915", "01271003", "02150922", "02030911", "01230930", "02110920", "01310908", "02180927", "02070917", "01281005",
+  "02160923", "02050912", "01251001", "02130921", "02020910", "02200929", "02090918", "01291007", "02180925", "02060914",
+  "01271003", "02150922", "02040911", "01230930", "02100920", "01310909", "02190927", "02080916", "01281005", "02160924",
+  "02050912", "01241001", "02120921", "02010911", "01220928", "02090918", "01291006", "02180925", "02070914", "01261003",
+  "02140922", "02030912", "01230930", "02100919", "01310908", "02190927", "02080915", "01281004", "02160924", "02050913",
+  "01251001", "02120921", "02010910", "01220929", "02100917", "01291006", "02170925", "02070915", "01271003", "02130922",
+  "02030912", "01231001", "02110919", "01310908", "02190927", "02080916", "01281004", "02150924", "02040913", "01241002",
+  "02120921", "02010910", "01220928", "02100917", "01301005", "02170925", "02060915", "01261004", "02140922", "02020911",
+  "01230930"
+]);
+let centerLunarFallbackFormatter;
+const centerLunarFallbackCache = new Map();
+function getCenterLunarHolidayName(year, monthIndex, day) {
+  const pair = centerLunarHolidayPairs[year - 1900];
+  const mmdd = String(monthIndex + 1).padStart(2, "0") + String(day).padStart(2, "0");
+  if (pair) return pair.slice(0, 4) === mmdd ? "설날" : pair.slice(4) === mmdd ? "추석" : "";
+  // Other years may use the browser's Korean calendar; never substitute Chinese
+  // lunar dates, and never treat a leap lunar month as a festival.
+  const key = `${year}-${mmdd}`;
+  if (centerLunarFallbackCache.has(key)) return centerLunarFallbackCache.get(key);
+  let name = "";
+  try {
+    if (centerLunarFallbackFormatter === undefined) {
+      const formatter = new Intl.DateTimeFormat("en-US", {
+        calendar: "dangi", numberingSystem: "latn", timeZone: "Asia/Seoul", month: "numeric", day: "numeric"
+      });
+      centerLunarFallbackFormatter = formatter.resolvedOptions().calendar === "dangi" ? formatter : null;
+    }
+    if (centerLunarFallbackFormatter) {
+      const parts = centerLunarFallbackFormatter.formatToParts(new Date(Date.UTC(year, monthIndex, day, 3)));
+      const month = parts.find(part => part.type === "month")?.value;
+      const date = parts.find(part => part.type === "day")?.value;
+      name = month === "1" && date === "1" ? "설날" : month === "8" && date === "15" ? "추석" : "";
+    }
+  } catch (_) { centerLunarFallbackFormatter = null; }
+  centerLunarFallbackCache.set(key, name);
+  return name;
+}
+
 // 운동 기록 캘린더 그리기
 function renderWorkoutCalendar() {
   const year = visibleWorkoutMonth.getFullYear();
@@ -3870,23 +3922,20 @@ function renderWorkoutCalendar() {
     dateButton.className = "workout-calendar-day";
     dateButton.textContent = String(day);
     dateButton.dataset.date = dateKey;
-    const isCenterClosed = new Date(year, monthIndex, day).getDay() === 0 &&
+    const lunarHoliday = getCenterLunarHolidayName(year, monthIndex, day);
+    const regularGymClosed = new Date(year, monthIndex, day).getDay() === 0 &&
       ((day >= 8 && day <= 14) || (day >= 22 && day <= 28));
+    const isCenterClosed = Boolean(lunarHoliday || regularGymClosed);
     if (isCenterClosed) {
       dateButton.classList.add("is-center-closed");
-      const number = document.createElement("span");
-      number.className = "workout-calendar-closed-number";
-      number.textContent = String(day);
-      const label = document.createElement("span");
-      label.className = "workout-calendar-closed-label";
-      label.textContent = "휴관";
-      label.setAttribute("aria-hidden", "true");
-      dateButton.replaceChildren(number, label);
+      dateButton.textContent = lunarHoliday ? "휴관" : "헬스휴관";
+      dateButton.dataset.closureReason = lunarHoliday ? `${lunarHoliday} 당일 휴관` : "헬스 정기 휴관";
+      if (!lunarHoliday) dateButton.classList.add("is-gym-closed");
     }
 
     dateButton.setAttribute(
       "aria-label",
-      `${year}년 ${monthIndex + 1}월 ${day}일` + (isCenterClosed ? ", 정기 휴관" : "")
+      `${year}년 ${monthIndex + 1}월 ${day}일` + (isCenterClosed ? ", " + dateButton.dataset.closureReason : "")
     );
 
     const isToday =

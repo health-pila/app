@@ -989,7 +989,7 @@ button.routine-request-button:focus-visible { outline: 3px solid #ffb36e; outlin
 
 /* 운동 기록 탭 */
 #workoutLogTabPanel .header {
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 #workoutLogTabPanel .header h4,

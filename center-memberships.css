@@ -1,4 +1,4 @@
-.center-memberships { margin-top:12px; padding-top:12px; border-top:1px solid #e1e7ef; color:#15243e; }
+.center-memberships { margin-top:6px; padding-top:6px; border-top:1px solid #e1e7ef; color:#15243e; }
 .center-memberships[hidden] { display:none; }
 .center-membership-message { margin:0; color:#69778e; font-size:11px; line-height:1.6; overflow-wrap:anywhere; }
 .center-membership-message[hidden] { display:none; }

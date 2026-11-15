@@ -65,8 +65,11 @@
     refreshButton.title=refreshing?'최신 회원권 정보를 확인하고 있어요':remaining>0?`${Math.ceil(remaining/1000)}초 후 다시 확인할 수 있어요`:'최신 회원권 정보 확인';
     clearTimeout(cooldownTimer);cooldownTimer=remaining>0?setTimeout(()=>{cooldownTimer=0;render();},remaining+30):0;
     if(wasFocused&&!refreshButton.disabled)refreshButton.focus({preventScroll:true});
-    message.textContent=[msg,refreshMessage].filter(Boolean).join(' ');message.hidden=!message.textContent;
-    message.classList.toggle('is-error',refreshFailed);
+    // Ordinary guidance and refresh-success text do not occupy the screen.
+    // Keep a failed read/refresh actionable instead of silently showing stale dates.
+    const failure=!refreshing&&(refreshFailed||error);
+    message.textContent=failure?(refreshFailed?refreshMessage:msg):'';message.hidden=!message.textContent;
+    message.classList.toggle('is-error',failure);
   }
   function reset(){epoch++;request++;abort?.abort();abort=null;client=null;user='';busy=false;cache=null;loadedAt=0;error=false;
     refreshing=false;refreshMessage='';refreshFailed=false;cooldownUntil=0;clearTimeout(cooldownTimer);cooldownTimer=0;render();}

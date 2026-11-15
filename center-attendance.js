@@ -62,7 +62,7 @@
       button.classList.toggle("has-center-attendance", present);
       const [year, month, date] = day.split("-").map(Number);
       button.setAttribute("aria-label", `${year}년 ${month}월 ${date}일` +
-        (button.classList.contains("is-center-closed") ? ", 정기 휴관" : "") +
+        (button.dataset.closureReason ? ", " + button.dataset.closureReason : "") +
         (button.classList.contains("has-record") ? ", 운동 기록 있음" : "") + (present ? ", 센터 출석 있음" : ""));
     });
   }
@@ -118,20 +118,14 @@
     details.hidden = !view.selected;
     details.replaceChildren();
     if (!view.selected) return;
+    const times = data?.entries.filter(entry => entry.date === view.selected) || [];
+    if (!times.length) { details.hidden = true; return; }
     const heading = document.createElement("strong");
     const [, month, day] = view.selected.split("-").map(Number);
     heading.textContent = `${month}월 ${day}일 센터 입장`;
     details.append(heading);
-    const times = data?.entries.filter(entry => entry.date === view.selected) || [];
     const body = document.createElement("span");
-    if (times.length) body.textContent = times.map(entry => timeFormat.format(new Date(entry.entered_at))).join(" · ");
-    else if (view.selected < (data?.initial_from || FIRST_DAY)) body.textContent = "출석 기록 제공 시작일 이전이에요.";
-    else if (view.selected > koreanDate(Date.now())) body.textContent = "이용 후 출석 기록이 표시됩니다.";
-    else if (!data || monthError) body.textContent = refreshing ? "출석을 확인하고 있어요." : "출석을 다시 확인해 주세요.";
-    else if (!data.is_linked) body.textContent = "출석정보를 확인 중입니다.";
-    else if ((data.history_through && view.selected <= data.history_through) ||
-        (view.selected === data.live_date && data.last_synced_at)) body.textContent = "확인된 센터 출석 기록이 없어요.";
-    else body.textContent = "이 날짜의 출석 기록은 아직 확인 중이에요.";
+    body.textContent = times.map(entry => timeFormat.format(new Date(entry.entered_at))).join(" · ");
     details.append(body);
   }
   async function loadMonth(force = false) {
