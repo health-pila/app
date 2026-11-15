@@ -4841,6 +4841,11 @@ const adminMemberSelect = document.querySelector("#adminMemberSelect");
 const adminMemberInfo = document.querySelector("#adminMemberInfo");
 
 let adminMemberOptionCache = [];
+function syncAdminUsageMembers(failed = false) {
+  window.AdminUsage?.setMembers(adminMemberOptionCache.map(option => ({
+    id: option.value, name: option.dataset.memberName || "이름 없음", last4: option.dataset.phoneLast4 || ""
+  })), failed);
+}
 let adminMemberLoadRequestId = 0;
 let adminMemberRefreshTimer = null;
 let adminMemberRefreshGeneration = 0;
@@ -10070,6 +10075,7 @@ async function loadAdminMembers(preserveCurrentState = false) {
     const selectedValue = preserveCurrentState ? adminMemberSelect.value : "";
     const searchText = preserveCurrentState ? adminMemberSearch.value.trim().toLowerCase() : "";
     adminMemberOptionCache = memberOptions;
+    syncAdminUsageMembers();
     window.AdminMemberPicker?.setRoster(memberOptions.map(option => option.value));
     renderAdminMemberOptions(selectedValue, searchText);
     return true;
@@ -10079,6 +10085,7 @@ async function loadAdminMembers(preserveCurrentState = false) {
     resetAdminMemberStatistics("회원 현황을 불러오지 못했어요. 새로고침해 주세요.");
     if (!preserveCurrentState) {
       adminMemberOptionCache = [];
+      syncAdminUsageMembers(true);
       window.AdminMemberPicker?.setRoster([]);
       adminMemberSelect.innerHTML =
         '<option value="">회원 목록을 불러오지 못했습니다.</option>';
@@ -10227,6 +10234,7 @@ async function showAdminApp(userId, timingRun = null, screenRequestId = null, sc
       adminRoutineDrafts.delete(deletedUserId);
       if (adminRoutineDraftOwner === deletedUserId) { adminRoutineDraftOwner = ""; adminRoutineDraftReady = false; }
       adminMemberOptionCache = adminMemberOptionCache.filter(option => option.value !== deletedUserId);
+      syncAdminUsageMembers();
       for (const option of [...adminMemberSelect.options]) if (option.value === deletedUserId) option.remove();
       window.AdminMemberPicker?.setRoster(adminMemberOptionCache.map(option => option.value));
       window.AdminWorkspace?.memberDeleted(deletedUserId);

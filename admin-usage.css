@@ -2,3 +2,9 @@
 
 .usage-collection-health { margin:12px 0; padding:11px 12px; border:1px solid #dce4ef; border-radius:10px; background:#f6f8fb; color:#53647d; font-size:12px; line-height:1.8; white-space:pre-line; overflow-wrap:anywhere; }
 .usage-collection-health:empty { display:none; }
+/* 통계 제외 대상은 다른 탭의 회원 선택과 독립적으로 고릅니다. */
+#adminUsagePanel .usage-member-picker{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px;margin:14px 0 6px}
+#adminUsagePanel .usage-member-picker label{display:grid;gap:6px;min-width:0;margin:0;color:#17233f;font-size:13px;font-weight:700}
+#adminUsagePanel .usage-member-picker input,#adminUsagePanel .usage-member-picker select{box-sizing:border-box;width:100%;min-width:0;min-height:42px;margin:0;padding:9px 10px;border:1px solid #d7deea;border-radius:9px;background:#fff;color:#17233f;font:inherit;font-size:14px;font-weight:400}
+#adminUsagePanel .usage-member-picker input:focus-visible{outline:3px solid #f56a00;outline-offset:2px}
+@media(max-width:760px){#adminUsagePanel .usage-member-picker{grid-template-columns:minmax(0,1fr)}}

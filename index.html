@@ -25,7 +25,7 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="1200">
   <meta property="og:image:alt" content="헬스와 필라테스 화곡점 글자와 주황색 운동 심벌이 함께 있는 센터 로고">
-  <meta name="app-version" content="355">
+  <meta name="app-version" content="356">
   <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png?v=468131089e169951c9e69bd2da2438b9936a820229a0946a0780a358f6713fbe">
 
 
@@ -960,7 +960,14 @@
         <p id="usageCollectionHealth" class="usage-collection-health" role="status"></p>
         <table><thead><tr><th scope="col">기능·행동</th><th scope="col">이용 회원</th><th scope="col">횟수</th></tr></thead><tbody id="usageRows"></tbody></table>
         <p class="usage-note">수신된 기록만 표시합니다. 통신·기기 제한으로 누락될 수 있으며, 개선 전 누락 기록은 복원되지 않습니다. 신규 가입 대비 수신 현황은 전체 통계 정확도가 아닙니다. 관리자는 자동 제외됩니다. 같은 회원이 반복 사용하면 회원 수는 한 명, 횟수는 여러 회로 집계합니다. 저장·삭제·결제 버튼 횟수는 실제 완료 건수와 다릅니다. 결제 완료는 기존 앱 결제 내역에서 확인해 주세요.</p>
-        <details class="usage-exclusions"><summary>테스트 회원 통계 제외 설정</summary><p class="usage-note">아래 회원 관리에서 회원을 선택한 뒤 설정해 주세요. 관리자는 자동 제외됩니다. 회원을 제외하면 기존 이용 통계도 삭제되며, 다시 포함해도 삭제된 통계는 복원되지 않습니다.</p><div class="usage-tools"><button id="usageExclude" type="button" disabled>선택 회원 제외</button><button id="usageInclude" type="button" disabled>선택 회원 다시 포함</button></div><p id="usageExcludeMessage" role="status"></p></details>
+        <details class="usage-exclusions"><summary>테스트 회원 통계 제외 설정</summary><p class="usage-note">이곳에서 대상 회원을 검색·선택한 뒤 설정해 주세요. 관리자는 자동 제외됩니다. 회원을 제외하면 기존 이용 통계도 삭제되며, 다시 포함해도 삭제된 통계는 복원되지 않습니다.</p>
+          <div class="usage-member-picker">
+            <label for="usageMemberSearch">회원 검색<input id="usageMemberSearch" type="search" placeholder="이름 또는 전화번호 끝 4자리" autocomplete="off" disabled></label>
+            <label for="usageMemberSelect">대상 회원<select id="usageMemberSelect" disabled><option value="">회원 목록을 불러오는 중…</option></select></label>
+          </div>
+          <p id="usageMemberMessage" class="usage-note" role="status"></p>
+          <div class="usage-tools"><button id="usageExclude" type="button" disabled>선택 회원 제외</button><button id="usageInclude" type="button" disabled>선택 회원 다시 포함</button></div><p id="usageExcludeMessage" role="status"></p>
+        </details>
       </details>
     </section>
 
@@ -1507,7 +1514,7 @@
     </div>
   </dialog>
 
-  <script src="app-assets.js?v=c6df37236ae1579a7a64d629be6c4f2916764df265be4e9c60cb1a3572094bf9"></script>
+  <script src="app-assets.js?v=eace9ed737a9a982f07c9c22fb69c00437265f15a8c77a56789fbcd9f56e75da"></script>
   <script src="deferred-images.js?v=663181d66366be28299e333f15b39eff5f1f4d79844e3b2eb3b3131358e7e18a"></script>
   <script src="login-timing.js?v=bf62a9708baa815f23755757b4ba7a3c7bfe54d2d6a678bab613c169e4e4afe4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
@@ -1536,7 +1543,7 @@
   <script src="app-usage.js?v=bcf55db434f4943e59d7de36f50a8ce9bba1e891df2104722e67db7c18f83b31"></script>
   <script src="center-memberships.js?v=b95ee99fdd097957003eb3cfece34d28e4de4c359dfdd81396a22d2288be4544"></script>
   <script src="center-attendance.js?v=c47297e80484490c6b4a88cb0408b0ca6fee31def0af741c85c2540bd8c8b885"></script>
-  <script src="script.js?v=744097b9e47f8cb3e7990870e3cda7eb5f72f5a3f51a33a0c9a2bce53fa39b6f"></script>
+  <script src="script.js?v=de57a719e908a260935a0cedde37ec0a06dc6409ff88e72e2ea6c7352f96ca69"></script>
   <script src="guest-demo.js?v=f46b459ae4dc9a3b1c3a5bb61cdd575ba0647bde4eb1b28606c511f947e4a906"></script>
 </body>
 
