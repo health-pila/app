@@ -30,6 +30,7 @@
 
 /* v292: enlarge all live attendance footer text by another 10%. */
 #workoutLogTabPanel .center-attendance-count { font-size:15.972px; color:var(--brand-orange); }
+#workoutLogTabPanel :is(.center-attendance-count,.center-attendance-legend,.center-attendance-legend>span) { display:inline-flex;align-items:center;line-height:1.35; }
 #workoutLogTabPanel .center-attendance-status { font-size:12.1px; }
 #workoutLogTabPanel .center-attendance-details,
 #workoutLogTabPanel .center-attendance-details strong { font-size:15.972px; }
@@ -43,9 +44,9 @@
 #workoutLogTabPanel .workout-calendar-empty { height:var(--calendar-date-height); }
 #workoutLogTabPanel .workout-calendar-day { font-size:var(--calendar-date-font-size); }
 /* The closure text replaces the number in the same cell; no extra label row. */
-#workoutLogTabPanel .workout-calendar-day.is-center-closed { width:100%;border-radius:8px;background:#f6f8fb;color:#53647b;font-size:11px;font-weight:400;white-space:nowrap; }
-#workoutLogTabPanel .workout-calendar-day.is-gym-closed { height:calc(var(--calendar-date-height) * .765);align-self:center;font-size:9px;letter-spacing:-.25px; }
-#workoutLogTabPanel .workout-calendar-day.is-center-closed:is(.is-today,.is-selected) { background:#f6f8fb;color:#53647b; }
+#workoutLogTabPanel .workout-calendar-day.is-center-closed { width:100%;border-radius:8px;background:#f6f8fb;color:var(--calendar-closure-color,#53647b);font-size:11px;font-weight:400;white-space:nowrap; }
+#workoutLogTabPanel .workout-calendar-day.is-gym-closed { --calendar-closure-color:#4f5f75;height:calc(var(--calendar-date-height) * .71145);align-self:center;font-size:9px;letter-spacing:-.25px; }
+#workoutLogTabPanel .workout-calendar-day.is-center-closed:is(.is-today,.is-selected) { background:#f6f8fb;color:var(--calendar-closure-color,#53647b); }
 #workoutLogTabPanel .workout-calendar-day.is-center-closed.is-selected { box-shadow:inset 0 0 0 1px var(--brand-orange); }
 #workoutLogTabPanel .workout-calendar-day.is-center-closed.is-selected.has-record::after { background:var(--brand-orange); }
 /* Two short time ranges stay visible without another heading or closure footer. */
