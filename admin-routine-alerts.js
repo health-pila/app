@@ -189,7 +189,7 @@
   async function testSound(enable) {
     if (!active() || audioBusy) return;
     const ticket = generation;
-    if (enable) soundEnabled = true;
+    if (enable) { soundEnabled = true; void window.AdminPush?.setSound(true); }
     audioBusy = true; renderControls("알림음을 테스트하고 있어요.");
     try {
       await playTone(ticket);
@@ -208,7 +208,7 @@
   soundControls.forEach(section => {
     section.soundButton.addEventListener("click", () => {
       if (!active()) return;
-      if (soundEnabled) { soundEnabled = false; closeAudio(); renderControls(); }
+      if (soundEnabled) { soundEnabled = false; closeAudio(); renderControls(); void window.AdminPush?.setSound(false); }
       else void testSound(true);
     });
     section.testButton.addEventListener("click", () => { void testSound(false); });
@@ -241,7 +241,7 @@
       if (!active(ticket) || sequence !== section.sequence) return;
       const seen = readSeen(section);
       const fresh = keys.filter(value => !seen.has(value));
-      const shouldRing = allowRing && section.initialized && fresh.length > 0 && soundEnabled;
+      const shouldRing = allowRing && section.initialized && fresh.length > 0 && soundEnabled && !window.AdminPush?.enabled();
       observed.forEach(value => { seen.delete(value); seen.add(value); });
       saveSeen(section, seen, observed);
       section.initialized = true;
@@ -296,6 +296,11 @@
   window.AdminRoutineAlerts = Object.freeze({ start, sync, syncInquiries, syncOneDayPt, syncMembers: (ids,count=null,silent=false) => syncSection(memberAlerts,ids,ids,count,!silent),
     syncPayments: (ids,count,silent=false) => syncSection(paymentAlerts,ids,ids,count,!silent),
     paymentError: () => { if(active()){paymentAlerts.loadFailed=true;renderControls();} },
-    inquiryError, oneDayPtError, reset });
+    inquiryError, oneDayPtError, reset, soundEnabled: () => soundEnabled,
+    setSoundEnabled: (value, notify = true) => {
+      if (!active() || typeof value !== 'boolean') return;
+      soundEnabled = value; if (!value) closeAudio(); renderControls();
+      if (notify) void window.AdminPush?.setSound(value);
+    } });
 })();
 

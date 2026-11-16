@@ -4827,7 +4827,7 @@ function renderMemberAccountEmail() {
       panel.hidden = !willOpen;
       toggle.setAttribute("aria-expanded", String(willOpen));
       toggle.setAttribute("aria-label", willOpen ? "메뉴 닫기" : "메뉴 열기");
-      if (willOpen) logout.focus({ preventScroll: true });
+      if (willOpen) (panel.querySelector('button:not([disabled])') || logout).focus({ preventScroll: true });
     });
     document.addEventListener("click", function (event) {
       if (!menu.contains(event.target)) closeMenu();
@@ -10179,12 +10179,14 @@ function renderAdminMemberOptions(selectedValue = "", searchText = "") {
   searchText = searchText.trim().toLowerCase();
   const searchMode = adminMemberSearchMode(searchText);
   const eligibilityFilter = window.AdminMemberPicker?.filter() || "all";
+  const restrictedOnly = window.AdminMemberPicker?.restrictedOnly?.() === true;
   const previousSelection = Array.from(adminMemberSelect.options)
     .find(option => option.value === selectedValue && selectedValue);
 
   const matchingOptions = adminMemberOptionCache.filter(
     (option) => {
       if (option.value === selectedValue) return true;
+      if (restrictedOnly && window.AdminMemberPicker?.restrictedState(option.value) !== true) return false;
       if (eligibilityFilter !== "all" && window.AdminMemberPicker?.eligibilityState(option.value).state !== eligibilityFilter) return false;
       if (searchMode === "unlinked") return window.AdminMemberPicker?.linkState(option.value) === false;
       if (searchMode === "linked") return window.AdminMemberPicker?.linkState(option.value) === true;
@@ -10233,14 +10235,18 @@ function renderAdminMemberOptions(selectedValue = "", searchText = "") {
         ? "이용권 분류를 확인하고 있어요."
         : "이용권 분류를 확인하지 못했어요. 분류 새로고침을 눌러 주세요.";
     }
+    if (restrictedOnly && !window.AdminMemberPicker?.restrictionsReady()) {
+      noResultOption.textContent = window.AdminMemberPicker?.isRestrictionsLoading()
+        ? "이용 제한 상태를 확인하고 있어요." : "이용 제한 상태를 확인하지 못했어요. 분류 새로고침을 눌러 주세요.";
+    }
     noResultOption.disabled = true;
 
     adminMemberSelect.append(noResultOption);
   } else {
     sortedOptions.forEach((option) => {
-      adminMemberSelect.append(
-        option.cloneNode(true)
-      );
+      const clone = option.cloneNode(true);
+      if (restrictedOnly && window.AdminMemberPicker?.restrictedState(option.value) !== true) clone.hidden = true;
+      adminMemberSelect.append(clone);
     });
   }
 
@@ -10258,6 +10264,9 @@ adminMemberSelect.addEventListener("eligibility-status-change", () => {
   if (!adminScreen.hidden) renderAdminMemberOptions(adminMemberSelect.value, adminMemberSearch.value);
 });
 adminMemberSelect.addEventListener("member-sort-change", () => {
+  if (!adminScreen.hidden) renderAdminMemberOptions(adminMemberSelect.value, adminMemberSearch.value);
+});
+adminMemberSelect.addEventListener("restriction-status-change", () => {
   if (!adminScreen.hidden) renderAdminMemberOptions(adminMemberSelect.value, adminMemberSearch.value);
 });
 // 한글 조합 중에는 목록/선택 상태를 갱신하지 않아 입력 조합을 유지합니다.
@@ -10336,6 +10345,7 @@ async function showAdminApp(userId, timingRun = null, screenRequestId = null, sc
   window.AdminUsage?.start(supabaseClient, userId);
   window.AdminMemberPicker?.start(supabaseClient, userId);
   updateAdminRoutineAlerts("start", userId);
+  window.AdminPush?.start(supabaseClient, userId);
   window.AdminMemberAlerts?.start(supabaseClient, userId, async id => {
     if (window.AdminWorkspace?.enabled()) { await window.AdminWorkspace.selectSignup(id); return; }
     if (!adminMemberOptionCache.some(option => option.value === id)) await loadAdminMembers(true);
@@ -10383,6 +10393,8 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
     loginAuthRevision += 1;
     window.AdminInquiryReadReceipts?.reset();
     window.AdminWorkspace?.reset();
+    window.AdminPush?.reset();
+    window.AppAssets.pushAccount('signedout', '');
     resetAdminRoutineDrafts();
     adminInquiryLoadRequestId += 1; adminInquiryAlertLoadRequestId += 1;
     adminRoutineRequestLoadId += 1; adminRoutineLoadRequestId += 1; adminMemberLoadRequestId += 1;
@@ -10439,6 +10451,8 @@ async function showScreenForCurrentUser(session = null, timingRun = null) {
     await showAdminApp(user.id, timingRun, requestId, authRevision);
     return;
   }
+  window.AdminPush?.reset();
+  window.AppAssets.pushAccount('member', user.id);
   if (profile.restricted) {
     showRestrictedMemberApp(user.id, profile, timingRun);
     return;
@@ -11510,6 +11524,7 @@ async function initializeLogin() {
     if (session) {
       await showScreenForCurrentUser(session, timingRun);
     } else {
+      window.AppAssets.pushAccount('signedout', '');
       window.LoginTiming?.finish(timingRun, "signed_out");
     }
 
@@ -11534,6 +11549,7 @@ async function handleLogout() {
   document.getElementById("restrictedLogout").disabled = true;
 
   try {
+    await window.AdminPush?.beforeLogout();
     const { error } = await supabaseClient.auth.signOut();
 
     if (error) {

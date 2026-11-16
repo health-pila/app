@@ -95,7 +95,7 @@
       const data=await rpc(admin.db,'center_admin_member_access',{p_user_id:target});
       if(!adminCurrent(g,s,target))return;
       if(data?.user_id!==target||typeof data.restricted!=='boolean')throw Error('INVALID_STATE');
-      adminState=data;renderAdmin();
+      adminState=data;window.AdminMemberPicker?.setRestricted(target,data.restricted);renderAdmin();
     }catch(_){if(adminCurrent(g,s,target))$('adminMemberAccessStatus').textContent='이용 상태를 확인하지 못했어요. 회원을 다시 선택해 주세요.';}
   }
   async function changeAccess(restricted){
@@ -110,7 +110,7 @@
       const data=await rpc(admin.db,'center_admin_set_member_access',{p_user_id:id,p_restricted:restricted});
       if(!adminCurrent(g,s,id))return;
       if(data?.user_id!==id||data.restricted!==restricted)throw Error('INVALID_STATE');
-      adminState=data;renderAdmin();$('adminMemberAccessStatus').textContent=restricted?'안내와 이용 제한이 설정됐어요.':'이용권 확인 완료 · 이용 제한을 해제했어요.';
+      adminState=data;window.AdminMemberPicker?.setRestricted(id,data.restricted);renderAdmin();$('adminMemberAccessStatus').textContent=restricted?'안내와 이용 제한이 설정됐어요.':'이용권 확인 완료 · 이용 제한을 해제했어요.';
     }catch(_){if(adminCurrent(g,s,id))$('adminMemberAccessStatus').textContent='변경 결과를 확인하지 못했어요. 회원을 다시 선택해 상태를 확인해 주세요.';}
     finally{if(adminCurrent(g,s,id)){adminBusy=false;renderAdmin();}}
   }

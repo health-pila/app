@@ -101,7 +101,12 @@
     for (const [value, label] of [['recent', '최근 가입순'], ['name', '이름순'], ['gym', '헬스 만료일순'], ['routines', '루틴배정 많은순']]) { const o = el('option', '', label); o.value = value; sortSelect.append(o); }
     sortSelect.value = window.AdminMemberPicker?.sortMode() || 'recent';
     const sortStatus = el('p', 'aw-help'); sortStatus.id = 'adminMemberSortStatus'; sortStatus.hidden = true; sortStatus.setAttribute('role', 'status');
-    sortBar.append(sortLabel, sortSelect); memberFallback.before(sortBar, sortStatus);
+    const sortControls = el('div', 'aw-member-sort-controls');
+    const restrictedLabel = el('label', 'aw-restricted-filter');
+    const restrictedInput = el('input'); restrictedInput.type = 'checkbox'; restrictedInput.id = 'adminMemberRestrictedOnly'; restrictedInput.disabled = true;
+    const restrictedCount = el('span', '', '확인 중'); restrictedCount.id = 'adminMemberRestrictedCount';
+    restrictedLabel.append(restrictedInput, document.createTextNode('이용 제한 회원만 보기 · '), restrictedCount);
+    sortControls.append(sortSelect, restrictedLabel); sortBar.append(sortLabel, sortControls); memberFallback.before(sortBar, sortStatus);
     $('awParking').append(browser, $('adminMemberSignupAlerts'), $('adminRoutineRequestManagement'), $('adminInquiryManagement'));
     const routineWorkspace = $('adminRoutineWorkspace'); if (routineWorkspace) routineWorkspace.hidden = true;
     const inquirySetting = $('adminInquiryManagement').querySelector('.admin-inquiry-setting');
@@ -143,6 +148,7 @@
     $('adminMemberSelect').addEventListener('eligibility-status-change', updateMemberBrowser);
     $('adminMemberSelect').addEventListener('attendance-status-change', updateMemberBrowser);
     $('adminMemberSelect').addEventListener('member-sort-change', updateMemberBrowser);
+    $('adminMemberSelect').addEventListener('restriction-status-change', updateMemberBrowser);
     window.addEventListener('resize', () => { if (owner) present(); });
     window.addEventListener('scroll', () => { if (owner && kind === 'payment') acknowledgePayment(); if (owner) scheduleInquiryPanelSize(); }, { passive: true });
     document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(paymentTimer); paymentTimer = 0; } else if (owner) { void loadPayments(true); window.AdminInquiryReadReceipts?.refresh(); } });
@@ -434,7 +440,8 @@
     if (rosterFrame || !owner || !mounted) return;
     rosterFrame = requestAnimationFrame(() => {
       rosterFrame = 0; if (!owner) return;
-      const options = [...$('adminMemberSelect').options].filter(o => uuid(o.value) && !o.hidden), list = $('awMemberRows');
+      const options = [...$('adminMemberSelect').options].filter(o => uuid(o.value) && !o.hidden &&
+        (!window.AdminMemberPicker?.restrictedOnly?.() || window.AdminMemberPicker.restrictedState(o.value) === true)), list = $('awMemberRows');
       // The native selector already holds the full filtered, sorted roster.
       // Keep every card reachable in the existing scroll area without paging.
       const cards = document.createDocumentFragment();
@@ -451,13 +458,15 @@
           el('span', 'aw-member-row-meta', eligibility + ' · ' + count),
           el('span', 'aw-member-row-meta', (option.dataset.currentRoutineName ? '루틴 있음' : '루틴 없음') + ' · ' + attendance)
         );
+        if (window.AdminMemberPicker?.restrictedState?.(option.value) === true) b.append(el('span', 'aw-member-restricted-mark', '이용 제한'));
         if (window.AdminMemberPicker?.sortMode() === 'gym') {
           const expiry = window.AdminMemberPicker.gymExpiry(option.value);
           b.append(el('span', 'aw-member-row-meta', expiry ? '헬스 만료: ' + expiry.replaceAll('-', '.') : '헬스 만료일 정보 없음'));
         }
         cards.append(b);
       }
-      if (!options.length) cards.append(el('p', 'aw-help', '조건에 맞는 회원이 없어요. 검색어나 이용권 상태를 확인해 주세요.'));
+      if (!options.length) cards.append(el('p', 'aw-help', window.AdminMemberPicker?.restrictedOnly?.() && !window.AdminMemberPicker.restrictionsReady()
+        ? '이용 제한 상태를 확인하지 못했어요. 분류 새로고침을 눌러 주세요.' : '조건에 맞는 회원이 없어요. 검색어나 이용권 상태를 확인해 주세요.'));
       list.replaceChildren(cards);
       syncSelection();
     });
@@ -709,6 +718,13 @@
     void loadPayments(true);
   }
   window.AdminWorkspace = Object.freeze({ start, reset, enabled: () => !!owner, syncSignup, syncRoutine, queueError, memberSelected,
+    openNotice: notice => {
+      if (!active(generation)) return;
+      if (notice === 'inquiry') route('inquiries');
+      else if (notice === 'payment') route('payments');
+      else if (notice === 'signup') route('requests', 'signup');
+      else if (notice === 'routine' || notice === 'oneDayPt') route('requests', 'routine');
+    },
     selectSignup: id => chooseMember(id, 'signup'), selectRoutine: request => chooseMember(request.user_id, 'routine', request),
     memberLinked: id => showCompletion('signup', id, '센터 출석 연결을 완료했어요.'),
     routineSaved: id => { showCompletion('routine', id, '새 운동 루틴을 배정했어요.'); void hooks.refreshRoutineRequests?.(); },

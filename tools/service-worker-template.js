@@ -79,3 +79,160 @@ self.addEventListener('fetch', event => {
     return fetch(request);
   })());
 });
+
+// Administrator push state is private to this browser and this app scope.
+// No session JWT, service key or member/message content is stored here.
+const PUSH_DB = `center-admin-push:${APP_SCOPE.pathname}`;
+const PUSH_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const PUSH_KINDS = {
+  signup: '새 회원이 가입했어요.', inquiry: '새 회원 문의가 도착했어요.',
+  routine: '새 운동 루틴 신청이 도착했어요.', oneDayPt: '새 1DAY PT 신청이 도착했어요.',
+  payment: '새 결제가 완료됐어요.', test: '이 PC에서 알림을 받을 준비가 됐어요.'
+};
+let pushQueue = Promise.resolve();
+function pushSerial(work) {
+  const next = pushQueue.catch(() => {}).then(work);
+  pushQueue = next.catch(() => {});
+  return next;
+}
+function pushState(change) {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open(PUSH_DB, 1);
+    open.onupgradeneeded = () => open.result.createObjectStore('state');
+    open.onerror = () => reject(new Error('PUSH_STORAGE_UNAVAILABLE'));
+    open.onsuccess = () => {
+      const db = open.result;
+      db.onversionchange = () => db.close();
+      const tx = db.transaction('state', change ? 'readwrite' : 'readonly'), store = tx.objectStore('state');
+      let result;
+      const read = store.get('device');
+      read.onsuccess = () => {
+        try {
+          result = change ? change(read.result || null) : read.result || null;
+          if (change) { if (result) store.put(result, 'device'); else store.delete('device'); }
+        } catch (error) { tx.abort(); reject(error); }
+      };
+      tx.oncomplete = () => { db.close(); resolve(result); };
+      tx.onerror = tx.onabort = () => { db.close(); reject(new Error('PUSH_STORAGE_UNAVAILABLE')); };
+    };
+  });
+}
+function appClient(url, clean = false) {
+  try {
+    const u = new URL(url);
+    return u.origin === APP_SCOPE.origin && [APP_SCOPE.pathname, new URL('index.html', APP_SCOPE).pathname].includes(u.pathname) &&
+      (!clean || (!u.search && !u.hash));
+  } catch (_) { return false; }
+}
+async function pushBroadcast() {
+  for (const client of await self.clients.matchAll({ type: 'window', includeUncontrolled: true })) {
+    if (appClient(client.url)) client.postMessage({ type: 'CENTER_PUSH_CHANGED', revision: 398 });
+  }
+}
+async function clearPushState(expectedBinding, expectedUser) {
+  let previous = null;
+  await pushState(state => {
+    if (!state || (expectedBinding && state.binding !== expectedBinding) || (expectedUser && state.userId !== expectedUser)) return state;
+    previous = state; return null;
+  });
+  if (!previous) return;
+  const notices = await self.registration.getNotifications().catch(() => []);
+  for (const notice of notices) if (notice.data?.binding === previous.binding) notice.close();
+  const sub = await self.registration.pushManager.getSubscription().catch(() => null);
+  if (sub?.endpoint === previous.endpoint) await sub.unsubscribe().catch(() => {});
+  await pushBroadcast();
+}
+self.addEventListener('message', event => {
+  const message = event.data;
+  if (!message || typeof message.type !== 'string' || !message.type.startsWith('CENTER_PUSH_')) return;
+  event.waitUntil(pushSerial(async () => {
+    const source = event.source?.id ? await self.clients.get(event.source.id) : null;
+    if (!source || !appClient(source.url)) return;
+    let state;
+    if (message.type === 'CENTER_PUSH_STATUS') state = await pushState();
+    else if (message.type === 'CENTER_PUSH_ACCOUNT') {
+      const old = await pushState();
+      if (old && (message.role !== 'admin' || message.userId !== old.userId)) await clearPushState(old.binding, old.userId);
+      state = await pushState();
+    } else if (message.type === 'CENTER_PUSH_ARM') {
+      if (!PUSH_UUID.test(message.userId) || !PUSH_UUID.test(message.binding) ||
+          typeof message.endpoint !== 'string' || !message.endpoint.startsWith('https://') || message.endpoint.length > 2048 ||
+          !/^B[A-Za-z0-9_-]{86}$/.test(message.publicKey) || typeof message.sound !== 'boolean') throw new Error('PUSH_INVALID_STATE');
+      state = await pushState(old => {
+        if ((old?.binding || null) !== (message.expectedBinding || null)) throw new Error('PUSH_CHANGED');
+        return { enabled: true, userId: message.userId, binding: message.binding, endpoint: message.endpoint,
+          publicKey: message.publicKey, sound: message.sound, registeredAt: Date.now(),
+          seen: old?.binding === message.binding ? old.seen || [] : [],
+          ...(old?.binding === message.binding && old.pending ? { pending: old.pending } : {}) };
+      });
+      await pushBroadcast();
+    } else if (message.type === 'CENTER_PUSH_SOUND') {
+      if (typeof message.sound !== 'boolean') throw new Error('PUSH_INVALID_STATE');
+      state = await pushState(old => old?.binding === message.binding ? { ...old, sound: message.sound } : old);
+      await pushBroadcast();
+    } else if (message.type === 'CENTER_PUSH_CLEAR') {
+      if (!PUSH_UUID.test(message.binding)) throw new Error('PUSH_INVALID_STATE');
+      await clearPushState(message.binding, message.userId); state = await pushState();
+    } else if (message.type === 'CENTER_PUSH_CONSUME') {
+      let pending = null;
+      await pushState(old => {
+        if (old?.userId !== message.userId || !old.enabled) return old;
+        if (old.pending?.binding === old.binding && old.pending.at > Date.now() - 300000) pending = old.pending;
+        const next = { ...old }; delete next.pending; return next;
+      });
+      event.ports?.[0]?.postMessage({ ok: true, revision: 398, pending }); return;
+    } else return;
+    event.ports?.[0]?.postMessage({ ok: true, revision: 398, state });
+  }).catch(() => { event.ports?.[0]?.postMessage({ ok: false, revision: 398, code: 'PUSH_STATE_UNAVAILABLE' }); }));
+});
+self.addEventListener('push', event => {
+  event.waitUntil(pushSerial(async () => {
+    let data;
+    try { if (!event.data || event.data.text().length > 2048) return; data = event.data.json(); } catch (_) { return; }
+    if (data?.v !== 398 || !Object.hasOwn(PUSH_KINDS, data.kind) || !PUSH_UUID.test(data.eventId) ||
+        !PUSH_UUID.test(data.binding) || typeof data.sound !== 'boolean' ||
+        !Number.isFinite(Date.parse(data.createdAt)) || Date.parse(data.createdAt) > Date.now() + 60000 ||
+        !Number.isFinite(Date.parse(data.expiresAt)) || Date.parse(data.expiresAt) <= Date.now()) return;
+    let accepted = null;
+    await pushState(old => {
+      if (!old?.enabled || old.binding !== data.binding || (old.seen || []).includes(data.eventId)) return old;
+      accepted = old;
+      return { ...old, seen: [...(old.seen || []).slice(-999), data.eventId] };
+    });
+    if (!accepted) return;
+    try {
+      await self.registration.showNotification('헬스와 필라테스 화곡점', {
+        body: PUSH_KINDS[data.kind], tag: 'center-admin-' + data.eventId,
+        icon: new URL('images/icon-192.png', APP_SCOPE).href,
+        silent: !accepted.sound || !data.sound,
+        data: { v: 398, eventId: data.eventId, kind: data.kind, binding: data.binding },
+      });
+    } catch (_) {
+      await pushState(old => old?.binding === data.binding ? { ...old, seen: (old.seen || []).filter(id => id !== data.eventId) } : old);
+    }
+  }).catch(() => {}));
+});
+self.addEventListener('notificationclick', event => {
+  const data = event.notification.data;
+  if (data?.v !== 398) return;
+  event.notification.close();
+  event.waitUntil(pushSerial(async () => {
+    if (!PUSH_UUID.test(data.binding) || !Object.hasOwn(PUSH_KINDS, data.kind)) return;
+    let allowed = false;
+    await pushState(old => {
+      if (!old?.enabled || old.binding !== data.binding) return old;
+      allowed = true; return { ...old, pending: { kind: data.kind, binding: data.binding, at: Date.now() } };
+    });
+    if (!allowed) return;
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const client = windows.find(c => appClient(c.url, true));
+    if (client) { await client.focus(); client.postMessage({ type: 'CENTER_PUSH_OPEN', revision: 398 }); }
+    else await self.clients.openWindow(APP_SCOPE.href);
+  }).catch(() => {}));
+});
+self.addEventListener('pushsubscriptionchange', event => {
+  // Re-enabling needs a fresh administrator login; never keep JWTs in the worker.
+  event.waitUntil(pushSerial(async () => {
+    await pushState(() => null); await pushBroadcast();
+  }).catch(() => {}));
+});

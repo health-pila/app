@@ -35,7 +35,8 @@
     await load('admin-routine-alerts.js');
     await Promise.all(['admin-member-alerts.js', 'admin-member-picker.js', 'admin-payments.js', 'admin-inquiry-read-receipts.js',
       'admin-usage.js', 'admin-workspace.js', 'admin-workspace.css', 'admin-member-deletion.js', 'admin-member-deletion.css',
-      'admin-payments.css', 'admin-usage.css', 'admin-member-alerts.css', 'admin-member-picker.css', 'admin-typography.css'].map(load));
+      'admin-payments.css', 'admin-usage.css', 'admin-member-alerts.css', 'admin-member-picker.css', 'admin-typography.css',
+      'admin-push.js', 'admin-push.css'].map(load));
   }
   async function optionalPT() {
     if (document.documentElement.dataset.oneDayPtEnabled !== 'false') await load('one-day-pt.js');
@@ -47,5 +48,13 @@
     if (source.origin !== base.origin || source.pathname !== new URL('service-worker.js', base).pathname) return;
     window.LoginTiming?.cacheReady?.(info);
   });
-  window.AppAssets = Object.freeze({ url, load, admin, optionalPT });
+  function pushAccount(role, userId) {
+    if (!('serviceWorker' in navigator)) return;
+    // Authentication boundaries also clear a previous admin's binding on a member-only login.
+    // No admin code or network requests are added to the member's critical startup path.
+    void navigator.serviceWorker.ready.then(reg => {
+      if (reg.scope === base.href) reg.active?.postMessage({ type: 'CENTER_PUSH_ACCOUNT', role, userId });
+    }).catch(() => {});
+  }
+  window.AppAssets = Object.freeze({ url, load, admin, optionalPT, pushAccount });
 })();

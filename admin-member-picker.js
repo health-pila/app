@@ -8,6 +8,10 @@
   let eligibilitySeq=0,eligibilityBusy=false,eligibilityLoaded=false,eligibilityReadAt=0,eligibilityFailed=false;
   let eligibility=new Map(),roster=[],chosenFilter='all',eligibilityTimer=null,eligibilityRevision=0,eligibilityChanges=new Map();
   let membershipMember='',membershipData=null,membershipBusy=false,membershipReadAt=0,membershipSeq=0;
+  let restricted=new Set(),restrictionOnly=false,restrictionLoaded=false,restrictionBusy=false,restrictionReadAt=0,restrictionSeq=0;
+  let restrictionRevision=0,restrictionChanges=new Map();
+  let historyData=null,historyBusy=false,historyReadAt=0,historySeq=0,historyForce=false;
+  function resetHistory(){historySeq++;historyData=null;historyBusy=false;historyReadAt=0;historyForce=false;}
   const sortModes=new Set(['recent','name','gym','routines']);
   const nameOrder=new Intl.Collator('ko',{numeric:true,sensitivity:'base'});
   let chosenSort='recent',sortFacts=new Map(),sortSeq=0,sortBusy=false,sortLoaded=false,sortFailed=false,sortReadAt=0,sortAbort=null;
@@ -18,6 +22,33 @@
   const notify=()=>select.dispatchEvent(new Event('attendance-status-change'));
   const notifyEligibility=()=>select.dispatchEvent(new Event('eligibility-status-change'));
   const notifySort=()=>select.dispatchEvent(new Event('member-sort-change'));
+  const notifyRestrictions=()=>select.dispatchEvent(new Event('restriction-status-change'));
+  function renderRestrictions(){
+    const input=$('adminMemberRestrictedOnly'),count=$('adminMemberRestrictedCount');
+    if(input){input.checked=restrictionOnly;input.disabled=!active(epoch)||!restrictionLoaded||restrictionBusy;}
+    if(count)count.textContent=restrictionLoaded?`${roster.filter(id=>restricted.has(id)).length}명`:restrictionBusy?'확인 중':'확인 필요';
+  }
+  async function loadRestrictions(force=false){
+    const e=epoch;if(!active(e)||restrictionBusy||!force&&Date.now()-restrictionReadAt<30000)return;
+    const number=++restrictionSeq,revision=restrictionRevision,db=client;restrictionBusy=true;renderRestrictions();
+    const abort=new AbortController();let timer;
+    try{
+      let q=db.rpc('center_admin_restricted_members_v399',{p_expected_admin_id:user});if(q.abortSignal)q=q.abortSignal(abort.signal);
+      const {data,error}=await Promise.race([q,new Promise((_,reject)=>{timer=setTimeout(()=>{abort.abort();reject(Error('TIMEOUT'));},10000);})]);
+      if(!active(e)||number!==restrictionSeq)return;
+      if(error||data?.ok!==true||data.version!==399||!Array.isArray(data.restricted_ids)||data.restricted_ids.length>100000||!data.restricted_ids.every(uuid))throw Error('INVALID_RESTRICTIONS');
+      const ids=new Set(data.restricted_ids);
+      for(const [id,change] of restrictionChanges){if(change.revision>revision){if(change.value)ids.add(id);else ids.delete(id);}else restrictionChanges.delete(id);}
+      restricted=ids;restrictionLoaded=true;restrictionReadAt=Date.now();
+    }catch(_){if(active(e)&&number===restrictionSeq){restrictionLoaded=false;restrictionReadAt=Date.now();}}
+    finally{clearTimeout(timer);if(active(e)&&number===restrictionSeq){restrictionBusy=false;renderRestrictions();notifyRestrictions();}}
+  }
+  function setRestricted(id,value){
+    if(!active(epoch)||!uuid(id)||typeof value!=='boolean')return;
+    if(value)restricted.add(id);else restricted.delete(id);
+    restrictionChanges.set(id,{value,revision:++restrictionRevision});renderRestrictions();notifyRestrictions();
+  }
+  function restrictedState(id){return active(epoch)&&(restrictionLoaded||restrictionChanges.has(id))?restricted.has(id):null;}
   const captureSync=()=>({epoch,seq,revision});
   const labels={valid:'유효',expired:'만료·없음',review:'확인 필요'};
   const reasons={
@@ -72,27 +103,56 @@
       $('adminMemberEligibilitySyncedAt').textContent=Number.isFinite(at)?'정보 확인: '+new Date(at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}):'';
     }
     renderMembershipDates(selected,!details.hidden);
-    $('adminMemberEligibilityPinned').hidden=!enabled||!selected||chosenFilter==='all'||value.state===chosenFilter;
+    const restrictedPin=restrictionOnly&&restrictedState(selected)!==true;
+    const pin=$('adminMemberEligibilityPinned');
+    pin.hidden=!enabled||!selected||!restrictedPin&&(chosenFilter==='all'||value.state===chosenFilter);
+    pin.textContent=restrictedPin?'현재 선택한 회원의 편집창은 유지돼요. 목록에는 이용 제한 회원만 표시돼요.':'현재 선택한 회원은 편집을 유지하기 위해 목록에 함께 표시돼요.';
   }
   function renderMembershipDates(id,enabled){
     const box=$('adminMemberMembershipDates');if(!box)return;
-    if(!enabled||!uuid(id)){membershipSeq++;membershipMember='';membershipData=null;membershipBusy=false;membershipReadAt=0;box.replaceChildren();return;}
-    if(membershipMember!==id){membershipSeq++;membershipMember=id;membershipData=null;membershipBusy=false;membershipReadAt=0;}
+    if(!enabled||!uuid(id)){membershipSeq++;membershipMember='';membershipData=null;membershipBusy=false;membershipReadAt=0;resetHistory();box.replaceChildren();return;}
+    if(membershipMember!==id){membershipSeq++;membershipMember=id;membershipData=null;membershipBusy=false;membershipReadAt=0;resetHistory();}
     if(!membershipBusy&&Date.now()-membershipReadAt>=60000)void loadMembershipDates(id);
     box.replaceChildren();
-    const add=(label,value)=>{const p=document.createElement('p'),strong=document.createElement('strong');p.append(document.createTextNode(label+' '));strong.textContent=value;p.append(strong);box.append(p);};
+    const add=(label,value,expired=false)=>{const p=document.createElement('p'),strong=document.createElement('strong');p.append(document.createTextNode(label+' '));strong.textContent=value;if(expired)strong.className='admin-membership-expired';p.append(strong);box.append(p);};
     if(!membershipData){add('회원권 만료일:',membershipBusy?'확인 중…':'불러오지 못했어요. 상태 새로고침을 눌러 주세요.');return;}
     const state=membershipData.state;
     if(state!=='ready'){const messages={not_linked:'센터 출석 연결 후 확인할 수 있어요.',not_collected:'회원권 정보를 수집 중이에요.',stale:'최신 정보 확인이 필요해요.',incomplete:'일부 회원권 정보 확인이 필요해요.',sync_error:'최근 회원권 조회에 실패했어요.'};add('회원권 만료일:',messages[state]||'확인 필요');return;}
     const format=value=>`${value.slice(2,4)}. ${value.slice(5,7)}. ${value.slice(8,10)}`;
+    const today=koreaDay(),needsHistory=!membershipData.gym.current_end_at||membershipData.gym.current_end_at<today;
+    if(historyData&&(new Date(Date.parse(historyData.synced_at)+9*3600000).toISOString().slice(0,10)!==today||Date.now()-Date.parse(historyData.synced_at)>6*3600000)){historyData=null;historyReadAt=0;}
+    if(needsHistory&&!historyBusy&&(historyForce||Date.now()-historyReadAt>=300000))void loadHistory(id);
     for(const [key,label] of [['gym','헬스회원권'],['pilates','필라테스 수강권']]){
-      const item=membershipData[key];
+      let item=membershipData[key];
+      if(key==='gym'&&needsHistory){
+        if(!historyData){add('헬스회원권 만료일:',historyBusy?'지난 만료일 확인 중…':'만료일 확인 필요');continue;}
+        item=historyData.gym;
+      }
       if(item.current_end_at)add(label+' 만료일:',format(item.current_end_at));
-      else if(item.previous_end_at)add('최근 '+label+' 만료일:',format(item.previous_end_at));
-      else add(label+' 만료일:',item.uncertain?'확인 필요':'확인 가능한 정보 없음');
+      else if(item.previous_end_at&&item.previous_end_at<today){
+        const days=Math.round((Date.parse(today+'T00:00:00Z')-Date.parse(item.previous_end_at+'T00:00:00Z'))/86400000);
+        add('최근 '+label+' 만료일:',key==='gym'?item.previous_end_at.replaceAll('-','. ')+` · 만료 후 ${days}일`:format(item.previous_end_at),key==='gym');
+      }else add(label+' 만료일:',key==='gym'?'만료일 확인 필요':item.uncertain?'확인 필요':'확인 가능한 정보 없음');
       for(const end of item.scheduled_end_at)add('이용 대기 '+label+' 만료일:',format(end));
       if(item.uncertain&&(item.current_end_at||item.previous_end_at))add(label+':','일부 정보 확인 필요');
     }
+  }
+  async function loadHistory(id){
+    const e=epoch,number=++historySeq,db=client,admin=user,force=historyForce;historyForce=false;historyBusy=true;
+    const current=()=>active(e)&&number===historySeq&&membershipMember===id&&select.value===id;
+    let timer;
+    try{
+      const {data,error}=await Promise.race([db.functions.invoke('admin-member-history',{body:{expected_admin_id:admin,user_id:id,force}}),
+        new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('TIMEOUT')),45000);})]);
+      if(!current())return;
+      if(error||data?.ok!==true||data.version!==399||data.user_id!==id||!Number.isFinite(Date.parse(data.synced_at)))throw Error('INVALID_HISTORY');
+      const item=data.gym;
+      if(!item||typeof item.uncertain!=='boolean'||!['current_end_at','previous_end_at'].every(k=>item[k]===null||date(item[k]))||
+        !Array.isArray(item.scheduled_end_at)||item.scheduled_end_at.length>200||!item.scheduled_end_at.every(date)||
+        item.previous_end_at&&item.previous_end_at>=koreaDay()||item.current_end_at&&item.current_end_at<koreaDay())throw Error('INVALID_HISTORY');
+      historyData=data;
+    }catch(_){if(current())historyData=null;}
+    finally{clearTimeout(timer);if(current()){historyBusy=false;historyReadAt=Date.now();renderEligibility();}}
   }
   async function loadMembershipDates(id){
     const e=epoch,number=++membershipSeq,db=client;membershipBusy=true;
@@ -119,7 +179,7 @@
       const text=labels[eligibilityState(option.value).state]+' · '+option.dataset.memberBaseText+' · '+attendance;
       if(option.textContent!==text)option.textContent=text;
     }
-    renderEligibility();renderSort();
+    renderEligibility();renderSort();renderRestrictions();
   }
   const koreaDay=()=>new Date(Date.now()+9*3600000).toISOString().slice(0,10);
   function gymExpiry(id){
@@ -215,7 +275,7 @@
     finally{if(active(e)&&request===seq){busy=false;refresh();notify();}}
   }
   async function loadEligibility(force=false){
-    if(force)membershipReadAt=0;
+    if(force){membershipReadAt=0;if(!historyBusy){historyReadAt=0;historyForce=true;}}
     const e=epoch;if(!active(e)||document.visibilityState!=='visible'||eligibilityBusy||(!force&&Date.now()-eligibilityReadAt<30000))return;
     const request=++eligibilitySeq,db=client,version=eligibilityRevision;eligibilityBusy=true;refresh();
     let refreshAgain=false;
@@ -246,30 +306,37 @@
     if(!active(epoch)||!uuid(id)||typeof value!=='boolean')return;
     const previous=linkState(id);updates.set(id,{linked:value,revision:++revision});if(value)linked.add(id);else linked.delete(id);
     if(previous!==value){invalidateSortFacts(id);eligibility.delete(id);eligibilityChanges.set(id,++eligibilityRevision);eligibilityReadAt=0;notifyEligibility();void loadEligibility();}
-    if(previous!==value&&membershipMember===id){membershipSeq++;membershipData=null;membershipBusy=false;membershipReadAt=0;}
+    if(membershipMember===id){membershipSeq++;membershipData=null;membershipBusy=false;membershipReadAt=0;resetHistory();}
     refresh();notify();
   }
-  function setRoster(ids){if(!active(epoch)||!Array.isArray(ids)||!ids.every(uuid))return;const added=ids.some(id=>!roster.includes(id));roster=[...new Set(ids)];renderEligibility();if(added){sortReadAt=0;void loadSortFacts();}}
+  function setRoster(ids){if(!active(epoch)||!Array.isArray(ids)||!ids.every(uuid))return;const added=ids.some(id=>!roster.includes(id));roster=[...new Set(ids)];renderEligibility();renderRestrictions();if(added){sortReadAt=0;void loadSortFacts();}}
   function reset(){
     membershipSeq++;membershipMember='';membershipData=null;membershipBusy=false;membershipReadAt=0;
+    restrictionSeq++;restricted.clear();restrictionChanges.clear();restrictionOnly=false;restrictionLoaded=false;restrictionBusy=false;restrictionReadAt=0;restrictionRevision=0;
+    historySeq++;historyData=null;historyBusy=false;historyReadAt=0;historyForce=false;
     epoch++;seq++;eligibilitySeq++;clearTimeout(eligibilityTimer);eligibilityTimer=null;
     client=null;user='';ready=false;busy=false;lastRead=0;linked.clear();updates.clear();revision=0;
     eligibility.clear();eligibilityChanges.clear();eligibilityRevision=0;eligibilityLoaded=false;eligibilityBusy=false;eligibilityReadAt=0;eligibilityFailed=false;roster=[];chosenFilter='all';
     sortSeq++;sortAbort?.abort();sortAbort=null;sortBusy=false;sortFacts.clear();sortLoaded=false;sortFailed=false;sortReadAt=0;chosenSort='recent';
-    refresh();notify();notifyEligibility();
+    refresh();notify();notifyEligibility();notifyRestrictions();
   }
   function scheduleEligibility(){
     clearTimeout(eligibilityTimer);
-    if(active(epoch))eligibilityTimer=setTimeout(()=>{if(document.visibilityState==='visible'){refresh();notifyEligibility();notifySort();void loadEligibility();void loadSortFacts();}scheduleEligibility();},300000);
+    if(active(epoch))eligibilityTimer=setTimeout(()=>{if(document.visibilityState==='visible'){refresh();notifyEligibility();notifySort();void loadEligibility();void loadSortFacts();void loadRestrictions();}scheduleEligibility();},300000);
   }
-  function start(connection,id){reset();client=connection;user=id;try{const saved=localStorage.getItem('admin-member-sort:v1:'+user);if(sortModes.has(saved))chosenSort=saved;}catch(_){}refresh();notifySort();void loadLinks();void loadEligibility();void loadSortFacts();scheduleEligibility();}
-  function revisit(){if(document.visibilityState==='visible'){void loadLinks();void loadEligibility();void loadSortFacts();}}
+  function start(connection,id){reset();client=connection;user=id;try{const saved=localStorage.getItem('admin-member-sort:v1:'+user);if(sortModes.has(saved))chosenSort=saved;}catch(_){}refresh();notifySort();void loadLinks();void loadEligibility();void loadSortFacts();void loadRestrictions();scheduleEligibility();}
+  function revisit(){if(document.visibilityState==='visible'){void loadLinks();void loadEligibility();void loadSortFacts();void loadRestrictions();}}
   select.addEventListener('focus',revisit);
   select.addEventListener('change',renderEligibility);
   window.addEventListener('focus',revisit);
   document.addEventListener('visibilitychange',revisit);
-  $('adminMemberEligibilityRefresh').addEventListener('click',()=>{void loadEligibility(true);void loadSortFacts(true);});
-  document.addEventListener('change',event=>{if(event.target.id==='adminMemberSort')setSort(event.target.value);});
+  $('adminMemberEligibilityRefresh').addEventListener('click',()=>{void loadEligibility(true);void loadSortFacts(true);void loadRestrictions(true);});
+  document.addEventListener('change',event=>{
+    if(event.target.id==='adminMemberSort')setSort(event.target.value);
+    if(event.target.id==='adminMemberRestrictedOnly'&&active(epoch)){
+      restrictionOnly=event.target.checked;if(restrictionOnly)chosenFilter='all';refresh();notifyEligibility();notifyRestrictions();
+    }
+  });
   $('adminMemberEligibilityFilters').addEventListener('click',event=>{
     const button=event.target.closest('[data-eligibility-filter]');
     if(!active(epoch)||!button||button.disabled)return;
@@ -280,5 +347,7 @@
   window.AdminMemberPicker=Object.freeze({start,reset,refresh,setLink,linkState,captureSync,applySync,setRoster,
     sortOptions,setSort,sortMode:()=>chosenSort,gymExpiry,loadSortFacts,
     eligibilityState,loadEligibility,filter:()=>chosenFilter,eligibilityReady:()=>eligibilityLoaded,
-    isEligibilityLoading:()=>eligibilityBusy,isLoading:()=>busy});
+    isEligibilityLoading:()=>eligibilityBusy,isLoading:()=>busy,
+    restrictedState,setRestricted,loadRestrictions,restrictedOnly:()=>restrictionOnly,restrictionsReady:()=>restrictionLoaded,
+    isRestrictionsLoading:()=>restrictionBusy});
 })();
