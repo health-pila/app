@@ -32,7 +32,7 @@
 
 .admin-payment-application { margin-top:12px; padding:10px 12px; border-radius:9px; background:#f5f7fa; }
 .admin-application-note { margin:0 0 8px; color:#7a612f; font-size:13.2px; line-height:1.6; }
-.admin-application-applied { color:#277052; font-size:14.3px; }
+.admin-application-applied { color:var(--brand-orange); font-size:14.3px; }
 .admin-application-dates { display:flex; flex-wrap:wrap; align-items:center; gap:4px 32px; margin-top:6px; }
 .admin-application-time { margin:0; color:#697586; font-size:13.2px; line-height:1.6; white-space:nowrap; }
 .admin-application-button { width:auto; min-height:38px; margin:0; padding:8px 14px; border:1px solid #ed6c13; border-radius:9px; background:#fff4e9; color:#9b480d; font:inherit; font-size:13px; font-weight:700; }
