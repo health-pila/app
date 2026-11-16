@@ -654,7 +654,7 @@
     box.append(el('h3', '', '결제 상품 적용 확인'), el('p', 'aw-help', '센터 CRM에 상품을 적용한 뒤 완료로 표시해 주세요.'));
     const summary = el('section', 'aw-payment-summary'); summary.id = 'awSelectedPaymentSummary';
     summary.append(el('strong', 'aw-payment-product', row.product_name), el('p', 'aw-payment-amount', row.amount.toLocaleString('ko-KR') + '원'));
-    const options = [row.options?.clothing && '운동복 대여', row.options?.locker && '개인락커 이용'].filter(Boolean);
+    const options = window.PaymentFulfillment.optionLabels(row);
     summary.append(el('p', '', options.length ? '추가 옵션: ' + options.join(' · ') : '추가 옵션 없음'), el('p', 'aw-help', '결제 확인: ' + time(row.paid_at)));
     if (row.product_code === 'one-day-pt' && Array.isArray(row.pt_exercises)) { const selected = el('ol'); for (const exercise of row.pt_exercises) selected.append(el('li', '', exercise.name)); summary.append(selected); }
     if (row.application_state === 'legacy') summary.append(el('p', 'aw-help', '도입 이전 결제예요. 기존 적용 여부를 CRM에서 먼저 확인해 주세요.'));

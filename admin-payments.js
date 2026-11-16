@@ -121,7 +121,7 @@
       member.append(textNode('span', 'admin-payment-phone', /^\d{4}$/.test(entry.phone_last4 || '') ? `연락처 끝 ${entry.phone_last4}` : '연락처 끝자리 미등록'));
       heading.append(member, textNode('span', `admin-payment-state is-${entry.payment_state}`, labels[entry.payment_state] || '상태 확인 필요'));
       card.append(heading, textNode('h3', 'admin-payment-product', entry.product_name));
-      const options = [entry.options?.clothing && '운동복 대여', entry.options?.locker && '개인락커 이용'].filter(Boolean);
+      const options = window.PaymentFulfillment.optionLabels(entry);
       if (entry.product_code === 'one-day-pt') {
         const selected = document.createElement('ol'); selected.className = 'one-day-pt-exercises';
         for (const exercise of (Array.isArray(entry.pt_exercises) ? entry.pt_exercises.slice(0, 5) : [])) selected.append(textNode('li', '', String(exercise.name || '')));

@@ -10,6 +10,17 @@
   const formatter=new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
   const formatTime=v=>date(v)?formatter.format(new Date(v)):'확인 필요';
   const states=new Set(['pending','applied','legacy','not_applicable']);
+  // Historical order codes keep their purchased duration even if prices change.
+  // New product codes must be added explicitly; names and totals are not evidence of duration.
+  const optionMonths=new Map([['autumn-gym-6m',6],['gym-3m',3],['gym-12m',12]]);
+  function optionLabels(order){
+    if(order?.product_code==='one-day-pt')return [];
+    const months=optionMonths.get(order?.product_code);
+    const duration=months?` ${months}개월`:' (기간 확인 필요)';
+    return [['clothing','운동복 대여'],['locker','개인락커 이용']]
+      .filter(([key])=>order?.options?.[key]===true)
+      .map(([,label])=>label+duration);
+  }
   async function request(db,name,args){
     const controller=new AbortController();let timeout;
     try{
@@ -98,5 +109,5 @@
   window.addEventListener('focus',()=>schedule(1000));
   document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);timer=null;}else schedule(1000);});
   new MutationObserver(()=>{if(screen.hidden&&owner)reset();}).observe(screen,{attributes:true,attributeFilter:['hidden']});
-  window.PaymentFulfillment=Object.freeze({start,reset,getStatuses,formatTime,request});
+  window.PaymentFulfillment=Object.freeze({start,reset,getStatuses,formatTime,request,optionLabels});
 })();
