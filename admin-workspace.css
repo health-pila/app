@@ -373,6 +373,9 @@
 /* v358: neutral roster cards, a common intake control, and a dedicated statistics page. */
 #adminScreen #adminInquiryList>.admin-inquiry-card:not(.aw-selected),
 #adminScreen .aw-member-rows button:not([aria-pressed=true]){background:#f1f3f6}
+#adminScreen .admin-inquiry-member-deleted{display:block;margin:10px 0;padding:6px 10px;border-radius:7px;background:#f3f5f8;color:#59677d;text-align:center;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+#adminScreen .admin-inquiry-member-deleted small{display:block;font-size:11px}
+#adminScreen .admin-inquiry-thread[data-member-deleted=true] textarea[readonly]{color:#66758b;background:#f7f8fa}
 /* v360: keep card geometry while hiding outlines, including selected cards. */
 #adminScreen #adminInquiryList>.admin-inquiry-card,
 #adminScreen #awMemberRows>button{border-color:transparent}

@@ -484,9 +484,12 @@
     card.dataset.inquiryId = record.id;
     const existing = inquiryCache.get(record.id), draft = inquiryDrafts.get(record.id);
     if (existing && existing.renderedStatus === record.status && existing.renderedArchived === Boolean(record.archived_at)) {
-      const changed = existing.record.last_message_at !== record.last_message_at || existing.record.updated_at !== record.updated_at;
-      Object.assign(existing.record, record); thread.remove();
-      if (changed && existing.thread.querySelector('.admin-inquiry-message-list')?.dataset.loaded === 'true') void hooks.loadInquiry?.(record.id, inquiryName(record), existing.thread.querySelector('.admin-inquiry-message-list'));
+      const deletionChanged = !!record.member_deleted_at && existing.record.member_deleted_at !== record.member_deleted_at;
+      const changed = deletionChanged || existing.record.last_message_at !== record.last_message_at || existing.record.updated_at !== record.updated_at;
+      const deletedAt = existing.record.member_deleted_at || record.member_deleted_at || null;
+      Object.assign(existing.record, record, { member_deleted_at: deletedAt }); thread.remove();
+      const list = existing.thread.querySelector('.admin-inquiry-message-list');
+      if (changed && (list?.dataset.loaded === 'true' || deletionChanged && currentInquiry === record.id)) void hooks.loadInquiry?.(record.id, inquiryName(record), list);
     } else {
       existing?.thread.remove();
       const input = thread.querySelector('.admin-inquiry-reply-area textarea');
@@ -521,6 +524,7 @@
       if (sendButton.parentElement !== footer) footer.prepend(sendButton);
       sendButton.hidden = Boolean(entry.record.archived_at);
     }
+    window.applyAdminInquiryRetention?.(entry.thread, entry.record);
     const archiveButton = archiveArea?.querySelector('button'); if (archiveButton && entry.renderedArchived !== Boolean(entry.record.archived_at)) { archiveButton.disabled = true; archiveButton.textContent = '보관 상태가 바뀌었어요. 목록에서 다시 선택해 주세요.'; }
     $('adminInquiryList').querySelectorAll('.admin-inquiry-summary-button').forEach(b => b.setAttribute('aria-expanded', String(b.closest('[data-inquiry-id]')?.dataset.inquiryId === id)));
   }
@@ -729,6 +733,12 @@
     memberLinked: id => showCompletion('signup', id, '센터 출석 연결을 완료했어요.'),
     routineSaved: id => { showCompletion('routine', id, '새 운동 루틴을 배정했어요.'); void hooks.refreshRoutineRequests?.(); },
     captureInquiryDrafts, registerInquiry, openInquiry, syncInquiryAlerts, inquiryAnswered, inquiryArchived, inquiryMessageDeleted,
+    inquiryMemberDeleted: (id, at) => {
+      const entry = inquiryCache.get(id);
+      if (!entry || !at || !Number.isFinite(Date.parse(at))) return;
+      entry.record.member_deleted_at = at;
+      window.applyAdminInquiryRetention?.(entry.thread, entry.record);
+    },
     inquiryMemberId: () => page === 'inquiries' || page === 'members' && memberTab === 'inquiry' ? requestMemberFilter : '',
     refreshPayments: () => loadPayments(true), memberDeleted, isBusy: () => selecting || !!paymentApplying || !!window.AdminMemberDeletion?.isBusy(),
   });

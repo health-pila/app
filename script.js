@@ -1230,7 +1230,15 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
   let previousSender = null;
   let previousInquiry = null;
   const fragment = document.createDocumentFragment();
-  messages.forEach(function (message) {
+  const events = [...(messages || [])];
+  if (!memberView && history?.inquiries) {
+    for (const inquiry of history.inquiries.values()) if (inquiry.member_deleted_at) {
+      events.push({ id: 'member-deleted:' + inquiry.id, inquiry_id: inquiry.id,
+        created_at: inquiry.member_deleted_at, memberDeleted: true, inquiryTitle: inquiry.title || '' });
+    }
+    events.sort((a,b) => (Date.parse(a.created_at)||0)-(Date.parse(b.created_at)||0) || String(a.id).localeCompare(String(b.id)));
+  }
+  events.forEach(function (message) {
     const date = message.created_at ? new Date(message.created_at) : null;
     const validDate = date && Number.isFinite(date.getTime());
     const day = validDate ? dayFormat.format(date) : null;
@@ -1246,6 +1254,18 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
     if (history && message.inquiry_id !== previousInquiry) {
       previousInquiry = message.inquiry_id;
       previousSender = null;
+    }
+    if (message.memberDeleted) {
+      const note = document.createElement('div'); note.className = 'admin-inquiry-member-deleted';
+      note.dataset.inquiryId = message.inquiry_id; note.setAttribute('role', 'note');
+      const text = document.createElement('span'); text.textContent = '회원이 삭제한 대화'; note.append(text);
+      if (validDate) {
+        const at = document.createElement('time'); at.dateTime = message.created_at;
+        at.textContent = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
+        note.append(document.createTextNode(' · '), at);
+      }
+      if (message.inquiryTitle) { const title = document.createElement('small'); title.textContent = message.inquiryTitle; note.append(title); }
+      fragment.append(note); previousDay = day; previousSender = null; return;
     }
     const messageCard = document.createElement("article");
     messageCard.className = "member-inquiry-message " +
@@ -1463,15 +1483,18 @@ async function loadMemberInquiryMessages(
   }
 }
 
-// 회원 본인의 문의 완전 삭제
+// 회원 화면에서 문의를 삭제하고 관리자 대화 원문은 보관합니다.
 async function deleteMemberInquiry(
   inquiryId,
   deleteButton,
   deleteMessage
 ) {
+  const expectedMember = memberRoutineIdentity.userId;
+  const memberCurrent = () => !!expectedMember && memberRoutineIdentity.userId === expectedMember && !appScreen.hidden;
+  if (!memberCurrent()) return;
   const shouldDelete =
     window.confirm(
-      "이 문의를 삭제할까요?\n\n질문과 센터 답변이 모두 삭제되며 복구할 수 없습니다."
+      "내 대화 목록에서 이 문의를 삭제할까요?\n\n삭제 후에는 이 대화를 다시 볼 수 없어요. 질문과 센터 답변은 센터의 상담 기록으로 보관됩니다."
     );
 
   if (!shouldDelete) {
@@ -1496,20 +1519,15 @@ async function deleteMemberInquiry(
       );
     }
 
-    const {
-      data: deletedInquiry,
-      error: deleteError
-    } = await supabaseClient
-      .from("member_inquiries")
-      .delete()
-      .eq("id", inquiryId)
-      .eq("user_id", user.id)
-      .select("id")
-      .maybeSingle();
+    if (!memberCurrent() || user.id !== expectedMember) return;
+    const { data: deletedInquiry, error: deleteError } = await supabaseClient.rpc('member_delete_inquiry_v400', {
+      p_inquiry_id: inquiryId, p_expected_user_id: expectedMember
+    });
+    if (!memberCurrent()) return;
 
     if (
       deleteError ||
-      !deletedInquiry
+      deletedInquiry?.ok !== true || deletedInquiry.version !== 400 || deletedInquiry.inquiry_id !== inquiryId || typeof deletedInquiry.deleted_at !== 'string' || !Number.isFinite(Date.parse(deletedInquiry.deleted_at))
     ) {
       throw (
         deleteError ||
@@ -1529,6 +1547,7 @@ async function deleteMemberInquiry(
     await loadMemberInquiries(true);
 
   } catch (deleteError) {
+    if (!memberCurrent()) return;
     console.error(
       "회원 문의 삭제 실패:",
       deleteError
@@ -1540,7 +1559,7 @@ async function deleteMemberInquiry(
       }`;
 
   } finally {
-    if (deleteButton.isConnected) {
+    if (deleteButton.isConnected && memberCurrent()) {
       deleteButton.disabled = false;
       deleteButton.textContent =
         "문의 삭제";
@@ -5608,6 +5627,10 @@ async function sendAdminInquiryReply(
   const authRevision = loginAuthRevision, expectedAdmin = loginObservedAuthId;
   const current = () => authRevision === loginAuthRevision && expectedAdmin === loginObservedAuthId && !adminScreen.hidden;
 
+  if (replyInput.closest('.admin-inquiry-thread')?.dataset.memberDeleted === 'true') {
+    replyMessage.textContent = '회원이 삭제한 대화에는 새 답변을 보낼 수 없어요.'; return;
+  }
+
   if (!body) {
     replyMessage.textContent =
       "답변 내용을 입력해 주세요.";
@@ -5659,6 +5682,12 @@ async function sendAdminInquiryReply(
     } else await loadAdminInquiries();
   } catch (replyError) {
     if (!current()) return;
+    if (String(replyError?.message || '').includes('MEMBER_DELETED_INQUIRY')) {
+      const list = replyInput.closest('.admin-inquiry-thread')?.querySelector('.admin-inquiry-message-list');
+      if (list) await loadAdminInquiryMessages(inquiryId, '회원', list);
+      if (current()) replyMessage.textContent = '회원이 삭제한 대화에는 새 답변을 보낼 수 없어요.';
+      return;
+    }
     console.error(
       "관리자 문의 답변 저장 실패:",
       replyError
@@ -5668,7 +5697,7 @@ async function sendAdminInquiryReply(
       `답변 저장 실패: ${replyError.message || "알 수 없는 오류"
       }`;
   } finally {
-    replyButton.disabled = false;
+    replyButton.disabled = replyInput.closest('.admin-inquiry-thread')?.dataset.memberDeleted === 'true';
     replyButton.textContent = "답변 보내기";
   }
 }
@@ -5711,7 +5740,7 @@ async function completeAdminInquiry(inquiry, completeButton, replyButton, messag
   } finally {
     if (completeButton.isConnected) {
       completeButton.disabled = false;
-      replyButton.disabled = false;
+      replyButton.disabled = replyButton.closest('.admin-inquiry-thread')?.dataset.memberDeleted === 'true';
       completeButton.textContent = "답변 완료 처리";
     }
   }
@@ -5792,6 +5821,41 @@ async function updateAdminInquiryArchive(
   }
 }
 
+function applyAdminInquiryRetention(thread, inquiry) {
+  if (!thread || !inquiry?.member_deleted_at) return;
+  thread.dataset.memberDeleted = 'true';
+  const input = thread.querySelector('.admin-inquiry-reply-area textarea');
+  if (input) { input.readOnly = true; input.placeholder = '회원이 삭제한 대화입니다.'; }
+  const send = thread.querySelector('.admin-inquiry-send-button'); if (send) send.disabled = true;
+  const help = thread.querySelector('.admin-inquiry-shortcut-help');
+  if (help) help.textContent = '회원이 삭제한 대화입니다. 회원 화면에 표시되지 않아 새 답변을 보낼 수 없어요.';
+}
+
+async function loadAdminInquiryRetention(inquiries, isCurrent) {
+  const ids = [...new Set(inquiries.map(row => row.id))], deleted = new Map();
+  const expectedAdmin = loginObservedAuthId, revision = loginAuthRevision;
+  for (let offset = 0; offset < ids.length; offset += 500) {
+    if (!isCurrent() || expectedAdmin !== loginObservedAuthId || revision !== loginAuthRevision) return null;
+    const batch = ids.slice(offset, offset + 500), allowed = new Set(batch);
+    let timer; const abort = new AbortController();
+    try {
+      let query = supabaseClient.rpc('admin_inquiry_member_deletions_v400', { p_inquiry_ids: batch, p_expected_admin_id: expectedAdmin });
+      if (query.abortSignal) query = query.abortSignal(abort.signal);
+      const { data, error } = await Promise.race([query, new Promise((_, reject) => {
+        timer = setTimeout(() => { abort.abort(); reject(new Error('INQUIRY_RETENTION_TIMEOUT')); }, 10000);
+      })]);
+      if (!isCurrent() || expectedAdmin !== loginObservedAuthId || revision !== loginAuthRevision) return null;
+      if (error) throw error;
+      if (data?.ok !== true || data.version !== 400 || !Array.isArray(data.entries) || data.entries.length > batch.length) throw new Error('INQUIRY_RETENTION_UNAVAILABLE');
+      for (const item of data.entries) {
+        if (!allowed.has(item.inquiry_id) || deleted.has(item.inquiry_id) || typeof item.deleted_at !== 'string' || !Number.isFinite(Date.parse(item.deleted_at))) throw new Error('INVALID_INQUIRY_RETENTION');
+        deleted.set(item.inquiry_id, item.deleted_at);
+      }
+    } finally { clearTimeout(timer); }
+  }
+  return inquiries.map(row => ({ ...row, member_deleted_at: deleted.get(row.id) || null }));
+}
+
 // 회원 계정 ID로 전체 문의와 메시지를 조회합니다. 목록의 필터/표시 개수와 무관합니다.
 async function fetchAdminMemberInquiryHistory(inquiryId, isCurrent) {
   const { data: selected, error: selectedError } = await supabaseClient
@@ -5818,6 +5882,9 @@ async function fetchAdminMemberInquiryHistory(inquiryId, isCurrent) {
     }
     if (page.length < pageSize) break;
   }
+  const retention = await loadAdminInquiryRetention([...inquiries.values()], isCurrent);
+  if (!retention || !isCurrent()) return null;
+  for (const row of retention) inquiries.set(row.id, row);
   const ids = [...inquiries.keys()], messagesById = new Map();
   for (let start = 0; start < ids.length; start += 50) {
     const batch = ids.slice(start, start + 50), allowed = new Set(batch);
@@ -5839,7 +5906,7 @@ async function fetchAdminMemberInquiryHistory(inquiryId, isCurrent) {
   }
   const messages = [...messagesById.values()].sort((a, b) =>
     (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0) || String(a.id).localeCompare(String(b.id)));
-  return { selected, inquiries, messages };
+  return { selected: inquiries.get(inquiryId), inquiries, messages };
 }
 
 // 선택한 문의의 답변 입력창은 유지하고, 같은 회원의 다른 문의도 시간순으로 함께 표시합니다.
@@ -5877,6 +5944,8 @@ async function loadAdminInquiryMessages(
     if (!history || !isCurrent()) return;
     const { selected, inquiries, messages } = history;
     const thread = messageList.closest(".admin-inquiry-thread");
+    applyAdminInquiryRetention(thread, selected);
+    window.AdminWorkspace?.inquiryMemberDeleted?.(inquiryId, selected.member_deleted_at);
     if (thread) {
       let note = thread.querySelector(".admin-inquiry-history-note");
       if (!note) { note = document.createElement("p"); note.className = "admin-inquiry-history-note"; messageList.before(note); }
@@ -5889,7 +5958,7 @@ async function loadAdminInquiryMessages(
 
     messageList.replaceChildren();
 
-    if (!messages || messages.length === 0) {
+    if ((!messages || messages.length === 0) && ![...inquiries.values()].some(row => row.member_deleted_at)) {
       const emptyMessage =
         document.createElement("p");
 
@@ -6322,6 +6391,7 @@ function renderAdminInquiries(inquiries) {
     );
 
     const workspaceManaged = window.AdminWorkspace?.registerInquiry(inquiry, inquiryCard, threadArea);
+    if (!workspaceManaged) applyAdminInquiryRetention(threadArea, inquiry);
     if (isOpen && !workspaceManaged) {
       loadAdminInquiryMessages(
         inquiry.id,
@@ -6540,9 +6610,9 @@ async function loadAdminInquiries(
         }
       );
 
-    renderAdminInquiries(
-      inquiriesWithProfiles
-    );
+    const retainedInquiries = await loadAdminInquiryRetention(inquiriesWithProfiles, isCurrentRequest);
+    if (!retainedInquiries || !isCurrentRequest()) return;
+    renderAdminInquiries(retainedInquiries);
 
     if (searchTerm) {
       adminInquirySearchStatus.textContent = `보관함 포함 전체 검색 · 문의 ${inquiryCount || 0}건 · 회원 ${inquiriesWithProfiles.length}명 표시`;
