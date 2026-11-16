@@ -11,16 +11,16 @@
 .admin-payments-list { display: grid; gap: 12px; }
 .admin-payment-card { min-width: 0; padding: 10px 16px; border: 1px solid #e2e7ee; border-radius: 14px; background: #fff; color: #17233e; overflow-wrap: anywhere; }
 .admin-payment-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.admin-payment-member { display: grid; gap: 3px; min-width: 0; }
+.admin-payment-member { min-width: 0; }
 .admin-payment-name { font-size: 16px; }
 .admin-payment-phone { color: #697586; font-size: 13px; }
-.admin-payment-state { flex-shrink: 0; padding: 4px 8px; border-radius: 6px; background: #eff2f6; color: #43516a; font-size: 12px; font-weight: 700; }
+.admin-payment-state { flex-shrink: 0; padding: 4.8px 9.6px; border-radius: 6px; background: #eff2f6; color: #43516a; font-size: 14.4px; font-weight: 700; white-space: nowrap; }
 .admin-payment-state.is-paid { background: #e8f6ed; color: #23603b; }
 .admin-payment-state.is-partial_refund { background: #fff0de; color: #a64a04; }
 .admin-payment-product { margin: 8px 0 4px; font-size: 15px; line-height: 1.6; }
 .admin-payment-amount { margin: 0 0 7px; font-size: 17px; font-weight: 800; }
-.admin-payment-dates { display: grid; gap: 3px; margin: 0; font-size: 12px; line-height: 1.6; color: #697586; }
-.admin-payment-dates > div { display: flex; flex-wrap: wrap; gap: 5px 12px; }
+.admin-payment-dates { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 32px; margin: 0; font-size: 12px; line-height: 1.6; color: #697586; }
+.admin-payment-dates > div { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
 .admin-payment-dates dt, .admin-payment-dates dd { margin: 0; }
 .admin-payment-note { margin: 10px 0 0; font-size: 12px; line-height: 1.6; color: #a64a04; }
 #adminPayments .admin-payments-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 16px; }
@@ -30,10 +30,11 @@
 
 #adminPayments .one-day-pt-exercises { margin: 4px 0 6px; }
 
-.admin-payment-application { margin-top:12px; padding-top:12px; border-top:1px solid #e2e7ee; }
-.admin-application-note { margin:0 0 8px; color:#7a612f; font-size:12px; line-height:1.6; }
-.admin-application-applied { color:#277052; font-size:13px; }
-.admin-application-time { margin:5px 0 0; color:#697586; font-size:12px; line-height:1.6; }
+.admin-payment-application { margin-top:12px; padding:10px 12px; border-radius:9px; background:#f5f7fa; }
+.admin-application-note { margin:0 0 8px; color:#7a612f; font-size:13.2px; line-height:1.6; }
+.admin-application-applied { color:#277052; font-size:14.3px; }
+.admin-application-dates { display:flex; flex-wrap:wrap; align-items:center; gap:4px 32px; margin-top:6px; }
+.admin-application-time { margin:0; color:#697586; font-size:13.2px; line-height:1.6; white-space:nowrap; }
 .admin-application-button { width:auto; min-height:38px; margin:0; padding:8px 14px; border:1px solid #ed6c13; border-radius:9px; background:#fff4e9; color:#9b480d; font:inherit; font-size:13px; font-weight:700; }
 .admin-application-button:disabled { opacity:.55; cursor:default; }
 

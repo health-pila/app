@@ -118,8 +118,8 @@
       const card = document.createElement('article'); card.className = 'admin-payment-card';card.dataset.paymentId=entry.id;card.dataset.paymentState=entry.payment_state;
       const heading = document.createElement('div'); heading.className = 'admin-payment-heading';
       const member = document.createElement('div'); member.className = 'admin-payment-member';
-      member.append(textNode('strong', 'admin-payment-name', entry.member_name));
-      member.append(textNode('span', 'admin-payment-phone', /^\d{4}$/.test(entry.phone_last4 || '') ? `연락처 끝 ${entry.phone_last4}` : '연락처 끝자리 미등록'));
+      const identity = entry.member_name + (/^\d{4}$/.test(entry.phone_last4 || '') ? `∙${entry.phone_last4}` : '∙끝번호 미등록');
+      member.append(textNode('strong', 'admin-payment-name', identity));
       heading.append(member, textNode('span', `admin-payment-state is-${entry.payment_state}`, labels[entry.payment_state] || '상태 확인 필요'));
       card.append(heading, textNode('h3', 'admin-payment-product', entry.product_name));
       const options = window.PaymentFulfillment.optionLabels(entry);
@@ -144,8 +144,10 @@
         const box=textNode('div','admin-payment-application','');
         if(state==='applied'){
           box.append(textNode('strong','admin-application-applied','상품 적용 완료'));
-          box.append(textNode('p','admin-application-time','적용 일시: '+time(application.applied_at)));
-          box.append(textNode('p','admin-application-time',application.acknowledged_at?'회원 확인: '+time(application.acknowledged_at):'회원 알림 확인 대기'));
+          const stamps=textNode('div','admin-application-dates','');
+          stamps.append(textNode('p','admin-application-time','적용 일시: '+time(application.applied_at)));
+          stamps.append(textNode('p','admin-application-time',application.acknowledged_at?'회원 확인: '+time(application.acknowledged_at):'회원 알림 확인 대기'));
+          box.append(stamps);
         }else{
           box.append(textNode('p','admin-application-note',state==='pending'?'결제 완료 · 상품 적용 대기':state==='legacy'?'도입 이전 결제 · 적용 여부 미확인':'상품 적용 상태를 확인하지 못했어요. 새로고침해 주세요.'));
           const button=textNode('button','admin-application-button',applyingId===entry.id?'적용 처리 중…':'CRM 적용 완료');

@@ -70,7 +70,7 @@
 #adminScreen #adminAttendancePanel{margin:0;padding:0;border:0;border-radius:0;background:none}
 #adminScreen #adminAttendanceTitle{font-size:19px;margin:0 0 9px}
 #adminScreen #adminAttendanceStatus{font-size:13px;line-height:1.8;margin:0 0 16px}
-#adminScreen #adminAttendanceLookup{font-size:10.78px;min-height:30.8px;width:auto;padding:7px 11.2px;margin:0;line-height:1.4;white-space:nowrap;flex:0 0 auto}
+#adminScreen #adminAttendanceLookup{font-size:10.78px;min-height:30.8px;width:auto;padding:7px 11.2px;margin:0;line-height:1.4;white-space:nowrap;flex:0 0 auto;background:var(--brand-orange);border-color:var(--brand-orange);color:#fff}
 #adminScreen .aw-identity-compare{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:2px}
 #adminScreen .aw-app-identity,#adminScreen #adminAttendanceCandidate{min-width:0;display:block;border:1px solid #dae3ee;background:#f8fafc;border-radius:9px;padding:18px;margin:0}
 #adminScreen .aw-app-identity{width:70%;min-width:min(100%,260px);max-width:100%;justify-self:start;padding:14px}
