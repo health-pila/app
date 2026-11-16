@@ -125,7 +125,7 @@
 #adminScreen :is(#awQueueBody,#awMemberInquiryList) .admin-inquiry-meta{display:block;min-width:0;padding:0;font-size:11px;line-height:1.55;margin:0;overflow-wrap:anywhere}
 #adminScreen :is(#awQueueBody,#awMemberInquiryList) .admin-inquiry-meta-contact{display:none}
 #adminScreen :is(#awQueueBody,#awMemberInquiryList) .admin-inquiry-status{font-size:10px;padding:3px 5px}
-#adminScreen .admin-inquiry-card .admin-inquiry-status.is-answered{background:var(--brand-orange);color:#fff}
+#adminScreen .admin-inquiry-card .admin-inquiry-status.is-answered{--aw-inquiry-status-size:9.9px;font-size:9px;padding:2.7px 4.5px;background:var(--brand-orange);color:#fff}
 #adminScreen .admin-inquiry-card .admin-inquiry-status.is-waiting{background:#fff;color:var(--brand-orange)}
 #adminScreen[data-aw-page=inquiries] #awContext{display:none}
 #adminScreen #awInquiryWork .admin-inquiry-thread{border:0;padding:0;margin:0}
@@ -366,7 +366,7 @@
 
 /* v358: neutral roster cards, a common intake control, and a dedicated statistics page. */
 #adminScreen #adminInquiryList>.admin-inquiry-card:not(.aw-selected),
-#adminScreen .aw-member-rows button:not([aria-pressed=true]){background:#f3f5f8}
+#adminScreen .aw-member-rows button:not([aria-pressed=true]){background:#f1f3f6}
 /* v360: keep card geometry while hiding outlines, including selected cards. */
 #adminScreen #adminInquiryList>.admin-inquiry-card,
 #adminScreen #awMemberRows>button{border-color:transparent}
