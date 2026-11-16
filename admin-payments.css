@@ -40,7 +40,6 @@
 #adminPaymentsBody[hidden],#adminPaymentNoticeButton[hidden] { display:none !important; }
 #adminPayments .admin-payments-heading-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
 #adminPayments .admin-payments-heading-row h2 { margin:0; }
-#adminPayments .admin-payments-toggle { flex:none; min-height:36px; padding:7px 10px; font-size:12px; }
 .admin-payments-toggle span { display:inline-block; margin-left:3px; }
 .admin-payments-toggle[aria-expanded=true] span { transform:rotate(180deg); }
 #adminPayments .admin-payment-notice-button { display:grid; gap:5px; width:100%; margin:14px 0 0; padding:12px 14px; border-color:#f2cfb7; border-radius:12px; background:#fff7ef; color:#a64a04; text-align:left; }

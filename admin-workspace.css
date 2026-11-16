@@ -152,6 +152,7 @@
 #adminScreen .aw-operation-nav button{min-height:42px;border:1px solid #d6dfeb;border-radius:8px;background:#fff;padding:9px 14px;font-size:13px;font-weight:700;color:#63738a}
 #adminScreen .aw-operation-nav button[aria-pressed=true]{background:var(--aw-navy);color:#fff;border-color:var(--aw-navy);box-shadow:inset 0 -3px #f36a12}
 #adminScreen #awOperationBody .admin-card{width:100%;margin:0 0 18px;padding:20px;border-radius:11px;max-width:100%;box-shadow:none}
+#adminScreen #awPaymentsPage>.admin-card{width:100%;margin:0;padding:20px;border-radius:11px;max-width:100%;box-shadow:none}
 #adminScreen .aw-statistics{margin:0 0 18px;padding:18px 20px;border:1px solid var(--aw-line);border-radius:10px;background:#fff}
 #adminScreen .aw-statistics h1{font-size:21px;color:var(--aw-navy);margin:0 0 13px}
 #adminScreen #awOperationBody #adminOneDayPtManagement{display:none}
@@ -250,7 +251,7 @@
  #adminScreen #awInquiryWork .admin-inquiry-shortcut-help{font-size:11px}
  #adminScreen .aw-operation-nav{gap:6px;margin-bottom:13px}
  #adminScreen .aw-operation-nav button{font-size:11px;min-height:38px;padding:8px 10px}
- #adminScreen #awOperationBody .admin-card{padding:15px}
+ #adminScreen #awOperationBody .admin-card,#adminScreen #awPaymentsPage>.admin-card{padding:15px}
  #adminScreen .aw-payment-work h3{font-size:17px}
  #adminScreen .aw-payment-summary{padding:15px}
  #adminScreen .aw-payment-product{font-size:16px}

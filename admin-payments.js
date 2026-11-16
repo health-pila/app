@@ -9,10 +9,10 @@
   const list = byId('adminPaymentsList'), message = byId('adminPaymentsMessage');
   const previous = byId('previousAdminPayments'), next = byId('nextAdminPayments');
   const pageLabel = byId('adminPaymentsPage');
-  const body=byId('adminPaymentsBody'),toggle=byId('toggleAdminPayments');
+  const body=byId('adminPaymentsBody');
   const noticeButton=byId('adminPaymentNoticeButton'),noticeCount=byId('adminPaymentNoticeCount');
   const noticePreview=byId('adminPaymentNoticePreview'),noticeStatus=byId('adminPaymentNoticeStatus');
-  let expanded=false,noticeRequest=0,noticeBusy=false,ackBusy=false,visibleFrame=null,ackTimer=null;
+  let noticeRequest=0,noticeBusy=false,ackBusy=false,visibleFrame=null,ackTimer=null;
   const visibleChecked=new Set(),visibleQueue=new Set();
   const uuid=value=>typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
   const setText=(node,value)=>{if(node.textContent!==value)node.textContent=value;};
@@ -43,7 +43,7 @@
     try{const data=await noticeRpc(db,'payapp_admin_payment_notices',{p_expected_admin_id:owner});
       if(token!==generation||serial!==noticeRequest||!active()||owner!==userId)return;applyNotices(data);
     }catch(_){if(token===generation&&serial===noticeRequest&&active()){
-      setText(noticeStatus,'새 결제 알림을 확인하지 못했어요. 펼쳐서 새로고침해 주세요.');noticeStatus.classList.add('is-error');window.AdminRoutineAlerts?.paymentError();
+      setText(noticeStatus,'새 결제 알림을 확인하지 못했어요. 결제 내역에서 새로고침해 주세요.');noticeStatus.classList.add('is-error');window.AdminRoutineAlerts?.paymentError();
     }}finally{if(token===generation&&serial===noticeRequest){noticeBusy=false;schedule();}}
   }
   function cardVisible(card){
@@ -53,7 +53,7 @@
   function queueVisibleCheck(){
     if(visibleFrame!==null)return;
     visibleFrame=requestAnimationFrame(()=>{visibleFrame=null;
-      if(!active()||!expanded||document.hidden)return;
+      if(!historyVisible()||document.hidden)return;
       list.querySelectorAll('[data-payment-state="paid"]').forEach(card=>{
         if(!visibleChecked.has(card.dataset.paymentId)&&cardVisible(card))visibleQueue.add(card.dataset.paymentId);
       });
@@ -61,7 +61,7 @@
     });
   }
   async function acknowledgeVisible(){
-    if(!active()||!expanded||document.hidden){visibleQueue.clear();return;}
+    if(!historyVisible()||document.hidden){visibleQueue.clear();return;}
     if(ackBusy)return;
     const visible=new Set([...list.querySelectorAll('[data-payment-state="paid"]')].filter(cardVisible).map(card=>card.dataset.paymentId));
     const ids=[...visibleQueue].filter(id=>visible.has(id)&&uuid(id)&&!visibleChecked.has(id)).slice(0,50);visibleQueue.clear();
@@ -71,14 +71,15 @@
       if(token!==generation||serial!==noticeRequest||owner!==userId||!active())return;
       validateNotices(data);ids.forEach(id=>visibleChecked.add(id));applyNotices(data,true);
     }catch(_){if(token===generation&&serial===noticeRequest&&active()){
-      setText(noticeStatus,'결제 알림 확인 상태를 저장하지 못했어요. 펼쳐서 새로고침해 주세요.');noticeStatus.classList.add('is-error');
+      setText(noticeStatus,'결제 알림 확인 상태를 저장하지 못했어요. 새로고침해 주세요.');noticeStatus.classList.add('is-error');
     }}finally{if(token===generation&&serial===noticeRequest){ackBusy=false;schedule();if(visibleQueue.size)queueVisibleCheck();}}
   }
-  function setExpanded(open,newOnly=false){
-    expanded=open;body.hidden=!open;toggle.setAttribute('aria-expanded',String(open));
-    toggle.innerHTML=(open?'접기':'펼쳐보기')+' <span aria-hidden="true">⌄</span>';
-    if(open){if(newOnly){filter.value='paid';offset=0;entries=[];render();}void load(offset);queueVisibleCheck();}
-    else{clearTimeout(ackTimer);ackTimer=null;visibleQueue.clear();}
+  function show(newOnly=false){
+    if(!historyVisible())return;
+    body.hidden=false;
+    if(newOnly){filter.value='paid';offset=0;entries=[];render();}
+    if(newOnly||!busy)void load(offset);
+    queueVisibleCheck();
   }
 
   const labels = { paid: '결제 완료', cancelled: '취소', partial_refund: '일부 취소' };
@@ -90,6 +91,7 @@
   let busy = false, blocked = false, offset = 0, hasMore = false, entries = [];
   let applicationStates = new Map(), applyingId = '';
   const active = () => Boolean(client && userId && !screen.hidden);
+  const historyVisible = () => active() && !section.closest('[hidden]');
   const live = (token, serial) => token === generation && serial === requestId && active();
   function stop() { clearTimeout(timer); timer = null; }
   function status(text, error = false) { message.textContent = text; message.classList.toggle('is-error', error); }
@@ -99,7 +101,6 @@
     refresh.disabled = !enabled || busy || Boolean(applyingId);
     previous.disabled = !enabled || busy || Boolean(applyingId) || offset === 0;
     next.disabled = !enabled || busy || Boolean(applyingId) || !hasMore;
-    toggle.disabled=!active()||Boolean(applyingId);
     pageLabel.textContent = `${Math.floor(offset / 20) + 1}페이지`;
     list.setAttribute('aria-busy', String(busy));
   }
@@ -160,7 +161,7 @@
   }
   function schedule() {
     stop();
-    if (active() && !document.hidden) timer = setTimeout(() => { void refreshNotices();if(expanded&&!busy&&!blocked&&!applyingId)void load(offset,true); }, 15000);
+    if (active() && !document.hidden) timer = setTimeout(() => { void refreshNotices();if(historyVisible()&&!busy&&!blocked&&!applyingId)void load(offset,true); }, 15000);
   }
   async function markApplied(entry) {
     if(!active()||blocked||busy||applyingId||entry.payment_state!=='paid')return;
@@ -177,7 +178,7 @@
     finally{if(token===generation&&owner===userId&&active()){applyingId='';render();schedule();}}
   }
   async function load(target = offset, quiet = false) {
-    if (!active() || !expanded || document.hidden || blocked || applyingId) return;
+    if (!historyVisible() || document.hidden || blocked || applyingId) return;
     stop();
     const token = generation, serial = ++requestId, expectedUserId = userId, activeClient = client;
     const selectedFilter = filter.value;
@@ -222,29 +223,28 @@
   function reset() {
     generation++; requestId++;noticeRequest++;stop();client=null;userId='';
     noticeBusy=false;ackBusy=false;clearTimeout(ackTimer);ackTimer=null;cancelAnimationFrame(visibleFrame);visibleFrame=null;visibleChecked.clear();visibleQueue.clear();
-    expanded=false;body.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.innerHTML='펼쳐보기 <span aria-hidden="true">⌄</span>';noticeButton.hidden=true;setText(noticePreview,'');setText(noticeStatus,'새 결제 알림을 확인하고 있어요.');noticeStatus.classList.remove('is-error');
+    body.hidden=false;noticeButton.hidden=true;setText(noticePreview,'');setText(noticeStatus,'새 결제 알림을 확인하고 있어요.');noticeStatus.classList.remove('is-error');
     busy = false; blocked = false; offset = 0; hasMore = false; entries = [];
     applicationStates=new Map();applyingId='';
     filter.value = 'all'; status(''); render();
   }
   function start(nextClient, nextUserId) {
     if (client === nextClient && userId === String(nextUserId) && !blocked) {
-      void refreshNotices();if(expanded&&!busy)void load(offset,true);return;
+      void refreshNotices();if(historyVisible()&&!busy)void load(offset,true);return;
     }
-    reset();client=nextClient;userId=String(nextUserId);controls();void refreshNotices();
+    reset();client=nextClient;userId=String(nextUserId);controls();void refreshNotices();if(historyVisible())void load(offset);
   }
-  toggle.addEventListener('click',()=>setExpanded(!expanded));
-  noticeButton.addEventListener('click',()=>{setExpanded(true,true);section.scrollIntoView({behavior:'smooth',block:'start'});});
+  noticeButton.addEventListener('click',()=>{show(true);section.scrollIntoView({behavior:'smooth',block:'start'});});
   refresh.addEventListener('click',()=>{void refreshNotices();void load(offset);queueVisibleCheck();});
   window.addEventListener('scroll',queueVisibleCheck,{passive:true});window.addEventListener('resize',queueVisibleCheck);
   filter.addEventListener('change', () => { entries = []; offset = 0; hasMore = false; render(); void load(0); });
   previous.addEventListener('click', () => { void load(Math.max(0, offset - 20)); });
   next.addEventListener('click', () => { if (hasMore) void load(offset + 20); });
-  window.addEventListener('focus',()=>{if(active()){void refreshNotices();if(expanded&&!busy)void load(offset,true);queueVisibleCheck();}});
+  window.addEventListener('focus',()=>{if(active()){void refreshNotices();if(historyVisible()&&!busy)void load(offset,true);queueVisibleCheck();}});
   document.addEventListener('visibilitychange', () => {
-    if(document.hidden)stop();else if(active()){void refreshNotices();if(expanded&&!busy)void load(offset,true);queueVisibleCheck();}
+    if(document.hidden)stop();else if(active()){void refreshNotices();if(historyVisible()&&!busy)void load(offset,true);queueVisibleCheck();}
   });
   new MutationObserver(() => { if (screen.hidden && userId) reset(); }).observe(screen, { attributes: true, attributeFilter: ['hidden'] });
-  window.AdminPayments = Object.freeze({ start, reset, refreshNotices });
+  window.AdminPayments = Object.freeze({ start, reset, refreshNotices, show });
   controls();
 })();
