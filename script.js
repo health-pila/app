@@ -6348,8 +6348,10 @@ function renderAdminInquiries(inquiries) {
       completeButton.textContent = "답변 완료 처리";
       completeButton.title = "답변 메시지를 보내지 않고 완료로 처리합니다.";
       completeButton.addEventListener("click", function () {
-        if (replyButton.disabled) return;
-        if (replyInput.value.trim() || window.InquiryImages?.hasDraft(replyInput)) {
+        // 회원 삭제로 인한 전송 잠금은 관리자 상태 변경을 막지 않습니다.
+        const memberDeleted = threadArea.dataset.memberDeleted === "true";
+        if (completeButton.disabled || (replyButton.disabled && !memberDeleted)) return;
+        if (!memberDeleted && (replyInput.value.trim() || window.InquiryImages?.hasDraft(replyInput))) {
           replyMessage.textContent = "작성 중인 답변이나 사진이 있어요. 먼저 보내거나 지운 후 완료 처리해 주세요.";
           return;
         }
