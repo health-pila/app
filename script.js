@@ -1912,6 +1912,11 @@ function renderMemberInquiries(inquiries) {
       deleteArea
     );
 
+    if (memberInquiryList.childElementCount > 0) {
+      const separator = document.createElement("hr");
+      separator.className = "member-inquiry-card-separator";
+      memberInquiryList.append(separator);
+    }
     memberInquiryList.append(
       inquiryCard
     );

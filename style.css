@@ -2317,8 +2317,17 @@ body.camera-open {
 
 .member-inquiry-list {
   display: grid;
-  gap: 10px;
+  gap: 5px;
   margin-top: 12px;
+}
+
+/* 카드 사이 간격은 유지하고 일반 구분선보다 살짝 진하게 표시 */
+.member-inquiry-list > .member-inquiry-card-separator {
+  width: 100%;
+  height: 0;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid #d4dbe5;
 }
 
 /* 회원 문의 목록 카드 */
