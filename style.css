@@ -2317,11 +2317,11 @@ body.camera-open {
 
 .member-inquiry-list {
   display: grid;
-  gap: 5px;
+  gap: 7.5px;
   margin-top: 12px;
 }
 
-/* 카드 사이 간격은 유지하고 일반 구분선보다 살짝 진하게 표시 */
+/* 일반 구분선보다 살짝 진하게 표시 */
 .member-inquiry-list > .member-inquiry-card-separator {
   width: 100%;
   height: 0;
@@ -2333,7 +2333,7 @@ body.camera-open {
 /* 회원 문의 목록 카드 */
 .member-inquiry-card {
   overflow: hidden;
-  background-color: #f9fafb;
+  background-color: #f7f8f8;
   border: 1px solid #dbe2ec;
   border-radius: 12px;
 }
