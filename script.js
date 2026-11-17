@@ -429,6 +429,38 @@ const memberInquirySubmitMessage =
     "#memberInquirySubmitMessage"
   );
 
+let inquiryImagesReadyPromise = null;
+async function ensureInquiryImages() {
+  const revision = loginAuthRevision;
+  const role = !adminScreen.hidden ? "admin" : !appScreen.hidden ? "member" : "";
+  const userId = role === "admin" ? loginObservedAuthId : memberRoutineIdentity.userId;
+  const valid = () => !!userId && revision === loginAuthRevision &&
+    (role === "admin" ? !adminScreen.hidden && loginObservedAuthId === userId : !appScreen.hidden && memberRoutineIdentity.userId === userId);
+  if (!role || !valid()) return null;
+  if (!inquiryImagesReadyPromise) inquiryImagesReadyPromise = Promise.all([
+    window.AppAssets.load("inquiry-images.js"), window.AppAssets.load("inquiry-images.css")
+  ]).catch(error => { inquiryImagesReadyPromise = null; throw error; });
+  await inquiryImagesReadyPromise;
+  if (!valid()) return null;
+  const images = window.InquiryImages;
+  if (!images) throw new Error("INQUIRY_IMAGES_UNAVAILABLE");
+  images.start({ client: supabaseClient, userId, role, baseUrl: SUPABASE_URL, isCurrent: valid });
+  images.scan();
+  return images;
+}
+async function withInquiryImages(messages, valid) {
+  if (!messages.length) return messages;
+  const images = await ensureInquiryImages();
+  if (!images || !valid()) return null;
+  const map = await images.read(messages, valid);
+  if (!map || !valid()) return null;
+  return messages.map(message => ({ ...message, images: map.get(message.id) || [] }));
+}
+function resetInquiryImages() {
+  window.InquiryImages?.reset();
+  try { for (let index = sessionStorage.length - 1; index >= 0; index--) { const key = sessionStorage.key(index); if (key?.startsWith("center-inquiry-pending-v404:")) sessionStorage.removeItem(key); } } catch (_) {}
+}
+
 const memberInquiryListMessage =
   document.querySelector(
     "#memberInquiryListMessage"
@@ -1137,6 +1169,13 @@ async function sendMemberInquiry() {
     return;
   }
 
+  if (window.InquiryImages?.hasDraft(memberInquiryBody)) {
+    const owner = memberRoutineIdentity.userId, revision = loginAuthRevision;
+    const sent = await window.InquiryImages.send(memberInquiryBody);
+    if (sent && !appScreen.hidden && owner === memberRoutineIdentity.userId && revision === loginAuthRevision) { scheduleMemberInquiryGuideFit(); await loadMemberInquiries(); }
+    return;
+  }
+
   if (!body) {
     memberInquirySubmitMessage.textContent =
       "문의 내용을 입력해 주세요.";
@@ -1286,9 +1325,10 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
       label.textContent = sender;
       messageCard.append(label);
     }
-    const body = document.createElement("p");
+    const body = document.createElement("div");
     body.className = "member-inquiry-message-body";
     body.textContent = message.body;
+    window.InquiryImages?.render(message, body);
     messageCard.append(body);
     if (validDate) {
       const time = document.createElement("time");
@@ -1334,6 +1374,16 @@ async function sendMemberInquiryReply(
     replyMessage.textContent =
       "현재 추가 질문 접수가 중단되어 있습니다.";
 
+    return;
+  }
+
+  if (window.InquiryImages?.hasDraft(replyInput)) {
+    const owner = memberRoutineIdentity.userId, revision = loginAuthRevision;
+    const sent = await window.InquiryImages.send(replyInput);
+    if (!appScreen.hidden && owner === memberRoutineIdentity.userId && revision === loginAuthRevision) {
+      if (sent) { openMemberInquiryId = inquiryId; await loadMemberInquiries(); }
+      else if (window.InquiryImages.errorCode(replyInput) === "MEMBER_DELETED_INQUIRY") await loadMemberInquiries(true);
+    }
     return;
   }
 
@@ -1415,6 +1465,10 @@ async function loadMemberInquiryMessages(
   inquiryId,
   messageList
 ) {
+  const revision = loginAuthRevision, owner = memberRoutineIdentity.userId, token = {};
+  messageList.memberInquiryLoadToken = token;
+  const valid = () => !!owner && messageList.isConnected && !appScreen.hidden &&
+    owner === memberRoutineIdentity.userId && revision === loginAuthRevision && messageList.memberInquiryLoadToken === token;
   messageList.replaceChildren();
 
   const loadingMessage =
@@ -1429,22 +1483,21 @@ async function loadMemberInquiryMessages(
   messageList.append(loadingMessage);
 
   try {
-    const {
-      data: messages,
-      error: messagesError
-    } = await supabaseClient
-      .from("inquiry_messages")
-      .select(
-        "id, sender_id, sender_role, body, created_at"
-      )
-      .eq("inquiry_id", inquiryId)
-      .order("created_at", {
-        ascending: true
-      });
-
-    if (messagesError) {
-      throw messagesError;
+    const rows = [];
+    for (let offset = 0; ;) {
+      const { data, error, count } = await supabaseClient.from("inquiry_messages")
+        .select("id, inquiry_id, sender_id, sender_role, body, created_at", { count: "exact" })
+        .eq("inquiry_id", inquiryId).order("created_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 199);
+      if (!valid()) return;
+      if (error) throw error;
+      const page = data || []; rows.push(...page); offset += page.length;
+      if (Number.isSafeInteger(count) && count >= 0) {
+        if (offset >= count) break;
+        if (!page.length) throw new Error("INCOMPLETE_INQUIRY_MESSAGES");
+      } else if (page.length < 200) break;
     }
+    const messages = await withInquiryImages(rows, valid);
+    if (!messages || !valid()) return;
 
     messageList.replaceChildren();
 
@@ -1470,6 +1523,7 @@ async function loadMemberInquiryMessages(
     updateMemberCommunityBadges("observeReplies", inquiryId, messages, messageList);
 
   } catch (messagesError) {
+    if (!valid()) return;
     console.error(
       "회원 문의 대화 불러오기 실패:",
       messagesError
@@ -1487,6 +1541,8 @@ async function loadMemberInquiryMessages(
       "대화 내용을 불러오지 못했습니다.";
 
     messageList.append(errorMessage);
+    const retry = document.createElement("button"); retry.type = "button"; retry.textContent = "대화 다시 불러오기";
+    retry.addEventListener("click", () => { if (valid()) void loadMemberInquiryMessages(inquiryId, messageList); }); messageList.append(retry);
   }
 }
 
@@ -1869,6 +1925,7 @@ function renderMemberInquiries(inquiries) {
   });
   updateMemberCommunityBadges("render");
   updateMemberCommunityBadges("checkSoon");
+  if (!appScreen.hidden && !document.getElementById("memberInquirySection").hidden) void ensureInquiryImages().catch(() => {});
 }
 
 
@@ -2116,7 +2173,10 @@ function showCommunityMenu(menuName) {
   });
   updateMemberCommunityBadges("checkSoon");
   if (memberNewsVisible()) void loadCommunityPosts(true);
-  if (menuName === "inquiry") scheduleMemberInquiryGuideFit();
+  if (menuName === "inquiry") {
+    scheduleMemberInquiryGuideFit();
+    void ensureInquiryImages().catch(() => {});
+  }
   window.DeferredImages?.refresh();
 }
 
@@ -5646,6 +5706,21 @@ async function sendAdminInquiryReply(
     replyMessage.textContent = '회원이 삭제한 대화에는 새 답변을 보낼 수 없어요.'; return;
   }
 
+  if (window.InquiryImages?.hasDraft(replyInput)) {
+    const sent = await window.InquiryImages.send(replyInput);
+    if (!current()) return;
+    const list = replyInput.closest('.admin-inquiry-thread')?.querySelector('.admin-inquiry-message-list');
+    if (sent) {
+      openAdminInquiryId = inquiryId;
+      window.AdminWorkspace?.inquiryAnswered(inquiryId);
+      await loadAdminInquiries(true);
+      if (current() && list?.isConnected) await loadAdminInquiryMessages(inquiryId, "회원", list);
+    } else if (window.InquiryImages.errorCode(replyInput) === "MEMBER_DELETED_INQUIRY" && list) {
+      await loadAdminInquiryMessages(inquiryId, "회원", list);
+    }
+    return;
+  }
+
   if (!body) {
     replyMessage.textContent =
       "답변 내용을 입력해 주세요.";
@@ -5844,6 +5919,7 @@ function applyAdminInquiryRetention(thread, inquiry) {
   const send = thread.querySelector('.admin-inquiry-send-button'); if (send) send.disabled = true;
   const help = thread.querySelector('.admin-inquiry-shortcut-help');
   if (help) help.textContent = '회원이 삭제한 대화입니다. 회원 화면에 표시되지 않아 새 답변을 보낼 수 없어요.';
+  window.InquiryImages?.sync(input);
 }
 
 async function loadAdminInquiryRetention(inquiries, isCurrent) {
@@ -5966,10 +6042,12 @@ async function loadAdminInquiryMessages(
   try {
     const history = await fetchAdminMemberInquiryHistory(inquiryId, isCurrent);
     if (!history || !isCurrent()) return;
-    const { selected, inquiries, messages } = history;
+    const { selected, inquiries } = history;
     const thread = messageList.closest(".admin-inquiry-thread");
     applyAdminInquiryRetention(thread, selected);
     window.AdminWorkspace?.inquiryMemberDeleted?.(inquiryId, selected.member_deleted_at);
+    const messages = await withInquiryImages(history.messages, isCurrent);
+    if (!messages || !isCurrent()) return;
     if (thread) {
       let note = thread.querySelector(".admin-inquiry-history-note");
       if (!note) { note = document.createElement("p"); note.className = "admin-inquiry-history-note"; messageList.before(note); }
@@ -6291,8 +6369,8 @@ function renderAdminInquiries(inquiries) {
       completeButton.title = "답변 메시지를 보내지 않고 완료로 처리합니다.";
       completeButton.addEventListener("click", function () {
         if (replyButton.disabled) return;
-        if (replyInput.value.trim()) {
-          replyMessage.textContent = "작성 중인 답변이 있어요. 답변을 보내거나 입력 내용을 지운 후 완료 처리해 주세요.";
+        if (replyInput.value.trim() || window.InquiryImages?.hasDraft(replyInput)) {
+          replyMessage.textContent = "작성 중인 답변이나 사진이 있어요. 먼저 보내거나 지운 후 완료 처리해 주세요.";
           return;
         }
         completeAdminInquiry(inquiry, completeButton, replyButton, replyMessage);
@@ -6424,6 +6502,7 @@ function renderAdminInquiries(inquiries) {
       );
     }
   });
+  void ensureInquiryImages().catch(() => {});
 }
 
 // 목록 필터/더보기와 무관한 알림용 메타데이터 조회. 본문과 회원 개인정보는 조회하지 않습니다.
@@ -10402,6 +10481,7 @@ async function showAdminApp(userId, timingRun = null, screenRequestId = null, sc
   loginScreen.hidden = true;
   appScreen.hidden = true;
   adminScreen.hidden = false;
+  void ensureInquiryImages().catch(() => {});
   window.AdminInquiryReadReceipts?.start(supabaseClient, userId);
   window.AdminWorkspace?.start({ client: supabaseClient, userId,
     selectMember: selectAdminWorkspaceMember,
@@ -10485,6 +10565,7 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
   const id = typeof session?.user?.id === "string" ? session.user.id : "";
   if (event === "SIGNED_OUT" || (loginObservedAuthId !== null && id !== loginObservedAuthId)) {
     loginAuthRevision += 1;
+    resetInquiryImages();
     window.AdminInquiryReadReceipts?.reset();
     window.AdminWorkspace?.reset();
     window.AdminPush?.reset();
@@ -11653,6 +11734,7 @@ async function handleLogout() {
 
     memberRoutineIdentity = { userId: "", name: "" };
   memberRoutineGoalState = { scope: "", userId: "", routineId: "", goals: [] };
+    resetInquiryImages();
     window.OneDayPT?.reset();
     window.CenterAttendance?.reset();
     window.WorkoutTextRecords?.reset();

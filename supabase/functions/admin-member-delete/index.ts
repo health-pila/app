@@ -63,9 +63,9 @@ async function run(s:ReturnType<typeof settings>,admin:string,member:string,data
  }
  if(!Array.isArray(manifest.objects)||manifest.objects.length>100||!Number.isSafeInteger(manifest.remaining_files)||manifest.remaining_files<0)throw new SafeError('BAD_RESPONSE',503);
  if(manifest.objects.length){
-  for(const bucket of ['routine-images','workout-photos']){
+  for(const bucket of ['routine-images','workout-photos','inquiry-images']){
    const names=manifest.objects.filter((o:{bucket:string})=>o.bucket===bucket).map((o:{name:string})=>o.name);
-   if(names.some((n:unknown)=>typeof n!=='string'||!n||n.length>2048)||manifest.objects.some((o:{bucket:string})=>!['routine-images','workout-photos'].includes(o.bucket)))throw new SafeError('BAD_RESPONSE',503);
+   if(names.some((n:unknown)=>typeof n!=='string'||!n||n.length>2048)||manifest.objects.some((o:{bucket:string})=>!['routine-images','workout-photos','inquiry-images'].includes(o.bucket)))throw new SafeError('BAD_RESPONSE',503);
    if(!names.length)continue;
    const response=await request(s.base+'/storage/v1/object/'+bucket,s.headers,{method:'DELETE',body:JSON.stringify({prefixes:names})});
    if(!response.ok)throw new SafeError('FILES_RETRY',503);
@@ -87,7 +87,7 @@ export async function handler(req:Request){
   if(origin&&origin!==ORIGIN)throw new SafeError('ORIGIN',403);
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
   if(req.method==='GET'&&new URL(req.url).pathname.endsWith('/health')){
-   settings();return json({ready:true,revision:'310',database_checked:false},200,cors);
+   settings();return json({ready:true,revision:'404',database_checked:false},200,cors);
   }
   if(req.method!=='POST')throw new SafeError('METHOD',405);
   const s=settings(),admin=await caller(s,req),data=await readInput(req);

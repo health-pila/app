@@ -1,11 +1,13 @@
-# 관리자 앱 탈퇴 처리 · v310
+# 관리자 앱 탈퇴 처리 · v404
 
-배포 순서: 루트의 `SETUP-v310-member-deletion.sql` → 이 폴더의 Edge Function → 앱 파일.
+배포 순서: 기존 v310 설치 → 루트의 `SETUP-v404-inquiry-images.sql` → 이 폴더의 Edge Function 교체 → 앱 파일.
+
+v404에서는 기존 운동·루틴 사진과 함께 비공개 대화 사진(`inquiry-images`)도 정리합니다. 기존 v310 RPC와 확인 절차는 유지합니다.
 
 1. Supabase SQL Editor에서 설치 SQL을 실행한다. 마지막 일곱 항목이 모두 `true`인지 확인한다. 설치만으로 회원 데이터가 삭제되지는 않는다.
 2. Edge Functions에 **admin-member-delete**를 생성하고 `index.ts` 전체를 배포한다. 이 함수의 **Verify JWT**는 끈다. 함수 안에서 Auth 사용자 확인과 현재 관리자 권한 확인을 수행한다.
 3. 기존 Supabase 기본 환경변수 `SUPABASE_URL`과 서버 키를 사용한다. 서비스 키를 앱 코드에 넣지 않는다.
-4. `/functions/v1/admin-member-delete/health`에서 revision `310`을 확인한다. 이 결과는 함수 구성 확인이며 DB 권한 검증을 대신하지 않는다.
+4. `/functions/v1/admin-member-delete/health`에서 revision `404`를 확인한다. 이 결과는 함수 구성 확인이며 DB 권한 검증을 대신하지 않는다.
 5. 앱 파일을 배포한 뒤 관리자로 로그인하여 `회원 관리 → 회원 선택 → 출석·이용권 → 앱 탈퇴 처리`를 연다. 대상과 개수 조회까지는 읽기 작업이다.
 
 삭제는 회원 확인 입력·탈퇴/별도 보관 확인·영구 삭제 버튼을 모두 거쳐 시작된다. 관리자 계정과 자기 계정은 삭제할 수 없다. 진행 중인 결제 요청은 먼저 취소한다.
