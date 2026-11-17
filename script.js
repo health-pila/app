@@ -2302,6 +2302,11 @@ function showMemberTab(tabName) {
     return;
   }
 
+  if (tabName === "workoutLog" && selectedPanel.hidden) {
+    resetWorkoutCalendar();
+    renderWorkoutRecords();
+  }
+
   // 센터 커뮤니티 진입 시 DEFAULT_COMMUNITY_MENU에서 지정한 페이지 표시
   if (tabName === "community") {
     showCommunityMenu(
@@ -3234,14 +3239,11 @@ function rememberWorkoutPhotoUrl(path, url, expiresAt) {
 
 // 사용자가 선택한 날짜
 let selectedWorkoutDate = "";
-// 최근 기록 자동 선택과 회원이 직접 고른 날짜를 구분합니다.
+// 운동 기록 입력창에 현재 선택한 날짜를 전달합니다.
 let workoutEntrySelectedDate = "";
 function preferredWorkoutEntryDate() {
   return selectedWorkoutDate === workoutEntrySelectedDate ? selectedWorkoutDate : "";
 }
-
-// 처음 들어올 때 최근 운동 기록 날짜를 자동 선택
-let shouldSelectLatestWorkoutDate = true;
 
 // 날짜를 2026-09-22 형태로 만들기
 function makeWorkoutDateKey(year, monthIndex, day) {
@@ -3669,12 +3671,11 @@ async function loadWorkoutRecords(userId) {
     ++workoutRecordsRequestId;
 
   if (workoutRecordsUserId !== userId) {
-    workoutRecordViewMode = "latest";
     workoutRecordsUserId = userId;
     restoreWorkoutPhotoUrlCache(userId);
     workoutRecords = [];
     workoutRecordDates = new Set();
-    renderWorkoutCalendar();
+    resetWorkoutCalendar();
   }
   workoutRecordsUserId = userId;
 
@@ -3739,28 +3740,6 @@ async function loadWorkoutRecords(userId) {
     }
   }
   if (removedCachedUrl) persistWorkoutPhotoUrlCache();
-
-  if (
-    shouldSelectLatestWorkoutDate &&
-    workoutRecords.length > 0
-  ) {
-    const latestWorkoutDate =
-      new Date(latestWorkoutRecord().taken_at);
-
-    selectedWorkoutDate =
-      getWorkoutRecordDateKey(
-        latestWorkoutRecord().taken_at
-      );
-
-    visibleWorkoutMonth =
-      new Date(
-        latestWorkoutDate.getFullYear(),
-        latestWorkoutDate.getMonth(),
-        1
-      );
-  }
-
-  shouldSelectLatestWorkoutDate = false;
 
   workoutRecordDates = new Set(
     workoutRecords.map((record) => {
@@ -4105,7 +4084,6 @@ nextWorkoutMonthButton.addEventListener(
 showAllWorkoutRecordsButton.addEventListener("click", () => {
   workoutRecordViewMode = workoutRecordViewMode === "all" ? "latest" : "all";
   selectedWorkoutDate = "";
-  shouldSelectLatestWorkoutDate = false;
   if (workoutRecordViewMode === "latest") {
     const latest = latestWorkoutRecord();
     if (latest) {
@@ -4118,14 +4096,13 @@ showAllWorkoutRecordsButton.addEventListener("click", () => {
   renderWorkoutRecords();
 });
 
-// 로그인할 때 이번 달로 초기화
+// 로그인하거나 운동 기록 탭에 들어오면 오늘 날짜를 선택합니다.
 function resetWorkoutCalendar() {
-  visibleWorkoutMonth = new Date();
-  visibleWorkoutMonth.setDate(1);
-  selectedWorkoutDate = "";
-  workoutEntrySelectedDate = "";
-  shouldSelectLatestWorkoutDate = true;
-  workoutRecordViewMode = "latest";
+  const today = new Date();
+  visibleWorkoutMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  selectedWorkoutDate = getWorkoutRecordDateKey(today);
+  workoutEntrySelectedDate = selectedWorkoutDate;
+  workoutRecordViewMode = "date";
 
   renderWorkoutCalendar();
 }
@@ -4720,7 +4697,6 @@ async function saveWorkoutRecord() {
 
     visibleWorkoutMonth.setDate(1);
     selectedWorkoutDate = getWorkoutRecordDateKey(recordTakenAt);
-    shouldSelectLatestWorkoutDate = false;
     workoutRecordViewMode = "latest";
 
     await loadWorkoutRecords(user.id);
@@ -4759,7 +4735,6 @@ const saveWeightRecordCapture = window.WeightRecordCapture?.createSaver({
     workoutCaptureBadge.saved(record.userId);
     visibleWorkoutMonth = new Date(record.takenAt.getFullYear(), record.takenAt.getMonth(), 1);
     selectedWorkoutDate = getWorkoutRecordDateKey(record.takenAt);
-    shouldSelectLatestWorkoutDate = false;
     workoutRecordViewMode = "latest";
     await loadWorkoutRecords(record.userId);
   }
@@ -9754,7 +9729,6 @@ async function showWorkoutApp(userId, displayName = "", timingRun = null, screen
     const takenAt = new Date(record.taken_at);
     visibleWorkoutMonth = new Date(takenAt.getFullYear(), takenAt.getMonth(), 1);
     selectedWorkoutDate = getWorkoutRecordDateKey(record.taken_at);
-    shouldSelectLatestWorkoutDate = false;
     workoutRecordViewMode = options?.editing ? "date" : "latest";
     await loadWorkoutRecords(userId);
     return !appScreen.hidden && workoutRecordsUserId === userId &&
