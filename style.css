@@ -6147,6 +6147,16 @@ textarea[data-page-scroll-ready]{overflow-y:hidden!important;overscroll-behavior
 #appScreen #memberInquirySubmitMessage:empty{display:none}
 #appScreen #memberInquirySection .member-inquiry-history{margin-top:10px;padding-top:10px}
 
+/* v402: leave room for the first inquiry card on the initial inquiry screen. */
+#appScreen #communityTabPanel:has(> #memberInquirySection:not([hidden]))>.community-menu{margin-bottom:10px}
+#appScreen #memberInquiryHeading{font-size:15.84px;margin-bottom:11.7px}
+#appScreen #memberInquiryHeading>span{line-height:1.085}
+#appScreen #memberInquiryHeading>span+span{margin-top:4.2px}
+#appScreen #memberInquiryComposer{margin-top:8px}
+#appScreen #sendMemberInquiryButton{padding-top:8.8px;padding-bottom:8.8px}
+#appScreen #memberInquirySubmitMessage:not(:empty){margin-top:0}
+#appScreen #memberInquirySection .member-inquiry-history{margin-top:7px;padding-top:7px}
+
 /* v346: 사진과 세트표를 한 기록에 담는 입력창 */
 .workout-text-dialog .workout-composer-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-bottom:16px; }
 .workout-text-dialog .workout-composer-actions [data-add-sets],

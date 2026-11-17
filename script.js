@@ -380,17 +380,26 @@ function fitMemberInquiryGuide() {
   if (!memberInquiryBody || memberInquiryBody.closest("[hidden]")) return;
   const width = memberInquiryBody.getBoundingClientRect().width;
   if (width <= 0) return;
+  const style = getComputedStyle(memberInquiryBody);
   const guide = memberInquiryBody.cloneNode(false);
   guide.removeAttribute("id");
   guide.setAttribute("aria-hidden", "true");
   guide.tabIndex = -1;
   guide.rows = 1;
-  guide.value = memberInquiryBody.value || memberInquiryBody.placeholder;
+  guide.value = memberInquiryBody.value || memberInquiryBody.placeholder.trimEnd();
+  // The clone has no ID, so copy the ID-specific text/padding rules before
+  // measuring. Otherwise the base textarea styles add unnecessary empty space.
+  for (const property of ['box-sizing', 'font-family', 'font-size', 'font-weight', 'font-style',
+    'line-height', 'letter-spacing', 'word-spacing', 'text-indent', 'text-transform',
+    'white-space', 'word-break', 'overflow-wrap', 'direction', 'tab-size',
+    'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+    'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width']) {
+    guide.style.setProperty(property, style.getPropertyValue(property));
+  }
   Object.assign(guide.style, { position: "fixed", left: "-10000px", top: "0", visibility: "hidden",
     width: width + "px", height: "0", minHeight: "0", maxHeight: "none", overflow: "hidden", resize: "none" });
   memberInquiryBody.parentElement.append(guide);
   try {
-    const style = getComputedStyle(memberInquiryBody);
     const height = guide.scrollHeight + (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0);
     if (height > 2) memberInquiryBody.style.height = Math.ceil(height) + "px";
   } finally { guide.remove(); }
@@ -1140,8 +1149,7 @@ async function sendMemberInquiry() {
   sendMemberInquiryButton.textContent =
     "문의 전송 중...";
 
-  memberInquirySubmitMessage.textContent =
-    "문의를 저장하고 있습니다.";
+  memberInquirySubmitMessage.textContent = "";
 
   try {
     const {
@@ -1161,8 +1169,7 @@ async function sendMemberInquiry() {
     memberInquiryBody.value = "";
     scheduleMemberInquiryGuideFit();
 
-    memberInquirySubmitMessage.textContent =
-      "문의를 전송했습니다.";
+    memberInquirySubmitMessage.textContent = "";
 
     await loadMemberInquiries();
 
@@ -1230,15 +1237,13 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
   let previousSender = null;
   let previousInquiry = null;
   const fragment = document.createDocumentFragment();
-  const events = [...(messages || [])];
-  if (!memberView && history?.inquiries) {
-    for (const inquiry of history.inquiries.values()) if (inquiry.member_deleted_at) {
-      events.push({ id: 'member-deleted:' + inquiry.id, inquiry_id: inquiry.id,
-        created_at: inquiry.member_deleted_at, memberDeleted: true, inquiryTitle: inquiry.title || '' });
-    }
-    events.sort((a,b) => (Date.parse(a.created_at)||0)-(Date.parse(b.created_at)||0) || String(a.id).localeCompare(String(b.id)));
-  }
-  events.forEach(function (message) {
+  // Deletion is metadata on the original conversation, never a new chat event.
+  // Keep every original message, ID, body and timestamp in the supplied order.
+  const retainedDateFormat = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false
+  });
+  (messages || []).forEach(function (message) {
     const date = message.created_at ? new Date(message.created_at) : null;
     const validDate = date && Number.isFinite(date.getTime());
     const day = validDate ? dayFormat.format(date) : null;
@@ -1254,18 +1259,6 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
     if (history && message.inquiry_id !== previousInquiry) {
       previousInquiry = message.inquiry_id;
       previousSender = null;
-    }
-    if (message.memberDeleted) {
-      const note = document.createElement('div'); note.className = 'admin-inquiry-member-deleted';
-      note.dataset.inquiryId = message.inquiry_id; note.setAttribute('role', 'note');
-      const text = document.createElement('span'); text.textContent = '회원이 삭제한 대화'; note.append(text);
-      if (validDate) {
-        const at = document.createElement('time'); at.dateTime = message.created_at;
-        at.textContent = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
-        note.append(document.createTextNode(' · '), at);
-      }
-      if (message.inquiryTitle) { const title = document.createElement('small'); title.textContent = message.inquiryTitle; note.append(title); }
-      fragment.append(note); previousDay = day; previousSender = null; return;
     }
     const messageCard = document.createElement("article");
     messageCard.className = "member-inquiry-message " +
@@ -1305,6 +1298,20 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
       time.title = day + " " + time.textContent;
       time.setAttribute("aria-label", time.title);
       messageCard.append(time);
+    }
+    const inquiry = !memberView && history?.inquiries?.get(message.inquiry_id);
+    const deletedDate = inquiry?.member_deleted_at ? new Date(inquiry.member_deleted_at) : null;
+    if (deletedDate && Number.isFinite(deletedDate.getTime())) {
+      messageCard.dataset.memberDeleted = 'true';
+      const meta = document.createElement('span'); meta.className = 'admin-inquiry-retained-meta';
+      const originalTime = messageCard.querySelector('.member-inquiry-message-date');
+      if (originalTime) meta.append(originalTime);
+      const marker = document.createElement('span'); marker.className = 'admin-inquiry-deleted-marker';
+      marker.textContent = '회원 삭제'; marker.dataset.deletedAt = inquiry.member_deleted_at;
+      const originalDate = validDate ? retainedDateFormat.format(date) : '확인 불가';
+      marker.title = `대화 일시: ${originalDate}\n회원 삭제 일시: ${retainedDateFormat.format(deletedDate)}`;
+      marker.setAttribute('aria-label', marker.title.replace('\n', ' · '));
+      meta.append(marker); messageCard.append(meta);
     }
     fragment.append(messageCard);
     previousDay = day;
@@ -1571,7 +1578,7 @@ function setMemberInquiryStatusBadge(badge, status) {
   if (!badge) return;
   const answered = status === "answered";
   badge.className = "member-inquiry-status " + (answered ? "is-answered" : "is-waiting");
-  badge.textContent = answered ? "답변 완료" : "답변 대기";
+  badge.textContent = answered ? "답변 보기" : "답변 대기";
 }
 
 // 회원 문의 목록 표시
@@ -3947,7 +3954,15 @@ function renderWorkoutCalendar() {
     const isCenterClosed = Boolean(lunarHoliday || regularGymClosed);
     if (isCenterClosed) {
       dateButton.classList.add("is-center-closed");
-      dateButton.textContent = lunarHoliday ? "휴관" : "헬스휴관";
+      const closedDate = document.createElement("span");
+      closedDate.className = "workout-calendar-closed-date";
+      closedDate.textContent = String(day);
+      closedDate.setAttribute("aria-hidden", "true");
+      const closedLabel = document.createElement("span");
+      closedLabel.className = "workout-calendar-closed-label";
+      closedLabel.textContent = lunarHoliday ? "휴관" : "헬스휴관";
+      closedLabel.setAttribute("aria-hidden", "true");
+      dateButton.replaceChildren(closedDate, closedLabel);
       dateButton.dataset.closureReason = lunarHoliday ? `${lunarHoliday} 당일 휴관` : "헬스 정기 휴관";
       if (!lunarHoliday) dateButton.classList.add("is-gym-closed");
     }
@@ -5867,9 +5882,9 @@ async function fetchAdminMemberInquiryHistory(inquiryId, isCurrent) {
   if (!selected?.user_id || selected.id !== inquiryId) throw new Error("INQUIRY_OWNER_UNAVAILABLE");
   const inquiries = new Map([[selected.id, selected]]);
   const pageSize = 200;
-  for (let offset = 0; ; offset += pageSize) {
-    const { data, error } = await supabaseClient.from("member_inquiries")
-      .select("id, user_id, title, status, archived_at, created_at, updated_at, last_message_at")
+  for (let offset = 0; ;) {
+    const { data, error, count } = await supabaseClient.from("member_inquiries")
+      .select("id, user_id, title, status, archived_at, created_at, updated_at, last_message_at", { count: "exact" })
       .eq("user_id", selected.user_id)
       .order("created_at", { ascending: true }).order("id", { ascending: true })
       .range(offset, offset + pageSize - 1);
@@ -5880,7 +5895,12 @@ async function fetchAdminMemberInquiryHistory(inquiryId, isCurrent) {
       if (row.user_id !== selected.user_id) throw new Error("INQUIRY_OWNER_MISMATCH");
       inquiries.set(row.id, row);
     }
-    if (page.length < pageSize) break;
+    offset += page.length;
+    // Continue by the number actually returned, including a lower server row cap.
+    if (Number.isSafeInteger(count) && count >= 0) {
+      if (offset >= count) break;
+      if (!page.length) throw new Error("INCOMPLETE_INQUIRY_HISTORY");
+    } else if (page.length < pageSize) break;
   }
   const retention = await loadAdminInquiryRetention([...inquiries.values()], isCurrent);
   if (!retention || !isCurrent()) return null;
@@ -5888,9 +5908,9 @@ async function fetchAdminMemberInquiryHistory(inquiryId, isCurrent) {
   const ids = [...inquiries.keys()], messagesById = new Map();
   for (let start = 0; start < ids.length; start += 50) {
     const batch = ids.slice(start, start + 50), allowed = new Set(batch);
-    for (let offset = 0; ; offset += pageSize) {
-      const { data, error } = await supabaseClient.from("inquiry_messages")
-        .select("id, inquiry_id, sender_id, sender_role, body, created_at")
+    for (let offset = 0; ;) {
+      const { data, error, count } = await supabaseClient.from("inquiry_messages")
+        .select("id, inquiry_id, sender_id, sender_role, body, created_at", { count: "exact" })
         .in("inquiry_id", batch)
         .order("created_at", { ascending: true }).order("id", { ascending: true })
         .range(offset, offset + pageSize - 1);
@@ -5901,7 +5921,11 @@ async function fetchAdminMemberInquiryHistory(inquiryId, isCurrent) {
         if (!allowed.has(message.inquiry_id)) throw new Error("INQUIRY_MESSAGE_MISMATCH");
         messagesById.set(message.id, message);
       }
-      if (page.length < pageSize) break;
+      offset += page.length;
+      if (Number.isSafeInteger(count) && count >= 0) {
+        if (offset >= count) break;
+        if (!page.length) throw new Error("INCOMPLETE_INQUIRY_MESSAGES");
+      } else if (page.length < pageSize) break;
     }
   }
   const messages = [...messagesById.values()].sort((a, b) =>
@@ -5958,7 +5982,7 @@ async function loadAdminInquiryMessages(
 
     messageList.replaceChildren();
 
-    if ((!messages || messages.length === 0) && ![...inquiries.values()].some(row => row.member_deleted_at)) {
+    if (!messages || messages.length === 0) {
       const emptyMessage =
         document.createElement("p");
 
