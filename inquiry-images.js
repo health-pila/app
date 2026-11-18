@@ -43,6 +43,7 @@
   s.add.disabled=!!lock;s.file.disabled=!!lock;
   if(lock){s.button.disabled=!!(s.busy||s.processing||blocked(s));s.input.readOnly=true;s.managed=true;}
   else if(s.managed){s.button.disabled=false;s.input.readOnly=false;s.managed=false;}
+  if(s.kind==='new')s.button.disabled=!!(s.busy||s.processing||blocked(s)||!s.input.value.trim()&&!s.items.length&&!s.attempt);
   s.count.textContent=s.items.length?s.items.length+'/'+MAX:'';
   s.preview.hidden=!s.items.length;s.preview.replaceChildren();
   for(const [index,item]of s.items.entries()){
@@ -62,6 +63,10 @@
   if(!label)return;
   if(!s.tools){
    s.tools=el('span','inquiry-image-tools');s.add=el('button','inquiry-photo-add','＋ 사진 첨부');s.add.type='button';
+   if(kind==='new'){
+    s.add.setAttribute('aria-label','사진 첨부');s.add.title='사진 첨부';
+    s.add.replaceChildren(document.getElementById('memberChatPhotoIcon').content.cloneNode(true));
+   }
    s.count=el('small','inquiry-photo-count');s.file=el('input');s.file.type='file';s.file.accept='image/*';s.file.multiple=true;s.file.hidden=true;s.file.setAttribute('aria-label','대화에 첨부할 사진 선택');
    s.add.addEventListener('click',()=>{if(current(s.ticket)&&!s.add.disabled)s.file.click();});
    s.file.addEventListener('change',()=>{const files=Array.from(s.file.files||[]);s.file.value='';void select(s,files);});
@@ -71,14 +76,14 @@
   if(!s.normalLabel||!s.busy)s.normalLabel=button.textContent;
   s.input=input;s.button=button;s.status=status;s.originalReadOnly=input.readOnly;s.managed=false;s.ticket=epoch;inputs.set(input,s);
   if(s.items.length||s.attempt||s.busy||s.processing)input.value=s.caption;
-  input.addEventListener('input',()=>{if(s.input===input&&!s.busy)s.caption=input.value;});
+  input.addEventListener('input',()=>{if(s.input===input&&!s.busy){s.caption=input.value;if(s.kind==='new'&&!s.processing&&!blocked(s))s.button.disabled=!input.value.trim()&&!s.items.length&&!s.attempt;}});
   sync(s);if(s.attempt?.uncertain)setStatus(s,'전송 결과를 확인할 사진이 있어요. 같은 내용으로 다시 전송하면 중복 없이 확인해요.');
  }
  function scan(){
   if(!current(epoch))return;
   if(role==='member'){
    const input=document.getElementById('memberInquiryBody');attach(input,document.getElementById('sendMemberInquiryButton'),document.getElementById('memberInquirySubmitMessage'),'new',null);
-   document.querySelectorAll('#memberInquiryList .member-inquiry-reply-area textarea').forEach(input=>{const area=input.closest('.member-inquiry-reply-area'),room=input.closest('[data-member-inquiry-id]')?.dataset.memberInquiryId;if(UUID.test(room||''))attach(input,area.querySelector(':scope > button'),area.querySelector('.member-inquiry-reply-message'),'member',room);});
+
   }else document.querySelectorAll('#adminScreen .admin-inquiry-reply-area textarea').forEach(input=>{const area=input.closest('.admin-inquiry-reply-area'),thread=input.closest('.admin-inquiry-thread'),room=thread?.id.replace(/^adminInquiryThread-/,'');if(UUID.test(room||''))attach(input,thread.querySelector('.admin-inquiry-send-button'),area.querySelector('.admin-inquiry-reply-message'),'admin',room);});
   for(const [key,s]of states)if(s.input&&!s.input.isConnected&&!s.items.length&&!s.attempt&&!s.busy&&!s.processing){s.tools?.remove();s.preview?.remove();states.delete(key);}
  }

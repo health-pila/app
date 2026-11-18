@@ -110,6 +110,12 @@
     if (!userId || document.visibilityState !== "visible" || !node.isConnected ||
         node.closest("[hidden]") || byId("appScreen")?.hidden) return false;
     const rect = node.getBoundingClientRect();
+    const chat = byId("memberInquirySection");
+    if (chat?.open) {
+      if (!chat.contains(node) || document.querySelector(".inquiry-image-viewer[open]")) return false;
+      const log = byId("memberChatLog").getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0 && Math.min(rect.bottom,log.bottom) - Math.max(rect.top,log.top) >= Math.min(32,rect.height);
+    }
     const bottom = Math.min(innerHeight, byId("appScreen")?.querySelector(".member-bottom-nav")
       ?.getBoundingClientRect().top || innerHeight);
     return rect.width > 0 && rect.height > 0 && rect.right > 0 && rect.left < innerWidth &&

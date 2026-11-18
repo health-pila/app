@@ -25,11 +25,11 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="1200">
   <meta property="og:image:alt" content="헬스와 필라테스 화곡점 글자와 주황색 운동 심벌이 함께 있는 센터 로고">
-  <meta name="app-version" content="409">
+  <meta name="app-version" content="412">
   <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png?v=468131089e169951c9e69bd2da2438b9936a820229a0946a0780a358f6713fbe">
 
 
-  <link rel="stylesheet" href="style.css?v=4948864464a6a00d4db1d95f1f343e3e7e028dea0abb823c827702c1c6966891">
+  <link rel="stylesheet" href="style.css?v=7340a035200de4e9f303612aff3ad34e00a9824c8648c1b14dca52a67f8ca28d">
   <script src="pull-to-refresh-guard.js?v=589f4dc678016b6b9c0179220c23481e552204c5ad1ca69e36e58ed441790f8b" defer></script>
   <script src="input-scroll-guard.js?v=25bedcfb010f756c9f3d6ebb170e82ec0bbda9ef0c97278f80483b179d53627c" defer></script>
   <link rel="stylesheet" href="cardio-programs.css?v=c71e0e78a20cf1337edb85c816e7bc253b4dac57eb9fcda16df69e75a004cd0b">
@@ -457,7 +457,7 @@
         </button>
 
         <button id="communityInquiryMenuButton" class="community-menu-button" type="button" role="tab"
-          data-community-menu="inquiry" aria-controls="memberInquirySection" aria-selected="false" tabindex="-1">
+          data-community-menu="inquiry" aria-haspopup="dialog" aria-controls="memberInquirySection" aria-selected="false" tabindex="-1">
           <img class="community-menu-icon" src="images/community-inquiry-v318.webp?v=3c73d7e7ba23e92317a3bc6d930bae92ce06cb27f339c8331600985dacd7e6ac" width="256" height="256" alt="" aria-hidden="true" loading="lazy" decoding="async">
 
           <span class="community-menu-label">문의하기</span>
@@ -474,56 +474,33 @@
         </button>
       </div>
 
-      <!-- 회원 1:1 문의 -->
-      <section id="memberInquirySection" class="member-inquiry-section" role="tabpanel"
-        aria-labelledby="communityInquiryMenuButton" tabindex="0" hidden>
-        <header class="member-inquiry-header">
+      <dialog id="memberInquirySection" class="member-chat-dialog" aria-label="센터 문의" hidden>
+        <header class="member-chat-header">
+          <button id="memberChatBack" type="button" aria-label="센터 커뮤니티로 돌아가기">‹</button>
           <h4 id="memberInquiryHeading">
             <span>🔸 홀딩 신청</span>
             <span>🔸 그룹 필라테스 ↔ 1:1 전환 신청</span>
             <span>🔸 기타 문의 / 건의사항</span>
           </h4>
-
         </header>
-
-        <p id="memberInquiryAvailabilityMessage" class="member-inquiry-availability-message" aria-live="polite">
-          문의 기능을 확인하고 있습니다.
-        </p>
-
+        <div id="memberChatLog" aria-label="센터와 나눈 대화" role="region" tabindex="0">
+          <p id="memberInquiryListMessage" role="status"></p>
+          <button id="loadMoreMemberInquiriesButton" type="button" hidden>이전 대화 보기</button>
+          <div id="memberInquiryList" class="member-inquiry-message-list"></div>
+        </div>
+        <p id="memberInquiryAvailabilityMessage" role="status"></p>
         <div id="memberInquiryComposer" class="member-inquiry-composer" hidden>
-          <label for="memberInquiryBody">
-            문의 내용
-          </label>
-
-          <textarea id="memberInquiryBody" rows="1" maxlength="5000" placeholder="홀딩 요청: 성함과 연락처 뒷번호, 홀딩을 원하시는 기간과 헬스/필라테스를 구분해서 남겨주세요.
+          <template id="memberChatPhotoIcon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"></rect><circle cx="9" cy="9" r="1.2"></circle><path d="m4 17 5-5 4 4 3-3 5 5"></path></svg></template>
+          <label for="memberInquiryBody" class="member-chat-input-label">문의 내용</label>
+          <textarea id="memberInquiryBody" rows="1" maxlength="5000" placeholder="홀딩 요청:
+성함과 연락처 뒷번호, 홀딩을 원하시는 기간과 헬스/필라테스를 구분해서 남겨주세요.
 
 그룹 ↔ 1:1 전환 신청:
 '개인수업으로 전환 신청해요.' 라고만 남겨주세요. 문의가 확인되면 대화를 이어가 드릴게요."></textarea>
-
-          <button id="sendMemberInquiryButton" type="button">
-            문의 보내기
-          </button>
-
-          <p id="memberInquirySubmitMessage" class="member-inquiry-submit-message" aria-live="polite"></p>
+          <button id="sendMemberInquiryButton" type="button" aria-label="문의 보내기">보내기</button>
+          <p id="memberInquirySubmitMessage" role="status"></p>
         </div>
-
-        <section class="member-inquiry-history" aria-labelledby="memberInquiryHistoryHeading">
-          <h3 id="memberInquiryHistoryHeading">
-            내 문의 내역
-          </h3>
-
-          <p id="memberInquiryListMessage" class="member-inquiry-list-message" aria-live="polite">
-            문의 내역을 불러오고 있습니다.
-          </p>
-
-          <div id="memberInquiryList" class="member-inquiry-list"></div>
-
-          <button id="loadMoreMemberInquiriesButton" class="member-inquiry-load-more-button" type="button" hidden>
-            이전 문의 더 보기
-          </button>
-
-        </section>
-      </section>
+      </dialog>
 
       <section id="communityPostList" class="community-post-list" role="tabpanel"
         aria-labelledby="communityNewsMenuButton" aria-live="polite" tabindex="0">
@@ -1526,7 +1503,7 @@
     </div>
   </dialog>
 
-  <script src="app-assets.js?v=2da3bc6a7907462e070e19a0bf91d98aa819f99e94c6d7810c4e48ac3ab7c49f"></script>
+  <script src="app-assets.js?v=0dc7e5a7bbd2ec5c5f4d5ab30dbd062f298f633d5bf069283965fc500d3c4266"></script>
   <script src="deferred-images.js?v=663181d66366be28299e333f15b39eff5f1f4d79844e3b2eb3b3131358e7e18a"></script>
   <script src="login-timing.js?v=bf62a9708baa815f23755757b4ba7a3c7bfe54d2d6a678bab613c169e4e4afe4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
@@ -1540,7 +1517,7 @@
   <script src="routine-components.js?v=8b38f9441aa97b9103392b1f68c1e6cd1c3411473650be2815f0e39aa2223d1b"></script>
   <script src="member-routine-tutorial.js?v=ceb69d00aa830e5edb3fa1aa0aa3a50fb42f709db36501bf69e2962cafd8280f"></script>
   <script src="member-exercise-replacements.js?v=542f1e36c03392551590230d9076f55d5ed4aa37f526deeacb493b0f6d727440"></script>
-  <script src="member-community-badges.js?v=e4b2c5f92e94190eaef3a134698cecbb750cf8a7b51dbbac92288555932a57b5"></script>
+  <script src="member-community-badges.js?v=e1f0d830f8e4d40ea3e1f4cb26459aeecc75fda4de0992117a84e41365c27118"></script>
   <script src="stretching-videos.js?v=7bf2d22326900818408856221855173f95a2f2d4c79de8c0ae747e15a7659153"></script>
   <script src="cardio-programs.js?v=95b7ddc4953643a3beb0d66454a730d7024a5a4b17c268978dd4e613d969fce6"></script>
   <script src="workout-record-dates.js?v=b662cf88225b0d07c8eb555562fef176748add76367078d0385a8452ac2afc52"></script>
@@ -1555,7 +1532,7 @@
   <script src="app-usage.js?v=bcf55db434f4943e59d7de36f50a8ce9bba1e891df2104722e67db7c18f83b31"></script>
   <script src="center-memberships.js?v=1d4a0e48499d9ca1682c61ff7fec47d0420ebc6d6fe1afd8724197babc9f88a1"></script>
   <script src="center-attendance.js?v=a2589d778293148c0f58dd1e38dcb3d7372b589a253caa9aab0af08fb14959e0"></script>
-  <script src="script.js?v=041a295f8931c199419d7b5f35d250a4651ac17d0bca85d3b69b479b7c551272"></script>
+  <script src="script.js?v=242f508d298df71eddcc7801d51b49a0af8281b5aea4d43a3ca9479cbaabe8e0"></script>
   <script src="guest-demo.js?v=f46b459ae4dc9a3b1c3a5bb61cdd575ba0647bde4eb1b28606c511f947e4a906"></script>
 </body>
 

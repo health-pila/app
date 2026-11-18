@@ -610,13 +610,12 @@
     const id = entry?.record.user_id; $('awOpenMember').hidden = !uuid(id);
     if (uuid(id)) { const p = entry.record.memberProfile || {}; member = { id, name: p.display_name || '회원', last4: p.phone_last4 || '' }; }
   }
-  function syncInquiryAlerts(rows) {
+  function syncInquiryAlerts(rows, historyMember, memberRows) {
     if (!owner) return; inquiryTotal = rows.filter(r => r.status === 'waiting' && !r.archived_at).length; failed.delete('inquiry'); fresh.add('inquiry');
     const selected = inquiryCache.get(currentInquiry);
     const list = selected?.thread.querySelector('.admin-inquiry-message-list');
     const history = list?.adminInquiryHistory;
-    const memberRows = history ? rows.filter(row => row.user_id === history.userId) : [];
-    const historyChanged = history && (memberRows.length !== history.facts.size || memberRows.some(row =>
+    const historyChanged = history && historyMember === history.userId && (memberRows.length !== history.facts.size || memberRows.some(row =>
       history.facts.get(row.id) !== JSON.stringify([row.last_message_at, row.status, row.archived_at, row.updated_at])));
     let selectedChanged = false;
     for (const row of rows) { const entry = inquiryCache.get(row.id); if (entry) { if (row.id === currentInquiry && entry.record.last_message_at !== row.last_message_at) selectedChanged = true; Object.assign(entry.record, row); } }
@@ -742,6 +741,7 @@
     memberLinked: id => showCompletion('signup', id, '센터 출석 연결을 완료했어요.'),
     routineSaved: id => { showCompletion('routine', id, '새 운동 루틴을 배정했어요.'); void hooks.refreshRoutineRequests?.(); },
     captureInquiryDrafts, registerInquiry, openInquiry, syncInquiryAlerts, inquiryAnswered, inquiryArchived, inquiryMessageDeleted,
+    inquiryHistoryMemberId: () => inquiryCache.get(currentInquiry)?.record.user_id,
     inquiryMemberDeleted: (id, at) => {
       const entry = inquiryCache.get(id);
       if (!entry || !at || !Number.isFinite(Date.parse(at))) return;

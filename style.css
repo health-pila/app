@@ -6179,3 +6179,96 @@ textarea[data-page-scroll-ready]{overflow-y:hidden!important;overscroll-behavior
 .workout-composer-photo img { display:block; width:100%; max-height:220px; object-fit:contain; border-radius:10px; background:#f8fafc; }
 .workout-text-dialog [data-remove-photo] { margin-top:6px; }
 .workout-text-dialog [data-photo-note] { margin:4px 0 0; }
+
+/* Unified member conversation: stronger date boundaries, slim visible message actions. */
+:is(#appScreen,#adminScreen) .inquiry-chat-day{color:#42516a;font-weight:700}
+#appScreen .inquiry-chat-day::before,#appScreen .inquiry-chat-day::after{background:#9ca9b9}
+#appScreen .member-inquiry-message .member-chat-hide{
+  flex:none;width:auto;min-width:28px;min-height:24px;margin:0;padding:1px 4px;
+  border:0;border-radius:5px;background:transparent;color:#616d7c;
+  font:inherit;font-size:11px;line-height:1.3;cursor:pointer
+}
+#appScreen .member-chat-hide:focus-visible{outline:2px solid var(--brand-orange);outline-offset:1px}
+
+#appScreen #memberInquiryBody{font-size:14px;line-height:1.4}
+#appScreen #memberInquiryBody:placeholder-shown{font-size:11px}
+#appScreen .member-inquiry-message-body{font-size:14px;line-height:1.4;padding:4px 10px}
+
+/* Native modal keeps focus in the conversation while the composer stays in view. */
+#appScreen #memberInquirySection[open] {
+  position:fixed; inset:var(--chat-top,0px) 0 auto; box-sizing:border-box;
+  width:min(100%,560px); max-width:none; height:var(--chat-height,100dvh); max-height:none;
+  margin:0 auto; padding:0; border:0; border-radius:0; background:#fff; color:var(--brand-navy);
+  display:flex; flex-direction:column; overflow:hidden; overscroll-behavior:contain;
+}
+#memberInquirySection::backdrop { background:rgba(18,30,49,.35) }
+html:has(#memberInquirySection[open]) { overflow:hidden }
+.member-chat-header {
+  flex:none; display:grid; grid-template-columns:100px minmax(0,1fr); align-items:center;
+  padding:calc(6px + env(safe-area-inset-top)) 8px 6px 0; border-bottom:1px solid #dce2e8;
+}
+#appScreen #memberChatBack {
+  width:57.2px; height:57.2px; border:0; margin:0; padding:0; color:var(--brand-orange); background:transparent;
+  font:400 39px/1 system-ui,sans-serif; cursor:pointer;
+}
+#appScreen #memberInquiryHeading { margin:0; min-width:0; font-size:16px; font-weight:650; text-align:left; word-break:keep-all; overflow-wrap:anywhere }
+#appScreen #memberInquiryHeading>span, #appScreen #memberInquiryHeading>span+span { margin:0; line-height:1.45 }
+#memberChatLog {
+  flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; overflow-anchor:none;
+  padding:8px 10px; scrollbar-width:thin;
+}
+#appScreen #memberInquiryList { display:grid; gap:5px }
+#appScreen #memberInquiryList .member-inquiry-message {
+  gap:4px; max-width:min(100%,425px); padding:0; border:0; background:transparent;
+}
+#appScreen #memberInquiryList .member-inquiry-message-date { font-size:10px; margin:0 }
+#appScreen #memberInquiryList .inquiry-chat-day { margin:7px 0 5px; color:#495569 }
+#appScreen #memberInquiryList .inquiry-chat-day::before,
+#appScreen #memberInquiryList .inquiry-chat-day::after { background:#98a5b5 }
+#appScreen #loadMoreMemberInquiriesButton {
+  display:block; width:auto; margin:0 auto 8px; padding:5px 12px; border:1px solid #d6dce4;
+  border-radius:14px; background:#fff; color:#495569; font:inherit; font-size:12px;
+}
+#appScreen #memberInquiryComposer {
+  flex:none; display:grid; grid-template-columns:40px minmax(0,1fr) 42px; align-items:end;
+  gap:0 3px; margin:0; padding:5px max(4px,env(safe-area-inset-right))
+    calc(5px + env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));
+  border-top:1px solid #dce2e8; background:#fff;
+}
+#appScreen #memberInquiryComposer[hidden],
+#appScreen #loadMoreMemberInquiriesButton[hidden] { display:none }
+.member-chat-input-label {
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+  clip-path:inset(50%); white-space:nowrap;
+}
+#appScreen #memberInquiryBody {
+  grid-row:3; grid-column:2; min-width:0; min-height:0; max-height:none; box-sizing:border-box;
+  width:100%; margin:0; padding:6px 9px; resize:none; border:1px solid #d5dae2; border-radius:12px;
+  background:#f8f9fa; color:var(--brand-navy); font-size:14px; line-height:1.4;
+}
+#appScreen #memberInquiryBody:placeholder-shown, #appScreen #memberInquiryBody::placeholder { font-size:11px; line-height:1.4 }
+#appScreen #memberInquiryBody::placeholder { color:#626b78; opacity:1 }
+#appScreen #sendMemberInquiryButton {
+  grid-row:3; grid-column:3; width:42px; height:42px; min-height:0; margin:0; padding:0;
+  border:0; border-radius:50%; background:var(--brand-orange); color:white; font-size:0;
+}
+/* The icon follows currentColor in the ready, sending and disabled states. */
+#appScreen #sendMemberInquiryButton::after {
+  content:""; display:block; width:24px; height:24px; margin:auto; background:currentColor;
+  --plane:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 3 3 10l7.6 3.4L14 21 21 3ZM10.6 13.4 21 3'/%3E%3C/svg%3E");
+  -webkit-mask:var(--plane) center/contain no-repeat;
+  mask:var(--plane) center/contain no-repeat;
+}
+#appScreen #sendMemberInquiryButton:disabled { background:#e9ecf0; color:#7c8796; opacity:1 }
+#appScreen #memberInquiryComposer .inquiry-compose-heading { grid-row:3; grid-column:1; margin:0 }
+#appScreen #memberInquiryComposer .inquiry-photo-add {
+  width:40px; height:42px; padding:0; margin:0; border:0; background:transparent; color:#536179;
+  font:inherit; font-size:12px; white-space:nowrap;
+}
+#appScreen #memberInquiryComposer .inquiry-photo-add svg { display:block; width:23px; height:23px; margin:auto }
+#appScreen #memberInquiryComposer .inquiry-photo-count { display:none }
+#appScreen #memberInquiryComposer .inquiry-photo-previews { grid-column:1/-1; grid-row:1; margin:0 0 5px 42px }
+#appScreen #memberInquiryComposer .inquiry-photo-draft { width:48px; height:48px }
+#appScreen #memberInquirySubmitMessage { grid-row:2; grid-column:1/-1; margin:0 5px 4px; font-size:12px; color:#944c26 }
+#appScreen #memberInquiryListMessage, #appScreen #memberInquiryAvailabilityMessage { margin:6px 4px; font-size:13px; color:#606d7d }
+#appScreen #memberInquirySection p:empty { display:none }
