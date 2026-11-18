@@ -374,7 +374,7 @@ const memberInquiryBody =
     "#memberInquiryBody"
   );
 
-// Keep the full guide visible when empty. Measure wrapped draft lines at the actual editor width.
+// Measure the draft at the editor width so typed and wrapped lines grow alike.
 let memberInquiryGuideFitFrame = 0;
 let memberInquiryDraftChanged = false;
 function fitMemberInquiryGuide() {
@@ -387,7 +387,7 @@ function fitMemberInquiryGuide() {
   guide.setAttribute("aria-hidden", "true");
   guide.tabIndex = -1;
   guide.rows = 1;
-  guide.value = memberInquiryBody.placeholder;
+  guide.removeAttribute("placeholder");
   // The clone has no ID, so copy the ID-specific text/padding rules before
   // measuring. Otherwise the base textarea styles add unnecessary empty space.
   for (const property of ['box-sizing', 'font-family', 'font-size', 'font-weight', 'font-style',
@@ -402,24 +402,22 @@ function fitMemberInquiryGuide() {
   memberInquiryBody.parentElement.append(guide);
   try {
     const borders = (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0);
-    guide.style.fontSize = "11px";
-    guide.style.lineHeight = "1.4";
-    const guideHeight = Math.ceil(guide.scrollHeight + borders);
-    let height = guideHeight;
+    guide.value = Array(memberInquiryBody.rows).fill("가").join("\n");
+    const threeLines = Math.ceil(guide.scrollHeight + borders);
+    let height = threeLines;
     let scrollable = false;
     const draft = memberInquiryBody.value;
     if (draft.length) {
-      guide.style.fontSize = "14px";
-      guide.placeholder = "";
       guide.value = Array(5).fill("가").join("\n");
       const fiveLines = Math.ceil(guide.scrollHeight + borders);
       guide.value = draft;
       const draftHeight = Math.ceil(guide.scrollHeight + borders);
-      height = Math.min(fiveLines, Math.max(guideHeight, draftHeight));
+      height = Math.min(fiveLines, Math.max(threeLines, draftHeight));
       scrollable = draftHeight > fiveLines;
     }
     memberInquiryBody.style.height = height + "px";
-    memberInquiryBody.style.setProperty("overflow-y", scrollable ? "auto" : "hidden", "important");
+    memberInquiryBody.style.setProperty("overflow-y", !draft || scrollable ? "auto" : "hidden", "important");
+    if (!draft && !memberInquiryDraftChanged) return;
     if (!scrollable) {
       memberInquiryBody.scrollTop = 0;
     } else if (memberInquiryDraftChanged && document.activeElement === memberInquiryBody &&
@@ -1294,7 +1292,7 @@ async function hideMemberChatMessage(message, button, list) {
   if (message.sender_role !== "member" || message.can_delete !== true || button.disabled || !button.isConnected || appScreen.hidden) return;
   const owner = memberRoutineIdentity.userId;
   const revision = loginAuthRevision;
-  if (!owner || !window.confirm("이 말풍선을 내 대화에서 삭제할까요?")) return;
+  if (!owner || !window.confirm("이 말풍선을 삭제할까요?")) return;
   const current = () => owner === memberRoutineIdentity.userId && revision === loginAuthRevision && !appScreen.hidden;
   button.disabled = true;
   try {
