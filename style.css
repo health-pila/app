@@ -6202,6 +6202,7 @@ textarea[data-page-scroll-ready]{overflow-y:hidden!important;overscroll-behavior
 }
 #memberInquirySection::backdrop { background:rgba(18,30,49,.35) }
 html:has(#memberInquirySection[open]) { overflow:hidden }
+#communityTabPanel:focus, #memberInquirySection > .member-chat-header:focus { outline:none }
 .member-chat-header {
   flex:none; display:grid; grid-template-columns:50px minmax(0,1fr); align-items:center;
   padding:calc(6px + env(safe-area-inset-top)) 8px 6px 0; border-bottom:1px solid #dce2e8;
@@ -6216,6 +6217,8 @@ html:has(#memberInquirySection[open]) { overflow:hidden }
   border:1.5px solid currentColor; border-radius:12px; background:#fff6ef;
 }
 #memberChatBack:active > span { background:#ffe6d4 }
+#appScreen #memberChatBack:focus-visible { outline:none }
+#memberChatBack:focus-visible > span { outline:2px solid currentColor; outline-offset:2px }
 #appScreen #memberInquiryHeading { margin:0; min-width:0; font-size:16px; font-weight:650; text-align:left; word-break:keep-all; overflow-wrap:anywhere }
 #appScreen #memberInquiryHeading>span, #appScreen #memberInquiryHeading>span+span { margin:0; line-height:1.45 }
 #memberChatLog {

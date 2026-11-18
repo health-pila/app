@@ -1470,6 +1470,8 @@ function openMemberChat() {
   if (memberChatDialog.open || !isMemberInquiryEnabled || appScreen.hidden) return;
   memberChatDialog.hidden = false;
   memberChatDialog.showModal();
+  const header = memberChatDialog.querySelector(".member-chat-header");
+  if (document.activeElement !== header) header.focus({ preventScroll: true });
   if (history.state?.memberChat !== true) history.pushState({ ...history.state, memberChat: true }, "");
   if (!window.InquiryImages) sendMemberInquiryButton.disabled = !memberInquiryBody.value.trim();
   memberChatAtEnd = true;
@@ -1624,6 +1626,8 @@ function showCommunityMenu(menuName) {
     return;
   }
 
+  const returningFromChat = menuName === "news" && memberChatDialog.open;
+
   // 문의하기로 이동하면 소식 영상 정지
   if (
     menuName !== "news" &&
@@ -1658,6 +1662,8 @@ function showCommunityMenu(menuName) {
     button.tabIndex =
       isSelected && !button.disabled ? 0 : -1;
   });
+  // Closing a native dialog restores its opener, which is now an inactive tab.
+  if (returningFromChat) memberTabPanels.community.focus({ preventScroll: true });
   updateMemberCommunityBadges("checkSoon");
   if (memberNewsVisible()) void loadCommunityPosts(true);
 
