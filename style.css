@@ -6252,7 +6252,8 @@ html:has(#memberInquirySection[open]) { overflow:hidden }
   width:100%; margin:0; padding:6px 9px; resize:none; border:1px solid #d5dae2; border-radius:12px;
   background:#f8f9fa; color:var(--brand-navy); font-size:14px; line-height:1.4;
 }
-#appScreen #memberInquiryBody::placeholder { font-size:var(--inquiry-guide-size); line-height:1.4; color:#626b78; opacity:1 }
+#appScreen #memberInquiryBody:placeholder-shown, #appScreen #memberInquiryBody::placeholder { font-size:var(--inquiry-guide-size); line-height:1.4 }
+#appScreen #memberInquiryBody::placeholder { color:#626b78; opacity:1 }
 #appScreen #sendMemberInquiryButton {
   grid-row:3; grid-column:3; width:42px; height:42px; min-height:0; margin:0; padding:0;
   border:0; border-radius:50%; background:var(--brand-orange); color:white; font-size:0;

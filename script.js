@@ -374,7 +374,7 @@ const memberInquiryBody =
     "#memberInquiryBody"
   );
 
-// Measure the draft at the editor width so typed and wrapped lines grow alike.
+// Measure the full guide when empty and the wrapped draft while typing.
 let memberInquiryGuideFitFrame = 0;
 let memberInquiryDraftChanged = false;
 function fitMemberInquiryGuide() {
@@ -402,12 +402,17 @@ function fitMemberInquiryGuide() {
   memberInquiryBody.parentElement.append(guide);
   try {
     const borders = (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0);
-    guide.value = Array(memberInquiryBody.rows).fill("가").join("\n");
-    const threeLines = Math.ceil(guide.scrollHeight + borders);
-    let height = threeLines;
+    let height;
     let scrollable = false;
     const draft = memberInquiryBody.value;
-    if (draft.length) {
+    if (!draft) {
+      guide.value = memberInquiryBody.placeholder;
+      guide.style.fontSize = style.getPropertyValue("--inquiry-guide-size");
+      guide.style.lineHeight = "1.4";
+      height = Math.ceil(guide.scrollHeight + borders);
+    } else {
+      guide.value = Array(memberInquiryBody.rows).fill("가").join("\n");
+      const threeLines = Math.ceil(guide.scrollHeight + borders);
       guide.value = Array(5).fill("가").join("\n");
       const fiveLines = Math.ceil(guide.scrollHeight + borders);
       guide.value = draft;
@@ -416,8 +421,7 @@ function fitMemberInquiryGuide() {
       scrollable = draftHeight > fiveLines;
     }
     memberInquiryBody.style.height = height + "px";
-    memberInquiryBody.style.setProperty("overflow-y", !draft || scrollable ? "auto" : "hidden", "important");
-    if (!draft && !memberInquiryDraftChanged) return;
+    memberInquiryBody.style.setProperty("overflow-y", scrollable ? "auto" : "hidden", "important");
     if (!scrollable) {
       memberInquiryBody.scrollTop = 0;
     } else if (memberInquiryDraftChanged && document.activeElement === memberInquiryBody &&
