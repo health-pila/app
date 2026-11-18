@@ -437,3 +437,5 @@
  #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-delete{grid-area:2/3}
  #adminScreen :is(#awInquiryWork,#awMemberInquiryThread) .admin-inquiry-reply-delete-status{grid-row:3}
 }
+
+#adminScreen .aw-app-identity .aw-signup-date{flex-basis:100%;font-size:12px;line-height:1.4;color:#65748a}

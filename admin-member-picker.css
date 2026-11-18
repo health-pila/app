@@ -38,3 +38,9 @@
 .admin-member-picker-row{width:100%;min-width:0;padding:12px;border:1px solid #dbe2ed;border-radius:11px;background:#fff;text-align:left;color:#17233e}
 .admin-member-picker-row[aria-pressed=true]{border-color:#f56a00;background:#fff8f1}
 .admin-member-picker-row:hover{background:#f5f8fc}.admin-member-picker-trigger:focus-visible,.admin-member-picker-dialog button:focus-visible,.admin-member-picker-dialog input:focus-visible{outline:3px solid #f56a00;outline-offset:2px}
+
+.admin-membership-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#adminScreen #adminLatestMembershipRefresh{width:auto;min-height:31px;margin:0;padding:6px 11px;border:1px solid var(--brand-orange);border-radius:8px;background:var(--brand-orange);color:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+#adminScreen #adminLatestMembershipRefresh:disabled{opacity:.65;cursor:default}
+#adminScreen #adminLatestMembershipRefresh:focus-visible{outline:3px solid var(--brand-orange);outline-offset:2px}
+#adminLatestMembershipStatus{font-size:12px}

@@ -8,6 +8,8 @@
   let eligibilitySeq=0,eligibilityBusy=false,eligibilityLoaded=false,eligibilityReadAt=0,eligibilityFailed=false;
   let eligibility=new Map(),roster=[],chosenFilter='all',eligibilityTimer=null,eligibilityRevision=0,eligibilityChanges=new Map();
   let membershipMember='',membershipData=null,membershipBusy=false,membershipReadAt=0,membershipSeq=0;
+  const latestRefreshes=new Map();
+  let latestTimer=0;
   let restricted=new Set(),restrictionOnly=false,restrictionLoaded=false,restrictionBusy=false,restrictionReadAt=0,restrictionSeq=0;
   let restrictionRevision=0,restrictionChanges=new Map();
   let historyData=null,historyBusy=false,historyReadAt=0,historySeq=0,historyForce=false;
@@ -103,10 +105,80 @@
       $('adminMemberEligibilitySyncedAt').textContent=Number.isFinite(at)?'정보 확인: '+new Date(at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}):'';
     }
     renderMembershipDates(selected,!details.hidden);
+    renderLatestRefresh(selected);
     const restrictedPin=restrictionOnly&&restrictedState(selected)!==true;
     const pin=$('adminMemberEligibilityPinned');
     pin.hidden=!enabled||!selected||!restrictedPin&&(chosenFilter==='all'||value.state===chosenFilter);
     pin.textContent=restrictedPin?'현재 선택한 회원의 편집창은 유지돼요. 목록에는 이용 제한 회원만 표시돼요.':'현재 선택한 회원은 편집을 유지하기 위해 목록에 함께 표시돼요.';
+  }
+  function renderLatestRefresh(id){
+    const button=$('adminLatestMembershipRefresh'),status=$('adminLatestMembershipStatus');
+    const state=latestRefreshes.get(id);
+    clearTimeout(latestTimer);
+    const wait=Math.max(0,(state?.retryAt||0)-Date.now());
+    button.disabled=!active(epoch)||!uuid(id)||Boolean(state?.busy)||wait>0;
+    button.textContent=state?.busy?'갱신 중…':'최신 이용권 갱신';
+    button.setAttribute('aria-busy',String(Boolean(state?.busy)));
+    button.title=wait?`${Math.ceil(wait/1000)}초 후 다시 갱신할 수 있어요.`:'헬스·필라테스 이용권을 브로제이에서 확인합니다.';
+    const message=state?.message||'';
+    if(status.textContent!==message)status.textContent=message;
+    status.hidden=!message;
+    if(wait)latestTimer=setTimeout(()=>renderLatestRefresh(select.value),wait+30);
+  }
+  async function refreshLatestMembership(){
+    const id=select.value,e=epoch,admin=user,db=client,started=Date.now();
+    const prior=latestRefreshes.get(id);
+    if(!active(e)||!uuid(id)||prior?.busy||prior?.retryAt>started)return;
+    const state={busy:true,retryAt:0,message:''};
+    latestRefreshes.set(id,state);
+    const current=()=>active(e)&&latestRefreshes.get(id)===state;
+    renderLatestRefresh(id);
+    let timer;
+    try{
+      const result=await Promise.race([
+        db.functions.invoke('admin-membership-refresh',{body:{expected_admin_id:admin,user_id:id}}),
+        new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('TIMEOUT')),65000);}),
+      ]);
+      if(!current())return;
+      let body=result.data;
+      if(result.error){
+        try{body=await result.error.context?.json();}catch(_){}
+        if(!current())return;
+      }
+      if(result.error||body?.ok!==true){
+        const retry=body?.retry_after_seconds;
+        if(Number.isInteger(retry)&&retry>0&&retry<=120)state.retryAt=Date.now()+retry*1000;
+        const errors={COOLDOWN:'방금 조회한 회원이에요.',BUSY:'다른 이용권 조회가 진행 중이에요.',
+          API_BUDGET:'브로제이 조회가 많아요.',NOT_LINKED:'센터 출석 연결 후 갱신해 주세요.',
+          SYNC_DISABLED:'센터 이용권 연동이 중지되어 있어요.',ADMIN_REQUIRED:'관리자 권한을 확인해 주세요.',
+          AUTH_REQUIRED:'다시 로그인해 주세요.',ACCOUNT_CHANGED:'로그인 계정이 바뀌었어요.',
+          INCOMPLETE_REFRESH_RESULT:'이용권 정보를 모두 받지 못해 기존 정보를 유지했어요.'};
+        state.message=(Object.hasOwn(errors,body?.code)?errors[body.code]:'이용권 갱신 결과를 확인하지 못했어요.')+
+          (state.retryAt?` ${retry}초 후 다시 갱신해 주세요.`:'');
+        return;
+      }
+      const savedAt=Date.parse(body.synced_at);
+      if(body.user_id!==id||body.version!==1||typeof body.synced_at!=='string'||!Number.isFinite(savedAt))throw Error('INVALID_ACK');
+      state.retryAt=started+60000;
+      // Supersede any classification query that started before the new snapshot was saved.
+      eligibilitySeq++;eligibilityBusy=false;eligibilityReadAt=0;
+      let dates;
+      if(select.value===id&&membershipMember===id){
+        resetHistory();historyForce=true;
+        dates=loadMembershipDates(id,true);
+      }
+      invalidateSortFacts(id);
+      await Promise.all([dates,loadEligibility()]);
+      if(!current()||select.value!==id)return;
+      const updated=membershipMember===id&&membershipData?.state==='ready'&&Date.parse(membershipData.synced_at)>=savedAt&&
+        eligibilityLoaded&&Date.parse(eligibility.get(id)?.synced_at)>=savedAt;
+      state.message=updated?'최신 이용권 정보 반영 완료':'이용권은 갱신됐어요. 상태 새로고침으로 표시 내용을 확인해 주세요.';
+    }catch(_){
+      if(current())state.message='이용권 갱신 결과를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.';
+    }finally{
+      clearTimeout(timer);
+      if(current()){state.busy=false;renderLatestRefresh(select.value);}
+    }
   }
   function renderMembershipDates(id,enabled){
     const box=$('adminMemberMembershipDates');if(!box)return;
@@ -121,7 +193,7 @@
     const format=value=>`${value.slice(2,4)}. ${value.slice(5,7)}. ${value.slice(8,10)}`;
     const today=koreaDay(),needsHistory=!membershipData.gym.current_end_at||membershipData.gym.current_end_at<today;
     if(historyData&&(new Date(Date.parse(historyData.synced_at)+9*3600000).toISOString().slice(0,10)!==today||Date.now()-Date.parse(historyData.synced_at)>6*3600000)){historyData=null;historyReadAt=0;}
-    if(needsHistory&&!historyBusy&&(historyForce||Date.now()-historyReadAt>=300000))void loadHistory(id);
+    if(needsHistory&&!membershipBusy&&!historyBusy&&(historyForce||Date.now()-historyReadAt>=300000))void loadHistory(id);
     for(const [key,label] of [['gym','헬스회원권'],['pilates','필라테스 수강권']]){
       let item=membershipData[key];
       if(key==='gym'&&needsHistory){
@@ -154,7 +226,7 @@
     }catch(_){if(current())historyData=null;}
     finally{clearTimeout(timer);if(current()){historyBusy=false;historyReadAt=Date.now();renderEligibility();}}
   }
-  async function loadMembershipDates(id){
+  async function loadMembershipDates(id,keepOnError=false){
     const e=epoch,number=++membershipSeq,db=client;membershipBusy=true;
     const current=()=>active(e)&&number===membershipSeq&&membershipMember===id&&select.value===id;
     const abort=new AbortController();let timer;
@@ -167,7 +239,7 @@
       if(data.state==='ready')for(const key of ['gym','pilates']){const item=data[key];if(!item||typeof item.uncertain!=='boolean'||
         !['current_end_at','previous_end_at'].every(k=>item[k]===null||date(item[k]))||!Array.isArray(item.scheduled_end_at)||item.scheduled_end_at.length>200||!item.scheduled_end_at.every(date))throw Error('INVALID_DATES');}
       membershipData=data;
-    }catch(_){if(current())membershipData=null;}
+    }catch(_){if(current()&&!keepOnError)membershipData=null;}
     finally{clearTimeout(timer);if(current()){membershipBusy=false;membershipReadAt=Date.now();renderEligibility();}}
   }
   function refresh(){
@@ -311,6 +383,7 @@
   }
   function setRoster(ids){if(!active(epoch)||!Array.isArray(ids)||!ids.every(uuid))return;const added=ids.some(id=>!roster.includes(id));roster=[...new Set(ids)];renderEligibility();renderRestrictions();if(added){sortReadAt=0;void loadSortFacts();}}
   function reset(){
+    clearTimeout(latestTimer);latestRefreshes.clear();
     membershipSeq++;membershipMember='';membershipData=null;membershipBusy=false;membershipReadAt=0;
     restrictionSeq++;restricted.clear();restrictionChanges.clear();restrictionOnly=false;restrictionLoaded=false;restrictionBusy=false;restrictionReadAt=0;restrictionRevision=0;
     historySeq++;historyData=null;historyBusy=false;historyReadAt=0;historyForce=false;
@@ -326,6 +399,7 @@
   }
   function start(connection,id){reset();client=connection;user=id;try{const saved=localStorage.getItem('admin-member-sort:v1:'+user);if(sortModes.has(saved))chosenSort=saved;}catch(_){}refresh();notifySort();void loadLinks();void loadEligibility();void loadSortFacts();void loadRestrictions();scheduleEligibility();}
   function revisit(){if(document.visibilityState==='visible'){void loadLinks();void loadEligibility();void loadSortFacts();void loadRestrictions();}}
+  $('adminLatestMembershipRefresh').addEventListener('click',refreshLatestMembership);
   select.addEventListener('focus',revisit);
   select.addEventListener('change',renderEligibility);
   window.addEventListener('focus',revisit);

@@ -339,7 +339,16 @@
     $('awMemberTitle').textContent = !member && selecting ? '회원 정보를 확인하고 있어요.' : !member && completion?.type === 'signup' ? '센터 회원 연결 완료' : memberLabel(member);
     $('awOpenMember').hidden = page === 'members' || !member;
     const p = $('awAppIdentity').querySelector('p'); p.replaceChildren();
-    if (member) { p.append(el('strong', '', member.name), el('span', '', '전화번호 끝자리 ' + (member.last4 || '미등록'))); }
+    if (member) {
+      p.append(el('strong', '', member.name));
+      if (member.last4) p.append(el('span', '', member.last4));
+      const option = $('adminMemberSelect').selectedOptions[0];
+      const joined = option?.value === member.id ? Date.parse(option.dataset.memberCreatedAt) : NaN;
+      const joinedDate = Number.isFinite(joined) ? new Date(joined).toLocaleDateString('ko-KR', {
+        timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+      }) : '확인 필요';
+      p.append(el('small', 'aw-signup-date', '앱 가입일 ' + joinedDate));
+    }
     $('awMemberMeta').hidden = !member;
     if (!member) $('adminMemberInfo').textContent = '';
   }
