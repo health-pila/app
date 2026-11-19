@@ -6234,6 +6234,9 @@ html:has(#memberInquirySection[open]) { overflow:hidden }
 #appScreen #memberInquiryList .member-inquiry-message {
   gap:4px; max-width:min(100%,425px); padding:0; border:0; background:transparent;
 }
+#appScreen #memberInquiryList .is-member:has(> .member-chat-hide) { column-gap:2px }
+#appScreen #memberInquiryList .is-member + .is-admin,
+#appScreen #memberInquiryList .is-admin + .is-member { margin-top:2px }
 #appScreen #memberInquiryList .member-inquiry-message-date { font-size:10px; margin:0 }
 #appScreen #memberInquiryList .inquiry-chat-day { margin:7px 0 5px; color:#495569 }
 #appScreen #memberInquiryList .inquiry-chat-day::before,

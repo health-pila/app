@@ -1296,7 +1296,7 @@ async function hideMemberChatMessage(message, button, list) {
   if (message.sender_role !== "member" || message.can_delete !== true || button.disabled || !button.isConnected || appScreen.hidden) return;
   const owner = memberRoutineIdentity.userId;
   const revision = loginAuthRevision;
-  if (!owner || !window.confirm("이 말풍선을 삭제할까요?")) return;
+  if (!owner || !window.confirm("이 글을 삭제할까요?")) return;
   const current = () => owner === memberRoutineIdentity.userId && revision === loginAuthRevision && !appScreen.hidden;
   button.disabled = true;
   try {
@@ -1324,7 +1324,8 @@ function renderInquiryMessageCards(messages, messageList, memberName = "내 질�
     timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "short"
   });
   const timeFormat = new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit"
+    timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit",
+    hourCycle: memberView ? "h23" : undefined
   });
   let previousDay = null;
   let previousSender = null;
