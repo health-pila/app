@@ -269,7 +269,7 @@ const CARDIO_PROGRAM_GROUPS = [
         const number = element("span", "cardio-step-number", String(index + 1));
         number.setAttribute("aria-hidden", "true");
         const description = element("div", "cardio-step-description");
-        description.append(element("strong", "", step[0]), element("p", "", step[1]));
+        description.append(element("strong", "", step[0]), element("p", "", "▷ " + step[1]));
         row.append(number, description, element("span", "cardio-step-time", step[2]));
         steps.append(row);
       });
