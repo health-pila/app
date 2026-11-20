@@ -47,12 +47,14 @@ body.routine-application-open { overflow: hidden; }
 
 /* 회원 신청서는 운동 기록 창처럼 앱 위에 뜨고, 긴 문진만 안쪽에서 스크롤합니다. */
 .member-routine-application-dialog {
+  /* 선택지 한 행(40px)과 행 간격(5px)만큼 더 표시한다. */
+  --routine-dialog-limit: min(755px, calc(var(--routine-dialog-base, 78dvh) + 45px), var(--routine-dialog-available, calc(100dvh - 24px)));
   position: fixed;
   inset: var(--routine-dialog-center, 50%) 0 auto;
   transform: translateY(-50%);
   width: min(460px, calc(100vw - 24px));
   height: auto;
-  max-height: var(--routine-dialog-limit, 78dvh);
+  max-height: var(--routine-dialog-limit);
   margin: 0 auto;
   border: 0;
   border-radius: 20px;
@@ -60,7 +62,11 @@ body.routine-application-open { overflow: hidden; }
   overflow: hidden;
 }
 .member-routine-application-dialog::backdrop { background: #18243bb3; }
-.member-routine-application-dialog .routine-application-shell { height: auto; max-height: var(--routine-dialog-limit, 78dvh); }
+.member-routine-application-dialog:has(.routine-application-page:first-child:not([hidden])) {
+  /* 첫 단계는 마지막 운동경력 선택지까지, 화면 안에 들어가는 만큼만 펼친다. */
+  --routine-dialog-limit: min(755px, var(--routine-dialog-available, calc(100dvh - 24px)));
+}
+.member-routine-application-dialog .routine-application-shell { height: auto; max-height: var(--routine-dialog-limit); }
 .member-routine-application-dialog .routine-application-header { padding: 16px 16px 9px; border: 0; }
 .member-routine-application-dialog .routine-application-header h2 { color: #c24c00; }
 .member-routine-application-dialog .routine-application-close {
@@ -83,7 +89,8 @@ body.routine-application-open { overflow: hidden; }
   color: #17233e; background: #f8fafc; font: inherit; font-size: 16px; line-height: 22px;
   overflow: hidden; resize: none;
 }
-.routine-application-text:placeholder-shown { white-space: pre; text-overflow: ellipsis; }
+.routine-application-text[rows="2"] { height: 62px; min-height: 62px; }
+.routine-application-text[rows="1"]:placeholder-shown { white-space: pre; text-overflow: ellipsis; }
 .routine-application-text::placeholder { color: #657286; font-size: 13px; opacity: 1; }
 .routine-application-text:focus-visible { outline: 2px solid #ec6a1a; outline-offset: 2px; }
 @media (max-height: 470px) {

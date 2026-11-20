@@ -118,13 +118,13 @@
     choiceGroup(1,"interests","관심 부위",true,3);
     choiceGroup(2,"frequency","주당 운동 가능 횟수");
     choiceGroup(2,"duration","운동 가능 시간",false,0,"유산소 운동을 제외한 총 운동 시간입니다.");
-    function textGroup(key, help) {
+    function textGroup(key, help, rows = 1) {
       const box = el("div", "routine-application-field");
       const label = el("label", "routine-application-text-label", labels[key]); label.htmlFor="routine-app-"+key;
       const input = el("textarea", "routine-application-text");
       input.id = label.htmlFor;
       input.name = key;
-      input.rows = 1;
+      input.rows = rows;
       input.maxLength = 500;
       input.placeholder = help;
       input.title = help;
@@ -134,7 +134,7 @@
       pages[2].append(box);
       inputs[key] = input;
     }
-    textGroup("pain","예: 허리, 무릎, 손목 짚으면 아픔 / 간헐적 가벼운 불편은 제외 / 없으면 비워주세요.");
+    textGroup("pain","예: 허리, 무릎, 손목 짚으면 아픔 / 간헐적 가벼운 불편은 제외 / 없으면 비워주세요.",2);
     textGroup("avoid","예: 바벨 운동, 누워서 하는 운동 / 없으면 비워주세요.");
     const notice=el("aside","routine-application-notice");
     notice.append(el("strong","","* 본 구성은 처방이 아닌 추천입니다."),el("p","","해당 운동 종목 중 상해 발생 시, 센터측에는 법적인 책임이 없음을 알립니다. 때문에 명확한 근골격계 질환이 있으신 경우, 운동 구성 신청을 추천하지 않습니다."));
@@ -155,7 +155,7 @@
     return ui;
   }
   function fitNote(input) {
-    // 빈 칸은 긴 placeholder 길이와 관계없이 한 줄로 유지한다.
+    // 내용을 지우면 각 입력칸의 기본 행 수로 돌아간다.
     input.style.height = "";
     if (input.value && input.clientWidth) {
       const border = input.offsetHeight - input.clientHeight;
@@ -168,7 +168,8 @@
     const height = viewport?.height || window.innerHeight;
     const dialog = memberUi.d;
     dialog.style.setProperty("--routine-dialog-center", ((viewport?.offsetTop || 0) + height / 2) + "px");
-    dialog.style.setProperty("--routine-dialog-limit", Math.min(710, height < 480 ? height - 24 : height * .78) + "px");
+    dialog.style.setProperty("--routine-dialog-base", (height < 480 ? height : height * .78) + "px");
+    dialog.style.setProperty("--routine-dialog-available", (height - 24) + "px");
   }
   function syncMemberViewport() {
     positionMemberDialog();
