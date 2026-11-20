@@ -58,7 +58,7 @@
       if(state==='current')end.append(refreshButton);
       li.append(node('span','center-membership-label',label),end);list.append(li);
     }
-    if(user&&!list.children.length)add('현재 헬스회원권 만료일: ',cache?.is_linked===false?'연결 전':'확인 중','current');
+    if(user&&!list.children.length)add('현재 헬스회원권 만료일: ',cache?.is_linked===false?'연결 중(약 1시간 소요)':'확인 중','current');
     const remaining=Math.max(0,cooldownUntil-Date.now());
     refreshButton.disabled=!user||!client||busy||refreshing||remaining>0||cache?.is_linked===false;
     refreshButton.setAttribute('aria-busy',String(refreshing));

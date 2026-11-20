@@ -84,7 +84,7 @@
     progress.setAttribute("role", "progressbar"); progress.setAttribute("aria-valuemin","1"); progress.setAttribute("aria-valuemax","3");
     const bars = [0,1,2].map(()=>el("span")); const number = el("b"); progress.append(...bars, number);
     const title = el("h3", "routine-application-step-title"); title.tabIndex = -1;
-    const intro = el("p", "routine-application-intro", "⏰ 회원님께 맞는 루틴을 위해 30초만 투자해주세요:)");
+    const intro = el("p", "routine-application-intro", "🎯 회원님께 맞는 루틴을 위해 몇가지만 여쭤볼게요:)");
     const form = el("form", "routine-application-form"); form.noValidate = true;
     const pages = [0,1,2].map(()=>el("section", "routine-application-page"));
     const groups = {}, inputs = {};
