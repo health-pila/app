@@ -4,12 +4,20 @@
   if (window.RoutineApplication) return;
   const choices = Object.freeze({
     gender: ["여자", "남자"],
-    experience: ["1개월 미만", "1~3개월", "3~6개월", "6개월~1년", "1년 이상", "2년 이상"],
-    purposes: ["체중 감량", "근력 증가", "체형 개선", "건강 관리", "기초체력 강화", "기타"],
-    interests: ["허벅지", "엉덩이", "등", "복부", "팔", "어깨", "특정부위 없음"],
-    frequency: ["주 1회", "주 2회", "주 3회", "주 4회", "주 5회 이상"],
-    duration: ["30분 미만", "30분 ~ 1시간", "1시간 ~ 1시간 30분", "1시간 30분 ~ 2시간", "2시간 이상"]
+    experience: ["1개월 미만", "1개월~6개월 미만", "6개월~1년 미만", "1년 이상"],
+    purposes: ["체중 감량", "근력 증가", "체형 개선", "기초체력 강화", "기타"],
+    interests: ["허벅지", "엉덩이", "등", "팔", "어깨", "특정부위 없음"],
+    frequency: ["주 1회", "주 2~3회", "주 4회 이상"],
+    duration: ["30분 미만", "30분 ~ 1시간", "1시간 ~ 1시간 30분", "1시간 30분 이상"]
   });
+  // 이전 선택지는 저장된 원문을 읽고, 재신청할 때만 새 구간에 대응시킨다.
+  const previousChoices = {
+    experience: {"1~3개월":"1개월~6개월 미만", "3~6개월":"1개월~6개월 미만", "6개월~1년":"6개월~1년 미만", "2년 이상":"1년 이상"},
+    purposes: {"건강 관리":"기초체력 강화"},
+    interests: {"복부":null},
+    frequency: {"주 2회":"주 2~3회", "주 3회":"주 2~3회", "주 4회":"주 4회 이상", "주 5회 이상":"주 4회 이상"},
+    duration: {"1시간 30분 ~ 2시간":"1시간 30분 이상", "2시간 이상":"1시간 30분 이상"}
+  };
   const labels = Object.freeze({gender:"성별", experience:"운동경력", purposes:"운동목적", interests:"관심부위",
     frequency:"주당 운동 가능 횟수", duration:"운동 가능 시간", pain:"현재 운동할 때 아픈 부위가 있나요?", avoid:"피하고 싶은 운동"});
   let member = null, admin = null, memberSequence = 0, adminSequence = 0;
@@ -45,18 +53,24 @@
       return data;
     } finally { clearTimeout(timer); }
   }
-  function validAnswers(a) {
+  function validAnswers(a, includePrevious = false) {
+    const allowed = (key, value) => typeof value === "string" && (choices[key].includes(value) ||
+      (includePrevious && Object.hasOwn(previousChoices[key] || {}, value)));
     if (!a || typeof a !== "object") return false;
-    for (const key of ["gender", "experience", "frequency", "duration"]) if (!choices[key].includes(a[key])) return false;
+    for (const key of ["gender", "experience", "frequency", "duration"]) if (!allowed(key, a[key])) return false;
     for (const [key,max] of [["purposes",2],["interests",3]]) {
       if (!Array.isArray(a[key]) || !a[key].length || a[key].length>max || new Set(a[key]).size!==a[key].length ||
-        a[key].some(v=>!choices[key].includes(v))) return false;
+        a[key].some(v=>!allowed(key, v))) return false;
     }
-    for (const key of ["purpose_other","pain","avoid"]) if (typeof a[key]!=="string" || /[\u0000-\u001f\u007f]/.test(a[key]) || a[key].length>(key==="purpose_other"?100:500)) return false;
+    for (const key of ["purpose_other","pain","avoid"]) {
+      const singleLine = key === "purpose_other";
+      const invalidControl = singleLine ? /[\u0000-\u001f\u007f-\u009f]/ : /[\u0000-\u0009\u000b-\u001f\u007f-\u009f]/;
+      if (typeof a[key] !== "string" || Array.from(a[key]).length > (singleLine ? 100 : 500) || invalidControl.test(a[key])) return false;
+    }
     return !a.purposes.includes("기타") || !!a.purpose_other.trim();
   }
   function formatAnswers(a) {
-    if (!validAnswers(a)) throw new Error("INVALID_RESPONSE");
+    if (!validAnswers(a, true)) throw new Error("INVALID_RESPONSE");
     return Object.keys(labels).map(key => {
       const value = key === "purposes" ? a.purposes.map(v=>v==="기타"?a.purpose_other:v).join(", ")
         : key === "interests" ? a.interests.join(", ") : a[key];
@@ -65,9 +79,7 @@
   }
   function makeMemberUi() {
     const ui = makeDialog("운동 루틴 신청서", "member-routine-application-dialog");
-    const back=button("‹","routine-application-back");back.setAttribute("aria-label","이전 단계 또는 신청서 닫기");
-    back.addEventListener("click",()=>{if(!member||member.saving)return;if(member.step>0&&!member.done)setStep(member.step-1,true);else resetMember();});
-    ui.head.prepend(back);
+    ui.close.textContent = "닫기";
     const progress = el("div", "routine-application-progress");
     progress.setAttribute("role", "progressbar"); progress.setAttribute("aria-valuemin","1"); progress.setAttribute("aria-valuemax","3");
     const bars = [0,1,2].map(()=>el("span")); const number = el("b"); progress.append(...bars, number);
@@ -82,7 +94,7 @@
       if (max) legend.append(el("span", "routine-application-limit", `최대 ${max}개`));
       group.append(legend);
       if (help) { const p = el("p", "routine-application-help", help); p.id = "routine-app-help-"+key; group.setAttribute("aria-describedby",p.id); group.append(p); }
-      const grid = el("div", "routine-application-choices" + (key==="duration"?" is-list":""));
+      const grid = el("div", "routine-application-choices");
       inputs[key] = choices[key].map(value => {
         const label = el("label", "routine-application-choice"), input = el("input");
         input.type = multiple ? "checkbox" : "radio"; input.name = key; input.value = value;
@@ -99,20 +111,28 @@
     }
     choiceGroup(0,"gender","성별");
     choiceGroup(0,"experience","운동경력 (꾸준히 지속한 기간)");
-    choiceGroup(0,"purposes","운동 목적",true,2);
+    choiceGroup(1,"purposes","운동 목적",true,2);
     const otherWrap = el("label", "routine-application-other", "기타: ");
     const other = el("input"); other.name="purpose_other"; other.type="text"; other.maxLength=100; other.placeholder="기타 응답";
     otherWrap.append(other); otherWrap.hidden=true; groups.purposes.append(otherWrap);
     choiceGroup(1,"interests","관심 부위",true,3);
-    choiceGroup(1,"frequency","주당 운동 가능 횟수");
-    choiceGroup(1,"duration","운동 가능 시간",false,0,"유산소 운동을 제외한 총 운동 시간입니다.");
+    choiceGroup(2,"frequency","주당 운동 가능 횟수");
+    choiceGroup(2,"duration","운동 가능 시간",false,0,"유산소 운동을 제외한 총 운동 시간입니다.");
     function textGroup(key, help) {
       const box = el("div", "routine-application-field");
       const label = el("label", "routine-application-text-label", labels[key]); label.htmlFor="routine-app-"+key;
-      const guide = el("p", "routine-application-help", help); guide.id="routine-app-help-"+key;
-      const input=el("input", "routine-application-text"); input.id=label.htmlFor; input.name=key; input.type="text"; input.maxLength=500;
-      input.placeholder="선택"; input.setAttribute("aria-describedby",guide.id); input.autocomplete="off";
-      box.append(label,guide,input); pages[2].append(box); inputs[key]=input;
+      const input = el("textarea", "routine-application-text");
+      input.id = label.htmlFor;
+      input.name = key;
+      input.rows = 1;
+      input.maxLength = 500;
+      input.placeholder = help;
+      input.title = help;
+      input.autocomplete = "off";
+      input.addEventListener("input", () => fitNote(input));
+      box.append(label, input);
+      pages[2].append(box);
+      inputs[key] = input;
     }
     textGroup("pain","예: 허리, 무릎, 손목 짚으면 아픔 / 간헐적 가벼운 불편은 제외 / 없으면 비워주세요.");
     textGroup("avoid","예: 바벨 운동, 누워서 하는 운동 / 없으면 비워주세요.");
@@ -123,7 +143,7 @@
     const success=el("div","routine-application-success"); success.hidden=true;
     success.append(el("h3","","신청이 접수됐어요!"),el("p","","신청 내용을 확인한 후 배정해 드려요."));
     const prev=button("이전","routine-application-secondary"), next=button("다음 ›","routine-application-primary");
-    ui.body.prepend(progress,title,intro); ui.body.append(reload,form,success); ui.footer.append(prev,next);
+    ui.head.after(progress); ui.body.prepend(title,intro); ui.body.append(reload,form,success); ui.footer.append(prev,next);
     Object.assign(ui,{progress,bars,number,title,intro,form,pages,groups,inputs,other,otherWrap,reload,success,prev,next});
     ui.close.addEventListener("click",()=>{if(!member?.saving) resetMember();});
     ui.d.addEventListener("cancel",e=>{e.preventDefault();if(!member?.saving)resetMember();});
@@ -133,6 +153,28 @@
     form.addEventListener("submit",e=>{e.preventDefault();advanceMember();});
     reload.addEventListener("click",()=>loadMemberState(member));
     return ui;
+  }
+  function fitNote(input) {
+    // 빈 칸은 긴 placeholder 길이와 관계없이 한 줄로 유지한다.
+    input.style.height = "";
+    if (input.value && input.clientWidth) {
+      const border = input.offsetHeight - input.clientHeight;
+      input.style.height = (input.scrollHeight + border) + "px";
+    }
+  }
+  function positionMemberDialog() {
+    if (!memberUi?.d.open) return;
+    const viewport = window.visualViewport;
+    const height = viewport?.height || window.innerHeight;
+    const dialog = memberUi.d;
+    dialog.style.setProperty("--routine-dialog-center", ((viewport?.offsetTop || 0) + height / 2) + "px");
+    dialog.style.setProperty("--routine-dialog-limit", Math.min(710, height < 480 ? height - 24 : height * .78) + "px");
+  }
+  function syncMemberViewport() {
+    positionMemberDialog();
+    if (member?.step === 2 && !member.done) {
+      for (const input of [memberUi.inputs.pain, memberUi.inputs.avoid]) fitNote(input);
+    }
   }
   function activeMember(state=member) { return state && member===state && state.isCurrent(); }
   function readAnswers() {
@@ -144,7 +186,11 @@
   function setAnswers(a) {
     const ui=memberUi; ui.form.reset(); ui.other.value="";ui.inputs.pain.value="";ui.inputs.avoid.value="";
     if (a) {
-      for(const key of Object.keys(choices))ui.inputs[key].forEach(i=>i.checked=Array.isArray(a[key])?a[key].includes(i.value):a[key]===i.value);
+      for (const key of Object.keys(choices)) {
+        const selections = [].concat(a[key]).map(value =>
+          Object.hasOwn(previousChoices[key] || {}, value) ? previousChoices[key][value] : value);
+        ui.inputs[key].forEach(input => { input.checked = selections.includes(input.value); });
+      }
       ui.other.value=a.purpose_other;ui.inputs.pain.value=a.pain;ui.inputs.avoid.value=a.avoid;
     }
     ui.otherWrap.hidden=!ui.inputs.purposes.find(i=>i.value==="기타").checked;
@@ -154,19 +200,25 @@
     ui.pages.forEach((page,i)=>page.hidden=i!==member.step);
     ui.bars.forEach((bar,i)=>bar.classList.toggle("is-active",i<=member.step));
     ui.number.textContent=`${member.step+1} / 3`;ui.progress.setAttribute("aria-valuenow",String(member.step+1));
-    ui.title.textContent=["나의 운동 경험과 목적","원하는 운동 계획","마지막 확인"][member.step];
+    ui.title.textContent=["나의 운동 경험","원하는 운동 계획","마지막 확인"][member.step];
     ui.intro.hidden=member.step!==0;ui.prev.hidden=member.step===0;
-    ui.next.textContent=member.step===2?"신청서 제출하기":"다음 ›";ui.body.scrollTop=0;
+    ui.next.textContent=member.step===2?"신청서 제출하기":"다음 ›";
+    if (member.step === 2) {
+      fitNote(ui.inputs.pain);
+      fitNote(ui.inputs.avoid);
+    }
+    ui.body.scrollTop = 0;
     if(focus)ui.title.focus({preventScroll:true});
   }
   function validatePage(step) {
-    const a=readAnswers(),keys=step===0?["gender","experience","purposes"]:step===1?["interests","frequency","duration"]:[];
+    const a = readAnswers();
+    const keys = [["gender","experience"], ["purposes","interests"], ["frequency","duration"]][step];
     for(const key of keys) {
       if(!a[key] || Array.isArray(a[key])&&!a[key].length) {
         memberUi.status.textContent=labels[key]+" 항목을 선택해 주세요.";memberUi.inputs[key][0].focus();return false;
       }
     }
-    if(step===0&&a.purposes.includes("기타")&&!a.purpose_other){memberUi.status.textContent="기타 운동 목적을 입력해 주세요.";memberUi.other.focus();return false;}
+    if(step===1&&a.purposes.includes("기타")&&!a.purpose_other){memberUi.status.textContent="기타 운동 목적을 입력해 주세요.";memberUi.other.focus();return false;}
     memberUi.status.textContent="";return true;
   }
   async function loadMemberState(state) {
@@ -175,7 +227,7 @@
     try {
       const result=await rpc(state.client,"member_routine_application_state");
       if(sequence!==memberSequence||!activeMember(state))return;
-      if(!result?.context||result.answers&&!validAnswers(result.answers))throw Error("INVALID_RESPONSE");
+      if(!result?.context||result.answers&&!validAnswers(result.answers, true))throw Error("INVALID_RESPONSE");
       state.context=result.context;state.attempt=null;setAnswers(result.answers);setStep(0);ui.form.hidden=false;ui.status.textContent="";ui.next.disabled=false;
     } catch(error) {
       if(sequence!==memberSequence||!activeMember(state))return;
@@ -192,7 +244,7 @@
     const key=JSON.stringify(answers);
     if(state.attempt?.key!==key)state.attempt={key,id:crypto.randomUUID()};
     const ticket=memberSequence;state.saving=true;ui.next.disabled=true;ui.prev.disabled=true;ui.close.disabled=true;
-    ui.form.querySelectorAll("input").forEach(i=>i.disabled=true);ui.status.textContent="신청서를 제출하고 있어요.";ui.reload.hidden=true;
+    ui.form.querySelectorAll("input, textarea").forEach(i=>i.disabled=true);ui.status.textContent="신청서를 제출하고 있어요.";ui.reload.hidden=true;
     try {
       const result=await rpc(state.client,"submit_member_routine_application",{p_answers:answers,p_submission_id:state.attempt.id,p_context:state.context});
       if(ticket!==memberSequence||!activeMember(state))return;
@@ -209,22 +261,31 @@
       if(ticket===memberSequence&&activeMember(state)){
         state.saving=false;ui.close.disabled=false;ui.prev.disabled=false;
         if(ui.reload.hidden)ui.next.disabled=false;
-        ui.form.querySelectorAll("input").forEach(i=>i.disabled=false);
+        ui.form.querySelectorAll("input, textarea").forEach(i=>i.disabled=false);
       }
     }
   }
   function resetMember() {
     memberSequence++;const state=member;member=null;if(!memberUi)return;
+    window.removeEventListener("resize", syncMemberViewport);
+    window.visualViewport?.removeEventListener("resize", syncMemberViewport);
+    window.visualViewport?.removeEventListener("scroll", positionMemberDialog);
     if(memberUi.d.open)memberUi.d.close();setAnswers(null);memberUi.status.textContent="";memberUi.success.hidden=true;
     memberUi.progress.hidden=false;memberUi.title.hidden=false;memberUi.close.disabled=false;
-    memberUi.form.querySelectorAll("input").forEach(i=>i.disabled=false);memberUi.prev.disabled=false;memberUi.next.disabled=false;
+    memberUi.form.querySelectorAll("input, textarea").forEach(i=>i.disabled=false);memberUi.prev.disabled=false;memberUi.next.disabled=false;
     document.body.classList.remove("routine-application-open");
     if(state?.returnFocus?.isConnected)state.returnFocus.focus({preventScroll:true});
   }
   function openMember(config) {
     resetMember();if(!config.isCurrent())return;
     memberUi??=makeMemberUi();member={...config,step:0,saving:false,done:false,attempt:null};
-    document.body.classList.add("routine-application-open");memberUi.d.showModal();void loadMemberState(member);
+    document.body.classList.add("routine-application-open");
+    memberUi.d.showModal();
+    syncMemberViewport();
+    window.addEventListener("resize", syncMemberViewport);
+    window.visualViewport?.addEventListener("resize", syncMemberViewport);
+    window.visualViewport?.addEventListener("scroll", positionMemberDialog);
+    void loadMemberState(member);
   }
   function makeAdminUi() {
     const ui=makeDialog("신청서 보기","admin-routine-application-dialog");
