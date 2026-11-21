@@ -12,7 +12,7 @@
   const states=new Set(['pending','applied','legacy','not_applicable']);
   // Historical order codes keep their purchased duration even if prices change.
   // New product codes must be added explicitly; names and totals are not evidence of duration.
-  const optionMonths=new Map([['autumn-gym-6m',6],['gym-3m',3],['gym-12m',12]]);
+  const optionMonths=new Map([['gym-3m-special-100k',3],['gym-6m-195k',6],['autumn-gym-6m',6],['gym-3m',3],['gym-12m',12]]);
   function optionLabels(order){
     if(order?.product_code==='one-day-pt')return [];
     const months=optionMonths.get(order?.product_code);

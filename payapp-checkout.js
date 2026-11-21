@@ -5,8 +5,10 @@
   if (!host) return;
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const PRODUCTS = Object.freeze([
-    Object.freeze({ code: 'autumn-gym-6m', name: '가을이벤트) 헬스 6개월', label: '헬스 6개월', amount: 180000, months: 6, compact: false }),
-    Object.freeze({ code: 'gym-3m', name: '헬스 3개월', label: '헬스 3개월', amount: 115000, months: 3, compact: true }),
+    Object.freeze({ code: 'gym-3m-special-100k', name: '헬스 3개월 특가', label: '헬스 3개월 특가', amount: 100000, months: 3, compact: false }),
+    Object.freeze({ code: 'gym-6m-195k', name: '헬스 6개월', label: '헬스 6개월', amount: 195000, months: 6, compact: true }),
+    Object.freeze({ code: 'autumn-gym-6m', name: '가을이벤트) 헬스 6개월', label: '헬스 6개월', amount: 180000, months: 6, retired: true }),
+    Object.freeze({ code: 'gym-3m', name: '헬스 3개월', label: '헬스 3개월', amount: 115000, months: 3, retired: true }),
     Object.freeze({ code: 'gym-12m', name: '헬스 12개월', label: '헬스 12개월', amount: 330000, months: 12, compact: true }),
     Object.freeze({ code: 'one-day-pt', name: '1DAY PT', label: '1DAY PT 1회', amount: 33000, months: 0, cartOnly: true })
   ]);
@@ -23,11 +25,11 @@
     });
   }
   const samePT = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-  host.innerHTML = PRODUCTS.filter(item => !item.cartOnly).map((item, index) => `<article class="payapp-product${item.compact ? ' payapp-product-compact' : ''}" data-product-code="${item.code}"><div><span class="payapp-product-badge">무이자할부 전용</span><h3>${item.name}</h3><p class="payapp-product-price">${item.amount.toLocaleString('ko-KR')}<span>원</span></p></div><button id="${index === 0 ? 'openPayAppCheckout' : 'openPayAppCheckout-' + item.code}" data-payapp-product="${item.code}" type="button" aria-label="${item.name} 결제하기" disabled>결제하기</button></article>`).join('');
+  host.innerHTML = PRODUCTS.filter(item => !item.cartOnly && !item.retired).map((item, index) => `<article class="payapp-product${item.compact ? ' payapp-product-compact' : ''}" data-product-code="${item.code}"><div><span class="payapp-product-badge">무이자할부 전용</span><h3>${item.name}</h3><p class="payapp-product-price">${item.amount.toLocaleString('ko-KR')}<span>원</span></p></div><button id="${index === 0 ? 'openPayAppCheckout' : 'openPayAppCheckout-' + item.code}" data-payapp-product="${item.code}" type="button" aria-label="${item.name} 결제하기" disabled>결제하기</button></article>`).join('');
   const dialog = document.createElement('dialog'); dialog.id = 'payAppCheckoutDialog'; dialog.className = 'payapp-dialog';
   dialog.setAttribute('aria-labelledby', 'payAppCheckoutTitle');
   dialog.innerHTML = `<form id="payAppCheckoutForm">
-  <div class="payapp-dialog-heading"><h2 id="payAppCheckoutTitle">가을이벤트) 헬스 6개월</h2><button id="closePayAppCheckout" type="button">닫기</button></div>
+  <div class="payapp-dialog-heading"><h2 id="payAppCheckoutTitle">헬스 3개월 특가</h2><button id="closePayAppCheckout" type="button">닫기</button></div>
   <section id="payAppSuccess" class="payapp-success" aria-labelledby="payAppSuccessTitle" hidden>
     <svg class="payapp-success-mark" viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#fff3e7"/><path d="m19 32 9 9 18-19" stroke="#f56a00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <h3 id="payAppSuccessTitle" tabindex="-1">결제가 완료됐어요!</h3>
@@ -42,20 +44,20 @@
     <button id="payAppSuccessHistory" class="payapp-success-history" type="button">내 결제 내역 보기</button>
   </section>
   <div class="payapp-dialog-body">
-    <p class="payapp-dialog-price">180,000원</p>
+    <p class="payapp-dialog-price">100,000원</p>
     <div id="payAppPTOffer" class="payapp-pt-offer" hidden><span>정가 <s>66,000원</s></span><strong>50% 할인 · 33,000원</strong></div>
     <div id="payAppPTExercises" hidden><h3 class="payapp-pt-list-title">선택한 운동</h3><ol class="payapp-pt-exercises"></ol></div>
     <fieldset id="payAppOptions" class="payapp-options"><legend>추가 옵션</legend>
-      <label class="payapp-option" id="payAppClothingRow"><input id="payAppClothing" type="checkbox"><span class="payapp-option-copy"><strong>운동복 대여</strong><span>월 5,000원 × 6개월</span></span><strong class="payapp-option-price">+30,000원</strong></label>
-      <label class="payapp-option" id="payAppLockerRow"><input id="payAppLocker" type="checkbox"><span class="payapp-option-copy"><strong>개인락커 이용</strong><span>월 5,000원 × 6개월</span></span><strong class="payapp-option-price">+30,000원</strong></label>
+      <label class="payapp-option" id="payAppClothingRow"><input id="payAppClothing" type="checkbox"><span class="payapp-option-copy"><strong>운동복 대여</strong><span>월 5,000원 × 3개월</span></span><strong class="payapp-option-price">+15,000원</strong></label>
+      <label class="payapp-option" id="payAppLockerRow"><input id="payAppLocker" type="checkbox"><span class="payapp-option-copy"><strong>개인락커 이용</strong><span>월 5,000원 × 3개월</span></span><strong class="payapp-option-price">+15,000원</strong></label>
     </fieldset>
     <p class="payapp-help payapp-holding-note">헬스 홀딩 시 옵션 상품도 함께 홀딩됩니다.</p>
-    <dl class="payapp-breakdown" aria-label="결제 금액 구성"><div><dt>헬스 6개월</dt><dd>180,000원</dd></div><div id="payAppClothingBreakdown" hidden><dt>운동복 대여</dt><dd>30,000원</dd></div><div id="payAppLockerBreakdown" hidden><dt>개인락커 이용</dt><dd>30,000원</dd></div></dl>
+    <dl class="payapp-breakdown" aria-label="결제 금액 구성"><div><dt>헬스 3개월 특가</dt><dd>100,000원</dd></div><div id="payAppClothingBreakdown" hidden><dt>운동복 대여</dt><dd>15,000원</dd></div><div id="payAppLockerBreakdown" hidden><dt>개인락커 이용</dt><dd>15,000원</dd></div></dl>
     <p id="payAppPTNotice" class="payapp-start-notice" hidden><strong>결제 후 센터에서 일정 조율을 위한 문자를 드립니다.</strong></p>
     <div id="payAppPhoneField"><p class="payapp-start-notice" id="payAppStartNotice"><strong>결제하신 회원권의 개시일은 기존 만료일 다음날로 지정됩니다.<br>시작일 변경이 필요하시면 센터로 문의해주세요.</strong></p><label for="payAppBuyerPhone">결제자 휴대전화번호</label><input id="payAppBuyerPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="번호만 입력해주세요." aria-describedby="payAppPhoneHelp payAppStartNotice" maxlength="13" required><p id="payAppPhoneHelp" class="payapp-help">결제 안내에 사용할 번호를 입력해 주세요.</p></div>
     <p id="payAppCheckoutStatus" class="payapp-status" role="status"></p>
   </div>
-  <div class="payapp-dialog-footer"><p class="payapp-total"><span>총 결제 금액</span><strong id="payAppTotal" aria-live="polite">180,000원</strong></p><button id="submitPayAppCheckout" class="payapp-primary" type="submit">180,000원 결제하기</button><button id="checkPayAppCheckout" class="payapp-secondary" type="button" hidden>결제 결과 다시 확인</button></div>
+  <div class="payapp-dialog-footer"><p class="payapp-total"><span>총 결제 금액</span><strong id="payAppTotal" aria-live="polite">100,000원</strong></p><button id="submitPayAppCheckout" class="payapp-primary" type="submit">100,000원 결제하기</button><button id="checkPayAppCheckout" class="payapp-secondary" type="button" hidden>결제 결과 다시 확인</button></div>
 </form>`;
   document.body.append(dialog);
   const byId = id => document.getElementById(id);
